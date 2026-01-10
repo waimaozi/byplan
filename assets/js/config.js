@@ -11,7 +11,7 @@
 // Важно: таблица должна быть доступна без авторизации, иначе GitHub Pages не сможет читать контент.
 
 window.SITE_CONFIG = {
-  SHEET_ID: "PASTE_YOUR_SHEET_ID_HERE",
+  SHEET_ID: "889448694",
 
   // Названия вкладок (tabs) в Google Sheets
   TABS: {
