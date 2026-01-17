@@ -112,6 +112,30 @@ h2 { font-size: var(--h2); line-height: 1.15; }
 .hero-card__title { font-weight: 700; margin-bottom: 10px; }
 .hero-card__note { margin-top: 12px; color: var(--muted); font-size: 0.9rem; }
 
+.hero-media{
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  padding: 14px;
+}
+.hero-media img{
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #f6f6f6;
+}
+.hero-media__caption{
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+.hero-actions{ margin: 16px 0 6px; }
+.link{ color: var(--text); text-decoration: none; border-bottom: 1px solid rgba(0,0,0,.25); padding-bottom: 1px; }
+.link:hover{ border-bottom-color: rgba(0,0,0,.5); }
+
 .cta-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 18px 0 8px; }
 
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px;

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#d9d9d9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="0" y="0" width="1200" height="900" fill="#fafafa"/>
+  <rect x="80" y="80" width="1040" height="740" fill="url(#grid)" stroke="#cfcfcf" stroke-width="2"/>
+  <rect x="160" y="160" width="420" height="260" fill="#ffffff" stroke="#bdbdbd" stroke-width="2"/>
+  <rect x="620" y="160" width="420" height="360" fill="#ffffff" stroke="#bdbdbd" stroke-width="2"/>
+  <rect x="160" y="460" width="420" height="280" fill="#ffffff" stroke="#bdbdbd" stroke-width="2"/>
+  <rect x="620" y="560" width="420" height="180" fill="#ffffff" stroke="#bdbdbd" stroke-width="2"/>
+  <g fill="#111" font-family="Arial, sans-serif">
+    <text x="120" y="70" font-size="26" font-weight="700">Пример плана (замените на ваш)</text>
+    <text x="180" y="205" font-size="20">Комната</text>
+    <text x="650" y="205" font-size="20">Кухня‑гостиная</text>
+    <text x="180" y="505" font-size="20">Санузел / хранение</text>
+    <text x="650" y="605" font-size="20">Спальня / кабинет</text>
+  </g>
+  <g stroke="#111" stroke-width="3" fill="none" opacity="0.85">
+    <path d="M 160 130 L 580 130" />
+    <path d="M 160 130 L 160 140" />
+    <path d="M 580 130 L 580 140" />
+    <text x="330" y="120" fill="#111" font-size="18" font-family="Arial">4200 мм</text>
+
+    <path d="M 110 160 L 110 740" />
+    <path d="M 100 160 L 120 160" />
+    <path d="M 100 740 L 120 740" />
+    <text x="70" y="470" transform="rotate(-90 70 470)" fill="#111" font-size="18" font-family="Arial">5800 мм</text>
+  </g>
+</svg>

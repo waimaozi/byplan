@@ -39,6 +39,19 @@
     });
 
     // Designer photo
+    // Hero media
+    if (kv.hero_image_url) {
+      const img = el("heroImage");
+      if (img) {
+        img.src = kv.hero_image_url;
+        if (kv.hero_image_alt) img.alt = kv.hero_image_alt;
+      }
+    }
+    const heroCap = document.querySelector('[data-kv="hero_image_caption"]');
+    if (heroCap && (!kv.hero_image_caption || String(kv.hero_image_caption).trim()==="")) {
+      heroCap.hidden = true;
+    }
+
     if (kv.designer_photo_url) {
       const img = el("designerPhoto");
       if (img) img.src = kv.designer_photo_url;
