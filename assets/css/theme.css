@@ -64,3 +64,28 @@ h2,h3{ letter-spacing: -0.01em; }
 .brand__name{
   letter-spacing: -0.01em;
 }
+.hero{
+  background-image:
+    linear-gradient(90deg,
+      rgba(237,232,236,.92) 0%,
+      rgba(237,232,236,.75) 55%,
+      rgba(237,232,236,.35) 100%),
+    url("../img/hero-bg.jpg");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+@supports (background-image: image-set(url("a.webp") type("image/webp"))) {
+  .hero{
+    background-image:
+      linear-gradient(90deg,
+        rgba(237,232,236,.92) 0%,
+        rgba(237,232,236,.75) 55%,
+        rgba(237,232,236,.35) 100%),
+      image-set(
+        url("../img/hero-bg.webp") type("image/webp"),
+        url("../img/hero-bg.jpg") type("image/jpeg")
+      );
+  }
+}
