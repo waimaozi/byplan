@@ -1,8 +1,9 @@
-/* Put PNGs into: assets/img/layers/
-   - overlay_highlight.png
-   - overlay_haze.png
-   - overlay_vignette.png
-   - overlay_grain.png
+/* assets/css/layers.css
+   Требуемая структура:
+   /assets/img/layers/overlay_highlight.png
+   /assets/img/layers/overlay_haze.png
+   /assets/img/layers/overlay_vignette.png
+   /assets/img/layers/overlay_grain.png
 */
 
 .hero{
@@ -11,22 +12,35 @@
   border-radius: var(--radius);
 }
 
+/* Слои "объёма" поверх фоновой картинки hero */
 .hero::before{
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
 
+  /* ВАЖНО: путь относительный от assets/css/ => ../img/... */
   background-image:
-    url("assets/img/layers/overlay_highlight.png"),
-    url("assets/img/layers/overlay_haze.png"),
-    url("assets/img/layers/overlay_vignette.png"),
-    url("assets/img/layers/overlay_grain.png");
+    url("../img/layers/overlay_highlight.png"),
+    url("../img/layers/overlay_haze.png"),
+    url("../img/layers/overlay_vignette.png"),
+    url("../img/layers/overlay_grain.png");
 
   background-size: cover, cover, cover, cover;
   background-position: center, center, center, center;
   background-repeat: no-repeat;
+
+  /* Можно подкрутить "силу" эффекта */
   opacity: 1;
+
+  /* Если захочешь усилить/смягчить – можно поиграть blend-mode:
+     normal (по умолчанию) / overlay / soft-light
+  */
+  mix-blend-mode: normal;
 }
 
-.hero > *{ position: relative; z-index: 1; }
+/* Контент hero поверх слоёв */
+.hero > *{
+  position: relative;
+  z-index: 1;
+}
