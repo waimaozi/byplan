@@ -1,0 +1,32 @@
+/* Put PNGs into: assets/img/layers/
+   - overlay_highlight.png
+   - overlay_haze.png
+   - overlay_vignette.png
+   - overlay_grain.png
+*/
+
+.hero{
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+}
+
+.hero::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  background-image:
+    url("assets/img/layers/overlay_highlight.png"),
+    url("assets/img/layers/overlay_haze.png"),
+    url("assets/img/layers/overlay_vignette.png"),
+    url("assets/img/layers/overlay_grain.png");
+
+  background-size: cover, cover, cover, cover;
+  background-position: center, center, center, center;
+  background-repeat: no-repeat;
+  opacity: 1;
+}
+
+.hero > *{ position: relative; z-index: 1; }
