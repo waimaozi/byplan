@@ -23,19 +23,30 @@
   }
 
   function applyKV(kv) {
+    // Text content from KV.
+    // IMPORTANT: if the key exists but the value is empty, we intentionally hide the element.
+    // This lets you "delete" default fallback text by clearing the cell in Google Sheets.
     document.querySelectorAll("[data-kv]").forEach(node => {
       const key = node.getAttribute("data-kv");
-      if (key && kv[key] !== undefined && kv[key] !== "") {
-        node.textContent = kv[key];
-      }
+      if (!key || kv[key] === undefined) return;
+      const v = String(kv[key] ?? "");
+      node.textContent = v;
+      node.hidden = (v.trim() === "");
     });
 
+    // Links from KV.
+    // If the key exists but the value is empty, we hide the link.
     document.querySelectorAll("[data-kv-link]").forEach(node => {
       const key = node.getAttribute("data-kv-link");
-      const href = kv[key];
-      if (key && href) {
-        node.setAttribute("href", href);
+      if (!key || kv[key] === undefined) return;
+      const href = String(kv[key] ?? "").trim();
+      if (!href) {
+        node.removeAttribute("href");
+        node.hidden = true;
+        return;
       }
+      node.hidden = false;
+      node.setAttribute("href", href);
     });
 
     // Designer photo
@@ -57,11 +68,11 @@
       if (img) img.src = kv.designer_photo_url;
     }
 
-    // Meta tags
-    if (kv.site_title) document.title = kv.site_title;
-    if (kv.meta_description) {
+    // Meta tags (allow clearing)
+    if (kv.site_title !== undefined) document.title = String(kv.site_title ?? "");
+    if (kv.meta_description !== undefined) {
       const meta = document.querySelector('meta[name="description"]');
-      if (meta) meta.setAttribute("content", kv.meta_description);
+      if (meta) meta.setAttribute("content", String(kv.meta_description ?? ""));
     }
     if (kv.og_image) {
       const og = document.querySelector('meta[property="og:image"]');

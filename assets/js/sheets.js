@@ -11,6 +11,8 @@
 
 (function () {
   const cache = new Map();
+  // Each page load gets its own cache-buster so Google/Browser caches can't bite you during editing.
+  const runId = Date.now().toString(36);
 
   function stripGvizWrapper(text) {
     // Typical response: "/*O_o*/\ngoogle.visualization.Query.setResponse({...});"
@@ -40,7 +42,7 @@
     const key = `${sheetId}:${tabName}`;
     if (cache.has(key)) return cache.get(key);
 
-    const url = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tabName)}&headers=1`;
+    const url = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tabName)}&headers=1&cb=${runId}`;
 
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) {
