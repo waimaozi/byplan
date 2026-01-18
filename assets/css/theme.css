@@ -1,0 +1,66 @@
+:root{
+  --bg: #EDE8EC;
+  --bg-alt: rgba(255,255,255,.35);
+  --card: rgba(255,255,255,.35);
+  --border: #DBD6DA;
+
+  --text: #1C1B1B;
+  --muted: rgba(28,27,27,.70);
+
+  --accent: #1C1B1B;     /* чёрная кнопка */
+  --accent-2: #6E4C3D;   /* коричневый бренда */
+
+  --radius: 22px;
+  --shadow: 0 24px 60px rgba(0,0,0,.18);
+}
+
+body{
+  font-family: "Manrope", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+h1{ font-weight: 800; letter-spacing: -0.02em; }
+h2,h3{ letter-spacing: -0.01em; }
+
+/* “стеклянность” как в макете */
+.card, .panel, .box, .section-card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* Пиллы/бейджи */
+.badge, .pill, .chip, .tag{
+  background: rgba(255,255,255,.30);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* Кнопки: делаем “капсулами” */
+.btn, button, .button{
+  border-radius: 999px !important;
+  font-weight: 600;
+}
+
+/* Попытайся попасть в классы из твоего шаблона */
+.btn-primary, .btn--primary{
+  background: var(--accent) !important;
+  color: #fff !important;
+  border: 1px solid transparent !important;
+}
+
+.btn-secondary, .btn--secondary{
+  background: rgba(255,255,255,.30) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+}
+
+/* Бренд-акцент (если хочешь) */
+.brand__name{
+  letter-spacing: -0.01em;
+}
