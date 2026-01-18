@@ -13,14 +13,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet">
 
 <!-- Твой основной CSS -->
-<link rel="stylesheet" href="assets/css/styles.css?v=2">
+<link rel="stylesheet" href="assets/css/styles.css?v=3">
 
 <!-- Тема (поверх основного) -->
-<link rel="stylesheet" href="assets/css/theme.css?v=1">
-  <link rel="stylesheet" href="assets/css/layers.css?v=2">
-
-
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
 
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Планировка квартиры за 3 дня" />
@@ -57,7 +53,9 @@
 
   <main id="main">
     <!-- HERO -->
+    <div class="hero-stage">
     <section class="section hero" id="top">
+      <div class="hero-logo" data-kv="hero_logo_text">byplan</div>
       <div class="container hero-grid">
         <div>
           <div class="badge" data-kv="hero_badge">Планировка квартиры онлайн</div>
@@ -65,7 +63,8 @@
           <p class="lead" data-kv="hero_subtitle">2 концепции → финальный доведённый вариант. В конце — комплект чертежей (PDF) для ремонта.</p>
 
           <div class="hero-actions">
-            <a class="link" data-kv-link="secondary_cta_url" href="#pricing" data-kv="secondary_cta_label">Смотреть тарифы</a>
+            <a class="btn btn--primary" data-kv-link="hero_cta_url" href="#contact" data-kv="hero_cta_label">Заполнить анкету</a>
+            <a class="btn btn--ghost" data-kv-link="secondary_cta_url" href="#pricing" data-kv="secondary_cta_label">Смотреть тарифы</a>
           </div>
 
           <div class="trust-mini" id="trustMini">
@@ -79,6 +78,7 @@
         </figure>
       </div>
     </section>
+    </div>
 
     <!-- WHO IT'S FOR -->
     <section class="section" id="for">
