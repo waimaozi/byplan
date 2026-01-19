@@ -1,0 +1,57 @@
+/* HERO — layered assets (drop-in, v3 based on your reference banner)
+   Include AFTER your main styles.css:
+   <link rel="stylesheet" href="assets/css/hero.css?v=3">
+*/
+
+.hero{
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius, 26px);
+
+  background-image: url("../img/hero/hero-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+@supports (background-image: image-set(url("a.webp") type("image/webp"))) {
+  .hero{
+    background-image: image-set(
+      url("../img/hero/hero-bg.webp") type("image/webp"),
+      url("../img/hero/hero-bg.jpg") type("image/jpeg")
+    );
+  }
+}
+
+/* Optional overlay stack (very subtle) */
+.hero::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+
+  /* First = top-most */
+  background-image:
+    url("../img/hero/layers/03_grain.png"),
+    url("../img/hero/layers/02_vignette.png"),
+    url("../img/hero/layers/01_readability_left.png");
+
+  background-size: cover, cover, cover;
+  background-position: center, center, center;
+  background-repeat: no-repeat;
+}
+
+.hero > *{ position: relative; z-index: 1; }
+
+/* Logo as separate entity (file-based) */
+.hero-logo{
+  position:absolute;
+  top: 26px;
+  right: 34px;
+  width: min(260px, 28vw);
+  height: auto;
+  z-index: 2;
+  user-select: none;
+  -webkit-user-drag: none;
+  filter: drop-shadow(0 1px 0 rgba(255,255,255,.15));
+}
