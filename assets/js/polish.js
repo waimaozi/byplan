@@ -390,72 +390,50 @@
     }
   };
 
-  const cleanupEmpty = () => {
-    // Hide empty text nodes for data-kv
-    qsa("[data-kv]").forEach(el => {
-      // only if key exists; app.js might fill later
-      const v = (el.textContent || "").trim();
-      if (v === ""){
-        el.hidden = true;
-      } else {
-        el.hidden = false;
-      }
-    });
+  // --- No auto-hide (we'll remove/adjust sections manually closer to launch) ---
+// Some blocks are filled asynchronously from Google Sheets. If any container
+// becomes hidden due to older cached scripts, we force it visible.
+const forceUnhide = () => {
+  const ids = [
+    "deliverablesList","stepsList",
+    "painsGrid","pricingGrid","casesGrid","reviewsGrid","faqList",
+    "trustMini","trustList","statsGrid","mistakesList"
+  ];
 
-    // Hide placeholder links
-    qsa("a[data-kv-link]").forEach(a => {
-      const href = (a.getAttribute("href") || "").trim();
-      const isPlaceholder = !href || href === "#" || href.endsWith("#") || href.startsWith("javascript:");
-      a.hidden = isPlaceholder;
-      if (isPlaceholder) a.removeAttribute("href");
-    });
-
-    // Remove dot separators when adjacent link is hidden
-    qsa(".smallprint").forEach(box => {
-      const dot = qs(".dot", box);
-      if (!dot) return;
-      const links = qsa("a", box);
-      const visibleLinks = links.filter(l => !l.hidden);
-      dot.hidden = visibleLinks.length < 2;
-    });
-
- const maybeHideIfEmpty = (id) => {
-  const el = document.getElementById(id);
-  if (!el) return;
-
-  // если появился хоть один реальный элемент — показываем
-  const hasReal = Array.from(el.children).some(x => !x.classList.contains("skeleton"));
-  el.hidden = !hasReal; // <-- ключевая строка
+  ids.forEach(id => {
+    const el = doc.getElementById(id);
+    if (!el) return;
+    el.hidden = false;
+    el.removeAttribute("hidden");
+    el.style.display = ""; // don't override layout, just remove inline locks
+  });
 };
 
-    ["trustMini","deliverablesList","stepsList","trustList","statsGrid","mistakesList","casesGrid","reviewsGrid","faqList"]
-      .forEach(maybeHideIfEmpty);
-  };
+const setupUnhideObservers = () => {
+  forceUnhide();
+  setTimeout(forceUnhide, 350);
+  setTimeout(forceUnhide, 1200);
 
-  const setupCleanupObservers = () => {
-    // Run cleanup now + a few times later (when sheets arrive)
-    cleanupEmpty();
-    setTimeout(cleanupEmpty, 400);
-    setTimeout(cleanupEmpty, 1200);
+  const roots = [
+    "deliverablesList","stepsList",
+    "painsGrid","pricingGrid","casesGrid","reviewsGrid","faqList",
+    "trustMini","trustList","statsGrid","mistakesList"
+  ].map(id => doc.getElementById(id)).filter(Boolean);
 
-    const roots = ["trustMini","deliverablesList","stepsList","trustList","statsGrid","mistakesList","casesGrid","reviewsGrid","faqList","pricingGrid","painsGrid"]
-      .map(id => doc.getElementById(id))
-      .filter(Boolean);
+  const mo = new MutationObserver(() => forceUnhide());
+  roots.forEach(r => mo.observe(r, { childList: true, subtree: true }));
+};
 
-    const mo = new MutationObserver(() => cleanupEmpty());
-    roots.forEach(r => mo.observe(r, { childList: true, subtree: true }));
-  };
-
-  const init = () => {
+const init = () => {
     setupNavToggle();
     setupHeaderScrollState();
     setupScrollSpy();
     setupReveal();
     setupSkeletons();
+    setupUnhideObservers();
     setupFAQ();
     setupCasesLightbox();
     setupFloatingCTA();
-    setupCleanupObservers();
   };
 
   if (doc.readyState !== "loading") init();
