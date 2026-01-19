@@ -470,3 +470,11 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
 html.js #for .card.reveal:nth-child(4){ transition-delay: 180ms; }
 html.js #for .card.reveal:nth-child(5){ transition-delay: 240ms; }
 html.js #for .card.reveal:nth-child(6){ transition-delay: 300ms; }
+/* Уменьшаем отступ между заголовком шага и текстом */
+#stepsList li strong{
+  margin-bottom: 6px !important;   /* было больше */
+}
+
+#stepsList li p{
+  margin-top: 0 !important;        /* на всякий */
+}
