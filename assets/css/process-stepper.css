@@ -1,0 +1,191 @@
+/* ============================================================
+   byplan — process-stepper.css
+   Converts "Как это происходит" into a horizontal path/stepper.
+   Works with JS in assets/js/process-stepper.js
+
+   How it works:
+   - JS reads #stepsList (li -> strong + p) and replaces it with .process-stepper
+   - This CSS styles the stepper: horizontal rail + detail panel
+   ============================================================ */
+
+:root{
+  --ease-out: cubic-bezier(.2,.8,.2,1);
+}
+
+/* You can tweak slide background here (keep it light for alternation) */
+#process{
+  background:
+    radial-gradient(1100px 520px at 18% -10%, rgba(255,255,255,.92), rgba(255,255,255,0) 62%),
+    radial-gradient(900px 520px at 80% 10%, rgba(255,255,255,.55), rgba(255,255,255,0) 64%),
+    linear-gradient(180deg, #F4F0F3 0%, #EAE4EA 100%);
+}
+
+/* If you keep using "section--alt" for other sections, no conflict */
+#process .container{
+  position: relative;
+}
+
+/* ----- Stepper ----- */
+.process-stepper{
+  --progress: 0;               /* 0..1 set by JS */
+  --rail-pad: 18px;
+  margin-top: 18px;
+}
+
+/* Rail with dots + labels */
+.process-stepper__rail{
+  position: relative;
+  display: flex;
+  gap: 18px;
+  padding: 6px var(--rail-pad) 0;
+  align-items: flex-start;
+}
+
+/* Track line */
+.process-stepper__rail::before{
+  content:"";
+  position: absolute;
+  left: var(--rail-pad);
+  right: var(--rail-pad);
+  top: 22px;
+  height: 2px;
+  border-radius: 99px;
+  background: rgba(0,0,0,.10);
+}
+
+/* Fill line */
+.process-stepper__rail::after{
+  content:"";
+  position: absolute;
+  left: var(--rail-pad);
+  right: var(--rail-pad);
+  top: 22px;
+  height: 2px;
+  border-radius: 99px;
+  background: rgba(0,0,0,.22);
+  transform-origin: left;
+  transform: scaleX(var(--progress));
+  transition: transform 340ms var(--ease-out);
+}
+
+.process-stepper__tab{
+  flex: 1 1 0;
+  min-width: 120px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  text-align: center;
+  color: inherit;
+}
+
+.process-stepper__dot{
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 10px;
+  font-weight: 900;
+  font-size: 0.85rem;
+  background: rgba(255,255,255,.65);
+  border: 1px solid rgba(0,0,0,.12);
+  box-shadow: 0 12px 35px rgba(0,0,0,.10);
+  transition:
+    transform 200ms var(--ease-out),
+    background 200ms var(--ease-out),
+    border-color 200ms var(--ease-out);
+}
+
+.process-stepper__label{
+  display: block;
+  font-weight: 850;
+  font-size: .92rem;
+  letter-spacing: -0.01em;
+  color: rgba(0,0,0,.82);
+  line-height: 1.1;
+  /* clamp to 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: calc(2 * 1.1em);
+}
+
+.process-stepper__tab:focus-visible .process-stepper__dot{
+  outline: 3px solid rgba(0,0,0,.12);
+  outline-offset: 3px;
+}
+
+/* Done / Active states */
+.process-stepper__tab.is-done .process-stepper__dot{
+  background: rgba(0,0,0,.08);
+}
+.process-stepper__tab.is-active .process-stepper__dot{
+  background: rgba(0,0,0,.12);
+  border-color: rgba(0,0,0,.20);
+  transform: translateY(-1px) scale(1.03);
+}
+.process-stepper__tab.is-active .process-stepper__label{
+  color: rgba(0,0,0,.92);
+}
+
+/* Detail panel (one step at a time) */
+.process-stepper__panel{
+  margin-top: 16px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.58));
+  border: 1px solid rgba(255,255,255,.55);
+  box-shadow: 0 22px 70px rgba(0,0,0,.12);
+  padding: 18px 18px 16px;
+  min-height: 132px;
+}
+
+.process-stepper__kicker{
+  font-size: .88rem;
+  color: rgba(0,0,0,.55);
+  margin-bottom: 8px;
+}
+
+.process-stepper__title{
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  margin: 0 0 8px;
+}
+
+.process-stepper__text{
+  margin: 0;
+  color: rgba(0,0,0,.66);
+  line-height: 1.45;
+}
+
+/* Panel animation */
+.process-stepper__panel.is-animate{
+  animation: byplan-panel-in 240ms var(--ease-out);
+}
+
+@keyframes byplan-panel-in{
+  from{ opacity: 0; transform: translateY(6px); }
+  to{ opacity: 1; transform: none; }
+}
+
+/* Mobile: horizontal swipe */
+@media (max-width: 980px){
+  .process-stepper__rail{
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 14px;
+    padding-bottom: 10px;
+  }
+  .process-stepper__tab{
+    flex: 0 0 230px;
+    scroll-snap-align: start;
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .process-stepper__rail::after{ transition: none; }
+  .process-stepper__panel.is-animate{ animation: none; }
+}
