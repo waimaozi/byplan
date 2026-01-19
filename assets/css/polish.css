@@ -1,0 +1,235 @@
+/* ============================================================
+   BYPLAN — polish.css
+   Visual depth, micro-interactions, scroll-reveal, lightbox, nav polish
+   Drop-in file: include AFTER your main styles.css (and hero.css)
+   ============================================================ */
+
+:root{
+  /* Elevation / surfaces */
+  --surface-paper: rgba(255,255,255,.62);
+  --surface-paper-strong: rgba(255,255,255,.74);
+  --surface-glass: rgba(255,255,255,.28);
+
+  --stroke-soft: rgba(0,0,0,.08);
+  --stroke: rgba(0,0,0,.12);
+
+  --shadow-1: 0 14px 38px rgba(0,0,0,.14);
+  --shadow-2: 0 22px 58px rgba(0,0,0,.18);
+  --shadow-3: 0 34px 95px rgba(0,0,0,.35);
+
+  --ease-out: cubic-bezier(.2,.8,.2,1);
+  --dur-1: 160ms;
+  --dur-2: 220ms;
+
+  /* If your base styles don't define these, we provide sane defaults */
+  --radius: var(--radius, 22px);
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  html{ scroll-behavior: auto !important; }
+  *, *::before, *::after{
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Better anchor jumps under sticky header */
+main [id]{ scroll-margin-top: 92px; }
+
+/* =============================
+   Buttons — micro interactions
+   ============================= */
+.btn,
+.nav__cta{
+  transition:
+    transform var(--dur-1) var(--ease-out),
+    box-shadow var(--dur-1) var(--ease-out),
+    background-color var(--dur-1) var(--ease-out),
+    border-color var(--dur-1) var(--ease-out),
+    opacity var(--dur-1) var(--ease-out);
+}
+
+@media (hover:hover) and (pointer:fine){
+  .btn:hover{ transform: translateY(-1px); box-shadow: var(--shadow-1); }
+  .btn:active{ transform: translateY(0); box-shadow: none; }
+
+  .btn--primary:hover{ box-shadow: var(--shadow-2); }
+}
+
+/* =============================
+   Header — premium sticky state
+   ============================= */
+.site-header{
+  transition: background-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
+}
+.site-header.is-scrolled{
+  background: rgba(255,255,255,.92);
+  box-shadow: 0 18px 50px rgba(0,0,0,.12);
+  border-bottom-color: rgba(0,0,0,.10);
+}
+
+/* Active nav link (scroll-spy) */
+.nav__menu a.is-active{
+  color: rgba(0,0,0,.95);
+  text-decoration: none;
+  position: relative;
+}
+.nav__menu a.is-active::after{
+  content:"";
+  position:absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 6px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.55);
+}
+
+/* =============================
+   Unified “surface” system
+   ============================= */
+.card,
+.price-card,
+.case-card,
+.review,
+.faq-item,
+.contact-card,
+.contact-form-card,
+.form-strip,
+.about-card,
+.stat,
+.doc-sample,
+.hero-card{
+  background: var(--surface-paper);
+  border: 1px solid var(--stroke-soft);
+  box-shadow: var(--shadow-1);
+  border-radius: var(--radius);
+
+  /* Subtle inner highlight like “paper” */
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.36),
+    var(--shadow-1);
+}
+
+/* Featured pricing a bit higher */
+.price-card--featured{
+  background: var(--surface-paper-strong);
+  border-color: rgba(0,0,0,.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.42),
+    var(--shadow-2);
+}
+
+@media (hover:hover) and (pointer:fine){
+  .card:hover,
+  .price-card:hover,
+  .case-card:hover,
+  .review:hover,
+  .contact-card:hover{
+    transform: translateY(-3px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.42),
+      var(--shadow-2);
+  }
+}
+
+/* Case images — slightly more premium */
+.case-card__img{
+  overflow: hidden;
+}
+.case-card__img img{
+  transform: scale(1.02);
+  transition: transform var(--dur-2) var(--ease-out), filter var(--dur-2) var(--ease-out);
+}
+@media (hover:hover) and (pointer:fine){
+  .case-card:hover .case-card__img img{ transform: scale(1.06); filter: saturate(1.02) contrast(1.02); }
+}
+
+/* =============================
+   FAQ — animated accordion (JS adds .is-open and data-anim)
+   ============================= */
+.faq-q{
+  border-radius: inherit;
+}
+.faq-icon{
+  display: inline-block;
+  transition: transform var(--dur-2) var(--ease-out), opacity var(--dur-2) var(--ease-out);
+  opacity: .7;
+}
+.faq-item.is-open .faq-icon{
+  transform: rotate(45deg);
+  opacity: .95;
+}
+
+.faq-a[data-anim="1"]{
+  height: 0;
+  overflow: hidden;
+  transition: height var(--dur-2) var(--ease-out);
+  padding-top: 0;
+}
+
+/* =============================
+   Scroll reveal (JS adds .reveal + .is-inview)
+   ============================= */
+.reveal{
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity var(--dur-2) var(--ease-out),
+    transform var(--dur-2) var(--ease-out);
+  will-change: opacity, transform;
+}
+.reveal.is-inview{ opacity: 1; transform: translateY(0); }
+
+/* =============================
+   Lightbox for case images
+   ============================= */
+.lightbox{
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(0,0,0,.58);
+  z-index: 2500;
+}
+.lightbox.is-open{ display: flex; }
+.lightbox__panel{
+  width: min(1040px, 100%);
+  border-radius: 22px;
+  background: rgba(255,255,255,.92);
+  box-shadow: var(--shadow-3);
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.22);
+}
+.lightbox__top{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+.lightbox__title{
+  font-weight: 750;
+  color: rgba(0,0,0,.86);
+  margin-right: 10px;
+}
+.lightbox__close{
+  border: 1px solid rgba(0,0,0,.12);
+  background: rgba(255,255,255,.75);
+  border-radius: 12px;
+  height: 38px;
+  width: 42px;
+}
+.lightbox__img{
+  background: #f2f2f2;
+}
+.lightbox__img img{
+  width: 100%;
+  height: auto;
+  display: block;
+}
