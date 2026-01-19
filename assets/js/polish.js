@@ -1,328 +1,462 @@
 /* ============================================================
-   BYPLAN — polish.js
-   Adds: header scrolled state, scroll-spy, reveal-on-scroll,
-         FAQ smooth accordion, case image lightbox,
-         cleanup of empty placeholders.
-
-   Drop-in: include AFTER assets/js/app.js
+   byplan — polish.js (v2)
+   Purpose:
+   - nav toggle (mobile), header scroll state
+   - scroll-spy active menu item
+   - reveal animations (sections + dynamic content)
+   - skeleton placeholders while Google Sheets loads
+   - FAQ smooth accordion
+   - Cases lightbox modal
+   - floating CTA
+   - cleanup: hide empty kv blocks + remove useless separators/links
    ============================================================ */
 
-(function(){
-  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+(() => {
+  const doc = document;
+  const html = doc.documentElement;
+  html.classList.add("js");
 
-  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
-  const $ = (sel, root=document) => root.querySelector(sel);
+  const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
 
-  function rafThrottle(fn){
+  const qs = (sel, root = doc) => root.querySelector(sel);
+  const qsa = (sel, root = doc) => Array.from(root.querySelectorAll(sel));
+
+  const rafThrottle = (fn) => {
     let ticking = false;
-    return function(){
+    return (...args) => {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
         ticking = false;
-        fn();
+        fn(...args);
       });
     };
-  }
+  };
 
-  function setupHeader(){
-    const header = document.querySelector('.site-header');
+  const safeIdFromHash = (hash) => {
+    try{
+      return decodeURIComponent(hash).replace(/^#/, "");
+    }catch(e){
+      return (hash || "").replace(/^#/, "");
+    }
+  };
+
+  const closeMobileMenu = () => {
+    const menu = qs("#navMenu");
+    const toggle = qs(".nav__toggle");
+    if (!menu || !toggle) return;
+    menu.classList.remove("is-open");
+    toggle.setAttribute("aria-expanded", "false");
+  };
+
+  const setupNavToggle = () => {
+    const menu = qs("#navMenu");
+    const toggle = qs(".nav__toggle");
+    if (!menu || !toggle) return;
+
+    // Idempotency
+    if (toggle.dataset.bound === "1") return;
+    toggle.dataset.bound = "1";
+
+    toggle.addEventListener("click", () => {
+      const isOpen = menu.classList.toggle("is-open");
+      toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+
+    // Close on link click (mobile)
+    menu.addEventListener("click", (e) => {
+      const a = e.target.closest("a[href^='#']");
+      if (!a) return;
+      closeMobileMenu();
+    });
+
+    // Close when clicking outside
+    doc.addEventListener("click", (e) => {
+      if (!menu.classList.contains("is-open")) return;
+      const inside = e.target.closest(".nav");
+      if (!inside) closeMobileMenu();
+    });
+
+    // Close on ESC
+    doc.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeMobileMenu();
+    });
+  };
+
+  const setupHeaderScrollState = () => {
+    const header = qs(".site-header");
     if (!header) return;
-    const update = () => {
-      header.classList.toggle('is-scrolled', window.scrollY > 12);
-    };
-    update();
-    window.addEventListener('scroll', rafThrottle(update), { passive: true });
-  }
 
-  function setupScrollSpy(){
-    const menu = document.querySelector('.nav__menu');
-    if (!menu) return;
+    const onScroll = rafThrottle(() => {
+      header.classList.toggle("is-scrolled", window.scrollY > 8);
+    });
 
-    const links = $$('.nav__menu a[href^="#"]', menu)
-      .filter(a => (a.getAttribute('href') || '').length > 1);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  };
 
-    if (!links.length) return;
+  const setupScrollSpy = () => {
+    const links = qsa(".nav__menu a[href^='#']").filter(a => a.getAttribute("href") !== "#");
+    if (links.length === 0) return;
 
-    const pairs = links
-      .map(a => {
-        const id = a.getAttribute('href').slice(1);
-        const sec = document.getElementById(id);
-        return sec ? { a, sec } : null;
-      })
-      .filter(Boolean);
+    const pairs = [];
+    for (const a of links){
+      const id = safeIdFromHash(a.getAttribute("href"));
+      const section = id ? doc.getElementById(id) : null;
+      if (section) pairs.push([section, a]);
+    }
+    if (pairs.length === 0) return;
 
-    if (!pairs.length) return;
-
-    const setActive = (active) => {
-      links.forEach(l => l.classList.toggle('is-active', l === active));
+    let active = null;
+    const setActive = (a) => {
+      if (active === a) return;
+      for (const [, link] of pairs) link.classList.toggle("is-active", link === a);
+      active = a;
     };
 
     const io = new IntersectionObserver((entries) => {
       const visible = entries
         .filter(e => e.isIntersecting)
-        .sort((a,b) => (b.intersectionRatio || 0) - (a.intersectionRatio || 0));
-
-      if (!visible.length) return;
+        .sort((a, b) => (b.intersectionRatio - a.intersectionRatio));
+      if (visible.length === 0) return;
       const top = visible[0].target;
-      const pair = pairs.find(p => p.sec === top);
-      if (pair) setActive(pair.a);
+      const match = pairs.find(([sec]) => sec === top);
+      if (match) setActive(match[1]);
     }, {
       root: null,
-      threshold: [0.06, 0.14, 0.22, 0.33],
-      rootMargin: '-30% 0px -60% 0px'
+      rootMargin: "-18% 0px -70% 0px",
+      threshold: [0.01, 0.12, 0.25, 0.45]
     });
 
-    pairs.forEach(p => io.observe(p.sec));
+    pairs.forEach(([sec]) => io.observe(sec));
 
-    // initial highlight for current hash
-    try {
-      const hash = (location.hash || '').replace('#','');
-      if (hash) {
-        const active = pairs.find(p => p.sec.id === hash);
-        if (active) setActive(active.a);
+    // Initial
+    setTimeout(() => {
+      const hash = location.hash;
+      if (hash){
+        const id = safeIdFromHash(hash);
+        const link = links.find(a => safeIdFromHash(a.getAttribute("href")) === id);
+        if (link) setActive(link);
+      } else {
+        setActive(pairs[0][1]);
       }
-    } catch(_){}
-  }
+    }, 50);
+  };
 
-  function setupReveal(){
-    if (prefersReduced) return;
-    const sections = $$('main .section')
-      .filter(s => !s.classList.contains('hero'));
+  const setupReveal = () => {
+    if (prefersReducedMotion) return;
 
-    sections.forEach(s => s.classList.add('reveal'));
+    const makeReveal = (el) => {
+      if (!el || el.classList.contains("reveal")) return;
+      el.classList.add("reveal");
+    };
 
+    // Sections (except hero)
+    qsa("section.section").forEach(sec => {
+      if (sec.classList.contains("hero")) return;
+      makeReveal(sec);
+    });
+
+    // Dynamic cards will get reveal class later via mutation observer
     const io = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add('is-inview');
-          io.unobserve(e.target);
+      for (const e of entries){
+        if (e.isIntersecting) e.target.classList.add("is-visible");
+      }
+    }, { rootMargin: "0px 0px -10% 0px", threshold: 0.12 });
+
+    qsa(".reveal").forEach(el => io.observe(el));
+
+    // Watch for new cards inserted from Sheets
+    const watchRoots = ["painsGrid","pricingGrid","casesGrid","reviewsGrid","faqList","trustList","statsGrid"]
+      .map(id => doc.getElementById(id))
+      .filter(Boolean);
+
+    const mo = new MutationObserver((mutations) => {
+      const added = [];
+      for (const m of mutations){
+        for (const n of m.addedNodes){
+          if (!(n instanceof HTMLElement)) continue;
+          // try common card types
+          if (n.matches?.(".card,.price-card,.case-card,.review,.faq-item,.stat")) added.push(n);
+          qsa(".card,.price-card,.case-card,.review,.faq-item,.stat", n).forEach(x => added.push(x));
         }
-      });
-    }, {
-      threshold: 0.12,
-      rootMargin: '0px 0px -10% 0px'
-    });
-
-    sections.forEach(s => io.observe(s));
-  }
-
-  function pruneEmpty(){
-    // Hide dead links that remain as "#" placeholders
-    $$('a[data-kv-link]').forEach(a => {
-      const href = (a.getAttribute('href') || '').trim();
-      // allow in-page anchors ("#contact")
-      if (href === '' || href === '#' ) {
-        a.style.display = 'none';
-        a.setAttribute('aria-hidden','true');
+      }
+      for (const el of added){
+        makeReveal(el);
+        io.observe(el);
       }
     });
 
-    // Hide elements with empty text (common for data-kv placeholders)
-    $$('[data-kv]').forEach(n => {
-      const t = (n.textContent || '').replace(/\s+/g,' ').trim();
-      if (!t) {
-        n.style.display = 'none';
-        n.setAttribute('aria-hidden','true');
-      }
+    watchRoots.forEach(root => mo.observe(root, { childList: true, subtree: true }));
+  };
+
+  const addSkeletons = (grid, count, variant) => {
+    if (!grid) return;
+    if (grid.dataset.skeleton === "1") return;
+    if (grid.childElementCount > 0) return;
+
+    grid.dataset.skeleton = "1";
+    grid.classList.add("is-loading");
+
+    for (let i=0; i<count; i++){
+      const d = doc.createElement("div");
+      d.className = `skeleton skeleton-${variant}`;
+      d.setAttribute("aria-hidden", "true");
+      grid.appendChild(d);
+    }
+  };
+
+  const removeSkeletonsIfReady = (grid) => {
+    if (!grid) return;
+    const kids = Array.from(grid.children);
+    const hasReal = kids.some(el => !el.classList.contains("skeleton"));
+    if (!hasReal) return;
+
+    kids.filter(el => el.classList.contains("skeleton")).forEach(el => el.remove());
+    grid.classList.remove("is-loading");
+  };
+
+  const setupSkeletons = () => {
+    addSkeletons(qs("#painsGrid"), 6, "card");
+    addSkeletons(qs("#pricingGrid"), 4, "price");
+    addSkeletons(qs("#casesGrid"), 6, "case");
+    addSkeletons(qs("#reviewsGrid"), 3, "review");
+    addSkeletons(qs("#faqList"), 6, "faq");
+
+    const grids = ["painsGrid","pricingGrid","casesGrid","reviewsGrid","faqList"]
+      .map(id => doc.getElementById(id))
+      .filter(Boolean);
+
+    const mo = new MutationObserver(() => {
+      grids.forEach(removeSkeletonsIfReady);
     });
 
-    // Remove empty list items
-    $$('ul li, ol li').forEach(li => {
-      const t = (li.textContent || '').trim();
-      if (!t) li.remove();
-    });
+    grids.forEach(g => mo.observe(g, { childList: true }));
+    // initial attempt (in case content is already there)
+    grids.forEach(removeSkeletonsIfReady);
+  };
 
-    // Hide dot separators when neighbor is hidden
-    $$('.dot').forEach(dot => {
-      const prev = dot.previousElementSibling;
-      const next = dot.nextElementSibling;
-      const isHidden = (el) => {
-        if (!el) return true;
-        if (el.hidden) return true;
-        const cs = getComputedStyle(el);
-        return cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0';
-      };
-      if (isHidden(prev) || isHidden(next)) dot.style.display = 'none';
-    });
-  }
-
-  function setupFAQAnim(){
-    const root = document.getElementById('faqList');
+  const setupFAQ = () => {
+    const root = qs("#faqList");
     if (!root) return;
 
-    // Prepare answers for height animation, without touching markup generation.
-    $$('.faq-item', root).forEach(item => {
-      const btn = $('.faq-q', item);
-      const ans = $('.faq-a', item);
-      if (!btn || !ans) return;
-
-      // ensure answer is measurable
-      ans.hidden = false;
-      ans.setAttribute('data-anim','1');
-      ans.style.height = '0px';
-      ans.style.overflow = 'hidden';
-
-      btn.setAttribute('aria-expanded','false');
-      item.classList.remove('is-open');
-
-      // Normalize icon content (keep '+' then rotate in CSS)
-      const icon = $('.faq-icon', btn);
-      if (icon) icon.textContent = '+';
-    });
-
-    function openItem(item){
-      const btn = $('.faq-q', item);
-      const ans = $('.faq-a', item);
-      if (!btn || !ans) return;
-
-      item.classList.add('is-open');
-      btn.setAttribute('aria-expanded','true');
-
-      // measure
-      ans.style.height = 'auto';
-      const h = ans.scrollHeight;
-      ans.style.height = '0px';
-      // force reflow
-      void ans.offsetHeight;
-      ans.style.height = h + 'px';
-
-      const onEnd = (e) => {
-        if (e.target !== ans) return;
-        if (item.classList.contains('is-open')) ans.style.height = 'auto';
-        ans.removeEventListener('transitionend', onEnd);
-      };
-      ans.addEventListener('transitionend', onEnd);
-    }
-
-    function closeItem(item){
-      const btn = $('.faq-q', item);
-      const ans = $('.faq-a', item);
-      if (!btn || !ans) return;
-
-      item.classList.remove('is-open');
-      btn.setAttribute('aria-expanded','false');
-
-      const h = ans.scrollHeight;
-      ans.style.height = h + 'px';
-      void ans.offsetHeight;
-      ans.style.height = '0px';
-    }
-
-    // Capture click to prevent old listeners (if any) from firing.
-    root.addEventListener('click', (e) => {
-      const btn = e.target.closest && e.target.closest('.faq-q');
+    // Event delegation
+    root.addEventListener("click", (e) => {
+      const btn = e.target.closest(".faq-q");
       if (!btn) return;
 
-      e.preventDefault();
-      e.stopImmediatePropagation();
+      const item = btn.closest(".faq-item") || btn.parentElement;
+      const panel = item?.querySelector?.(".faq-a");
+      if (!panel) return;
 
-      const item = btn.closest('.faq-item');
-      if (!item) return;
+      const isOpen = btn.getAttribute("aria-expanded") === "true";
+      const next = !isOpen;
 
-      const isOpen = item.classList.contains('is-open');
-
-      // close others
-      $$('.faq-item.is-open', root).forEach(open => {
-        if (open !== item) closeItem(open);
+      // Close others (optional; feels premium)
+      qsa(".faq-q[aria-expanded='true']", root).forEach(b => {
+        if (b === btn) return;
+        b.setAttribute("aria-expanded", "false");
+        const it = b.closest(".faq-item");
+        const p = it?.querySelector?.(".faq-a");
+        if (p){
+          p.style.maxHeight = "0px";
+          p.style.opacity = "0";
+          setTimeout(() => { p.hidden = true; }, 220);
+        }
       });
 
-      if (isOpen) closeItem(item);
-      else openItem(item);
-    }, true);
-  }
+      btn.setAttribute("aria-expanded", next ? "true" : "false");
+      panel.hidden = false;
 
-  function setupCaseLightbox(){
-    const grid = document.getElementById('casesGrid');
+      // Animate height
+      panel.style.overflow = "hidden";
+      panel.style.transition = "max-height 220ms cubic-bezier(.2,.8,.2,1), opacity 220ms cubic-bezier(.2,.8,.2,1)";
+      panel.style.opacity = next ? "1" : "0";
+
+      if (next){
+        // measure after unhide
+        const h = panel.scrollHeight;
+        panel.style.maxHeight = h + "px";
+      } else {
+        panel.style.maxHeight = "0px";
+        setTimeout(() => { panel.hidden = true; }, 220);
+      }
+    });
+  };
+
+  const ensureLightbox = () => {
+    let backdrop = qs(".lb-backdrop");
+    if (backdrop) return backdrop;
+
+    backdrop = doc.createElement("div");
+    backdrop.className = "lb-backdrop";
+    backdrop.innerHTML = `
+      <div class="lb-dialog" role="dialog" aria-modal="true" aria-label="Просмотр изображения">
+        <div class="lb-toolbar">
+          <div class="lb-title"></div>
+          <button class="lb-close" type="button" aria-label="Закрыть">✕</button>
+        </div>
+        <img class="lb-img" alt="">
+      </div>
+    `.trim();
+
+    doc.body.appendChild(backdrop);
+
+    // close interactions
+    backdrop.addEventListener("click", (e) => {
+      const dialog = e.target.closest(".lb-dialog");
+      const closeBtn = e.target.closest(".lb-close");
+      if (!dialog || closeBtn) closeLightbox();
+      if (!dialog && e.target === backdrop) closeLightbox();
+    });
+
+    doc.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeLightbox();
+    });
+
+    return backdrop;
+  };
+
+  const openLightbox = (src, title) => {
+    const backdrop = ensureLightbox();
+    const img = qs(".lb-img", backdrop);
+    const ttl = qs(".lb-title", backdrop);
+    if (!img || !ttl) return;
+
+    img.src = src;
+    img.alt = title || "Изображение";
+    ttl.textContent = title || "";
+
+    backdrop.classList.add("is-open");
+  };
+
+  const closeLightbox = () => {
+    const backdrop = qs(".lb-backdrop");
+    if (!backdrop) return;
+    backdrop.classList.remove("is-open");
+    const img = qs(".lb-img", backdrop);
+    if (img) img.src = "";
+  };
+
+  const setupCasesLightbox = () => {
+    const grid = qs("#casesGrid");
     if (!grid) return;
 
-    // Create modal
-    const lb = document.createElement('div');
-    lb.className = 'lightbox';
-    lb.setAttribute('role','dialog');
-    lb.setAttribute('aria-modal','true');
-    lb.setAttribute('aria-label','Просмотр изображения');
-    lb.innerHTML = `
-      <div class="lightbox__panel">
-        <div class="lightbox__top">
-          <div class="lightbox__title" id="lightboxTitle"></div>
-          <button class="lightbox__close" type="button" aria-label="Закрыть">✕</button>
-        </div>
-        <div class="lightbox__img"><img id="lightboxImg" alt="" /></div>
-      </div>
-    `;
-    document.body.appendChild(lb);
-
-    const titleEl = lb.querySelector('#lightboxTitle');
-    const imgEl = lb.querySelector('#lightboxImg');
-
-    function open(src, title){
-      if (!src) return;
-      imgEl.src = src;
-      imgEl.alt = title || '';
-      titleEl.textContent = title || '';
-      lb.classList.add('is-open');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function close(){
-      lb.classList.remove('is-open');
-      document.body.style.overflow = '';
-      imgEl.src = '';
-      imgEl.alt = '';
-      titleEl.textContent = '';
-    }
-
-    lb.addEventListener('click', (e) => {
-      if (e.target === lb) close();
-    });
-    lb.querySelector('.lightbox__close').addEventListener('click', close);
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && lb.classList.contains('is-open')) close();
-    });
-
-    grid.addEventListener('click', (e) => {
-      const img = e.target.closest && e.target.closest('.case-card__img img');
+    grid.addEventListener("click", (e) => {
+      const img = e.target.closest("img");
       if (!img) return;
-
-      // If the case has an external URL button, we still allow image to open.
-      e.preventDefault();
-
-      const card = img.closest('.case-card');
-      const title = card ? (card.querySelector('.case-card__title')?.textContent || '').trim() : '';
-      open(img.currentSrc || img.src, title);
+      const src = img.currentSrc || img.getAttribute("src");
+      if (!src) return;
+      openLightbox(src, img.alt || img.getAttribute("data-title") || "");
     });
-  }
+  };
 
-  async function waitForRender(){
-    // The site renders content asynchronously from Google Sheets.
-    // We'll wait until at least one of key grids is filled.
-    const start = Date.now();
-    while (Date.now() - start < 7000){
-      const pricingReady = document.querySelector('#pricingGrid .price-card');
-      const casesReady = document.querySelector('#casesGrid .case-card');
-      const faqReady = document.querySelector('#faqList .faq-item');
-      if (pricingReady || casesReady || faqReady) return;
-      await new Promise(r => setTimeout(r, 120));
+  const setupFloatingCTA = () => {
+    // Build from existing CTA (nav or hero)
+    const navCta = qs(".nav__cta");
+    const heroCta = qs(".hero-actions .btn--primary");
+
+    const href = (heroCta?.getAttribute("href") || navCta?.getAttribute("href") || "#contact");
+    const label = (heroCta?.textContent?.trim() || navCta?.textContent?.trim() || "Заполнить анкету");
+
+    const a = doc.createElement("a");
+    a.className = "floating-cta btn btn--primary";
+    a.href = href;
+    a.textContent = label;
+
+    // Put at end of body
+    doc.body.appendChild(a);
+
+    const show = () => a.classList.add("is-visible");
+    const hide = () => a.classList.remove("is-visible");
+
+    const onScroll = rafThrottle(() => {
+      if (window.scrollY > 520) show();
+      else hide();
+    });
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+
+    // Hide near contact section (so it doesn't overlap)
+    const contact = qs("#contact");
+    if (contact){
+      const io = new IntersectionObserver((entries) => {
+        const isIn = entries.some(e => e.isIntersecting);
+        if (isIn) hide();
+      }, { threshold: 0.12 });
+
+      io.observe(contact);
     }
-  }
+  };
 
-  async function init(){
-    setupHeader();
+  const cleanupEmpty = () => {
+    // Hide empty text nodes for data-kv
+    qsa("[data-kv]").forEach(el => {
+      // only if key exists; app.js might fill later
+      const v = (el.textContent || "").trim();
+      if (v === ""){
+        el.hidden = true;
+      } else {
+        el.hidden = false;
+      }
+    });
+
+    // Hide placeholder links
+    qsa("a[data-kv-link]").forEach(a => {
+      const href = (a.getAttribute("href") || "").trim();
+      const isPlaceholder = !href || href === "#" || href.endsWith("#") || href.startsWith("javascript:");
+      a.hidden = isPlaceholder;
+      if (isPlaceholder) a.removeAttribute("href");
+    });
+
+    // Remove dot separators when adjacent link is hidden
+    qsa(".smallprint").forEach(box => {
+      const dot = qs(".dot", box);
+      if (!dot) return;
+      const links = qsa("a", box);
+      const visibleLinks = links.filter(l => !l.hidden);
+      dot.hidden = visibleLinks.length < 2;
+    });
+
+    // Remove empty proof list wrappers
+    const maybeHideIfEmpty = (id) => {
+      const el = doc.getElementById(id);
+      if (!el) return;
+      const hasReal = Array.from(el.children).some(x => !x.classList.contains("skeleton"));
+      if (!hasReal && el.childElementCount === 0) el.hidden = true;
+    };
+
+    ["trustMini","deliverablesList","stepsList","trustList","statsGrid","mistakesList","casesGrid","reviewsGrid","faqList"]
+      .forEach(maybeHideIfEmpty);
+  };
+
+  const setupCleanupObservers = () => {
+    // Run cleanup now + a few times later (when sheets arrive)
+    cleanupEmpty();
+    setTimeout(cleanupEmpty, 400);
+    setTimeout(cleanupEmpty, 1200);
+
+    const roots = ["trustMini","deliverablesList","stepsList","trustList","statsGrid","mistakesList","casesGrid","reviewsGrid","faqList","pricingGrid","painsGrid"]
+      .map(id => doc.getElementById(id))
+      .filter(Boolean);
+
+    const mo = new MutationObserver(() => cleanupEmpty());
+    roots.forEach(r => mo.observe(r, { childList: true, subtree: true }));
+  };
+
+  const init = () => {
+    setupNavToggle();
+    setupHeaderScrollState();
     setupScrollSpy();
-
-    // Wait for async content; then polish blocks that depend on it.
-    await waitForRender();
-
-    pruneEmpty();
     setupReveal();
-    setupFAQAnim();
-    setupCaseLightbox();
-  }
+    setupSkeletons();
+    setupFAQ();
+    setupCasesLightbox();
+    setupFloatingCTA();
+    setupCleanupObservers();
+  };
 
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', () => init().catch(console.error));
-  } else {
-    init().catch(console.error);
-  }
+  if (doc.readyState !== "loading") init();
+  else doc.addEventListener("DOMContentLoaded", init);
 })();
