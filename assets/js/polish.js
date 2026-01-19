@@ -419,13 +419,14 @@
       dot.hidden = visibleLinks.length < 2;
     });
 
-    // Remove empty proof list wrappers
-    const maybeHideIfEmpty = (id) => {
-      const el = doc.getElementById(id);
-      if (!el) return;
-      const hasReal = Array.from(el.children).some(x => !x.classList.contains("skeleton"));
-      if (!hasReal && el.childElementCount === 0) el.hidden = true;
-    };
+ const maybeHideIfEmpty = (id) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  // если появился хоть один реальный элемент — показываем
+  const hasReal = Array.from(el.children).some(x => !x.classList.contains("skeleton"));
+  el.hidden = !hasReal; // <-- ключевая строка
+};
 
     ["trustMini","deliverablesList","stepsList","trustList","statsGrid","mistakesList","casesGrid","reviewsGrid","faqList"]
       .forEach(maybeHideIfEmpty);
