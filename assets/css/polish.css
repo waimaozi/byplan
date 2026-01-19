@@ -314,6 +314,159 @@ html.js .reveal.is-visible{
 html.js #for .card.reveal{ transition-delay: 0ms; }
 html.js #for .card.reveal:nth-child(2){ transition-delay: 60ms; }
 html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
+/* === SLIDE: #process — make lists product-like (no wall of text) === */
+#process{
+  background:
+    radial-gradient(900px 420px at 20% -10%, rgba(255,255,255,.9), rgba(255,255,255,0) 60%),
+    linear-gradient(180deg, #F4F0F3 0%, #EFE9EF 100%);
+}
+
+#process .container{
+  display: grid;
+  grid-template-columns: 1.05fr .95fr;
+  gap: 28px;
+  align-items: start;
+}
+
+/* Stack on mobile */
+@media (max-width: 980px){
+  #process .container{ grid-template-columns: 1fr; }
+}
+
+/* Make the two blocks look like cards */
+#process .deliverables,
+#process .process{
+  background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.58));
+  border: 1px solid rgba(255,255,255,.55);
+  border-radius: 22px;
+  box-shadow: 0 22px 70px rgba(0,0,0,.12);
+  padding: 18px 18px 16px;
+}
+
+/* Titles spacing */
+#process h2{ margin-top: 0; }
+#process .muted{ margin-bottom: 14px; }
+
+/* --- Deliverables checklist --- */
+#deliverablesList{
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+}
+
+@media (max-width: 980px){
+  #deliverablesList{ grid-template-columns: 1fr; }
+}
+
+#deliverablesList li{
+  position: relative;
+  padding-left: 30px;
+  margin: 0;
+  color: rgba(0,0,0,.72);
+  line-height: 1.35;
+}
+
+#deliverablesList li::before{
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0.05em;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(0,0,0,.06);
+  border: 1px solid rgba(0,0,0,.08);
+  color: rgba(0,0,0,.75);
+  font-weight: 900;
+  font-size: 0.85rem;
+}
+
+/* Make the "DWG note" line look like a pill (if it is a separate <p> under deliverables) */
+#process .deliverables p:last-of-type{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.05);
+  border: 1px solid rgba(0,0,0,.08);
+  margin-top: 14px;
+}
+
+/* --- Steps timeline --- */
+#stepsList{
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+  position: relative;
+}
+
+#stepsList li{
+  position: relative;
+  padding: 12px 12px 12px 44px;
+  border-radius: 18px;
+  background: rgba(255,255,255,.55);
+  border: 1px solid rgba(0,0,0,.06);
+}
+
+#stepsList li::before{
+  content: attr(data-step);
+}
+
+/* If your app.js creates <li><strong>Title</strong><div>text</div>..., we just style inside */
+#stepsList li strong{
+  display: block;
+  font-weight: 850;
+  margin-bottom: 6px;
+}
+
+#stepsList li p{
+  margin: 0;
+  color: rgba(0,0,0,.62);
+  line-height: 1.4;
+}
+
+/* Number bubble + vertical line (JS will add data-step, but we can also fallback to CSS counter) */
+#stepsList{
+  counter-reset: step;
+}
+#stepsList li{
+  counter-increment: step;
+}
+#stepsList li::before{
+  content: counter(step);
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 0.85rem;
+  background: rgba(0,0,0,.08);
+  border: 1px solid rgba(0,0,0,.10);
+  color: rgba(0,0,0,.72);
+}
+#stepsList::after{
+  content:"";
+  position:absolute;
+  left: 25px;
+  top: 20px;
+  bottom: 20px;
+  width: 2px;
+  background: rgba(0,0,0,.08);
+  border-radius: 99px;
+  pointer-events:none;
+}
 html.js #for .card.reveal:nth-child(4){ transition-delay: 180ms; }
 html.js #for .card.reveal:nth-child(5){ transition-delay: 240ms; }
 html.js #for .card.reveal:nth-child(6){ transition-delay: 300ms; }
