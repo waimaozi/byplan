@@ -236,3 +236,84 @@ html.js .reveal.is-visible{
   }
   .skeleton::after{ animation: none; }
 }
+/* === SLIDE: #for ("Для кого") — light complementary, volumetric === */
+#for{
+  position: relative;
+  background:
+    radial-gradient(1100px 520px at 18% -10%, rgba(255,255,255,.92), rgba(255,255,255,0) 62%),
+    radial-gradient(900px 520px at 80% 10%, rgba(255,255,255,.55), rgba(255,255,255,0) 64%),
+    linear-gradient(180deg, #F4F0F3 0%, #EAE4EA 100%);
+}
+
+/* subtle grain (reuse your hero grain layer if it exists) */
+#for::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.12;
+  background-image: url("../img/hero/layers/03_grain.png");
+  background-size: cover;
+  mix-blend-mode: overlay;
+}
+
+#for .container{ position: relative; z-index: 1; }
+
+#for .grid.cards{ gap: 18px; }
+
+/* cards as “glass on paper” */
+#for .card{
+  background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.62));
+  border: 1px solid rgba(255,255,255,.55);
+  box-shadow: 0 26px 80px rgba(0,0,0,.14);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  position: relative;
+}
+
+/* top highlight for “volume” */
+#for .card::after{
+  content:"";
+  position:absolute;
+  left:12px; right:12px; top:10px;
+  height:1px;
+  background: rgba(255,255,255,.65);
+  opacity:.9;
+  border-radius:999px;
+}
+
+/* Q/A typography */
+#for .card__title{
+  font-weight: 850;
+  font-size: 1.08rem;
+  letter-spacing: -0.01em;
+  margin: 0 0 10px 0;
+  padding-bottom: 10px;
+  position: relative;
+}
+
+/* “question separator” — makes it instantly look structured */
+#for .card__title::after{
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:0;
+  width: 42px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.16);
+}
+
+#for .card__text{
+  margin: 0;
+  color: rgba(0,0,0,.62);
+  line-height: 1.45;
+}
+
+/* nice stagger when reveal anim is enabled (up to 6 cards) */
+html.js #for .card.reveal{ transition-delay: 0ms; }
+html.js #for .card.reveal:nth-child(2){ transition-delay: 60ms; }
+html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
+html.js #for .card.reveal:nth-child(4){ transition-delay: 180ms; }
+html.js #for .card.reveal:nth-child(5){ transition-delay: 240ms; }
+html.js #for .card.reveal:nth-child(6){ transition-delay: 300ms; }
