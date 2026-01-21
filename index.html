@@ -95,12 +95,12 @@
       </div>
     </section>
 <!-- STORY (между #for и #deliverables) -->
-<section class="section section--story" id="story">
+<section class="section section--story" id="story" data-story-id="case1">
   <div class="container">
     <div class="story-head">
-      <div class="badge">История клиента</div>
-      <h2>Типовая 2‑ка 60 м² → функциональная 3‑ка</h2>
-      <p class="muted">Без объединения кухни с гостиной. Детская, кабинет и хранение. С возможностью согласования.</p>
+      <div class="badge" id="storyBadge"></div>
+      <h2 id="storyTitle"></h2>
+      <p class="muted" id="storySubtitle"></p>
     </div>
 
     <div class="story-grid">
@@ -115,37 +115,30 @@
             <img
               class="story-plan__img"
               id="storyPlanImg"
-              src="assets/img/story/case1_after.svg"
-              data-story-before-src="assets/img/story/case1_before.svg"
-              data-story-after-src="assets/img/story/case1_after.svg"
+              src=""
               alt="Планировка — пример"
               loading="lazy"
+              hidden
             />
-          </div>
-
-          <div class="story-plan__caption muted">
-            Плейсхолдер: заменим на реальный кейс (SVG/WebP).
           </div>
         </div>
 
         <blockquote class="story-quote">
-          <p id="storyQuote">«…ощущение, что болтаешь с подругой, которая как фея‑крёстная снимает стресс ремонта.»</p>
-          <footer class="muted" id="storyQuoteAuthor">— Анастасия Р.</footer>
+          <p id="storyQuote"></p>
+          <footer class="muted" id="storyQuoteAuthor"></footer>
         </blockquote>
       </div>
 
       <div class="story-card">
-        <div class="story-stepper" id="storyStepper" aria-label="Сцены истории"></div>
+        <div class="story-stepper" id="storyStepper"></div>
         <div class="story-panel" id="storyPanel"></div>
 
         <div class="story-actions">
-          <a class="btn btn--primary" href="#contact">Заполнить анкету</a>
-          <a class="btn btn--ghost" href="#cases">Смотреть кейсы</a>
+          <a class="btn btn--primary" id="storyCtaPrimary" href="#contact">Заполнить анкету</a>
+          <a class="btn btn--ghost" id="storyCtaSecondary" href="#cases">Смотреть кейсы</a>
         </div>
 
-        <p class="note">
-          Этот отзыв — про большой проект с сопровождением. В BYPLAN можно взять только планировку — подход тот же.
-        </p>
+        <p class="note" id="storyNote"></p>
       </div>
     </div>
   </div>
