@@ -24,6 +24,7 @@
   <meta property="og:image" content="assets/img/og-placeholder.png" />
   <link rel="stylesheet" href="assets/css/hero.css?v=3">
   <link rel="stylesheet" href="assets/css/polish.css?v=1">
+  <link rel="stylesheet" href="assets/css/story.css?v=1">
 </head>
 
 <body>
@@ -93,6 +94,62 @@
         </div>
       </div>
     </section>
+<!-- STORY (между #for и #deliverables) -->
+<section class="section section--story" id="story">
+  <div class="container">
+    <div class="story-head">
+      <div class="badge">История клиента</div>
+      <h2>Типовая 2‑ка 60 м² → функциональная 3‑ка</h2>
+      <p class="muted">Без объединения кухни с гостиной. Детская, кабинет и хранение. С возможностью согласования.</p>
+    </div>
+
+    <div class="story-grid">
+      <div class="story-media">
+        <div class="story-plan">
+          <div class="story-plan__tabs" role="tablist" aria-label="План: было/стало">
+            <button class="pill-btn is-active" type="button" data-story-view="after">Стало</button>
+            <button class="pill-btn" type="button" data-story-view="before">Было</button>
+          </div>
+
+          <div class="story-plan__frame">
+            <img
+              class="story-plan__img"
+              id="storyPlanImg"
+              src="assets/img/story/case1_after.svg"
+              data-story-before-src="assets/img/story/case1_before.svg"
+              data-story-after-src="assets/img/story/case1_after.svg"
+              alt="Планировка — пример"
+              loading="lazy"
+            />
+          </div>
+
+          <div class="story-plan__caption muted">
+            Плейсхолдер: заменим на реальный кейс (SVG/WebP).
+          </div>
+        </div>
+
+        <blockquote class="story-quote">
+          <p id="storyQuote">«…ощущение, что болтаешь с подругой, которая как фея‑крёстная снимает стресс ремонта.»</p>
+          <footer class="muted" id="storyQuoteAuthor">— Анастасия Р.</footer>
+        </blockquote>
+      </div>
+
+      <div class="story-card">
+        <div class="story-stepper" id="storyStepper" aria-label="Сцены истории"></div>
+        <div class="story-panel" id="storyPanel"></div>
+
+        <div class="story-actions">
+          <a class="btn btn--primary" href="#contact">Заполнить анкету</a>
+          <a class="btn btn--ghost" href="#cases">Смотреть кейсы</a>
+        </div>
+
+        <p class="note">
+          Этот отзыв — про большой проект с сопровождением. В BYPLAN можно взять только планировку — подход тот же.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
 
     <!-- DELIVERABLES -->
     <section class="section section--alt" id="deliverables">
@@ -297,5 +354,7 @@
   <script src="assets/js/sheets.js"></script>
   <script src="assets/js/app.js"></script>
   <script src="assets/js/polish.js?v=1"></script>
+  <script src="assets/js/story.js?v=1"></script>
+
 </body>
 </html>
