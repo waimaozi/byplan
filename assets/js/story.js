@@ -204,6 +204,9 @@
     const section = $("#story", root);
     if (!section) return;
 
+    // Ensure story media/card are visible (CSS reveals them when .is-in is present)
+    section.classList.add("is-in");
+
     // Identify story ID (optional)
     const storyId = norm(section.getAttribute("data-story-id"));
 
