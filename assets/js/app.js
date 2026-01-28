@@ -234,20 +234,51 @@
     if (!root) return;
     root.innerHTML = "";
 
-    rows.forEach(r => {
-      const div = document.createElement("div");
-      div.className = "review";
-      const whoParts = [];
-      if (r.name) whoParts.push(r.name);
-      if (r.city) whoParts.push(r.city);
+    const boolish = (v) => {
+      if (v === true) return true;
+      if (v === false) return false;
+      const s = String(v ?? "").trim().toLowerCase();
+      if (!s) return true; // empty -> treat as enabled
+      return ["1", "true", "yes", "y", "да", "истина", "on"].includes(s);
+    };
 
-      div.innerHTML = `
-        <div class="review__who">${escapeHtml(whoParts.join(" · "))}</div>
-        <p class="review__text">${escapeHtml(r.text || "")}</p>
-        ${r.source ? `<div class="review__src">${escapeHtml(r.source)}</div>` : ""}
-      `;
-      root.appendChild(div);
-    });
+    const get = (obj, ...keys) => {
+      for (const k of keys) {
+        const val = obj && obj[k];
+        if (val !== undefined && val !== null && String(val).trim() !== "") return String(val).trim();
+      }
+      return "";
+    };
+
+    const formatText = (t) =>
+      escapeHtml(t)
+        .replace(/\n\s*\n/g, "<br><br>")
+        .replace(/\n/g, "<br>");
+
+    (rows || [])
+      .filter(r => (r.is_enabled === undefined ? true : boolish(r.is_enabled)))
+      .forEach((r, idx) => {
+        // Backward-compatible field names:
+        const name = get(r, "name", "author", "who");
+        const role = get(r, "role", "title", "position");
+        const meta = get(r, "company_or_city", "company", "city");
+        const text = get(r, "text", "review", "body");
+        const source = get(r, "source", "src");
+
+        const div = document.createElement("article");
+        div.className = "review";
+        div.dataset.reviewIndex = String(idx + 1);
+
+        div.innerHTML = `
+          <div class="review__who">
+            ${name ? `<div class="review__name">${escapeHtml(name)}</div>` : ""}
+            ${(role || meta) ? `<div class="review__role">${escapeHtml([role, meta].filter(Boolean).join(" · "))}</div>` : ""}
+          </div>
+          <p class="review__text">${formatText(text)}</p>
+          ${source ? `<div class="review__src">${escapeHtml(source)}</div>` : ""}
+        `;
+        root.appendChild(div);
+      });
   }
 
   function renderFAQ(containerId, rows) {
