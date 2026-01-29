@@ -229,56 +229,289 @@
     });
   }
 
-  function renderReviews(containerId, rows) {
+    function renderReviews(containerId, rows) {
     const root = el(containerId);
     if (!root) return;
-    root.innerHTML = "";
 
-    const boolish = (v) => {
-      if (v === true) return true;
-      if (v === false) return false;
-      const s = String(v ?? "").trim().toLowerCase();
-      if (!s) return true; // empty -> treat as enabled
-      return ["1", "true", "yes", "y", "да", "истина", "on"].includes(s);
-    };
+    // Normalize rows: accept both new template (name/role/text) and legacy (who/text)
+    const items = (rows || [])
+      .map((r) => ({
+        name: String(r.name || r.review_name || r.who || r.review__name || "").trim(),
+        role: String(r.role || r.review_role || r.subtitle || r.review__role || "").trim(),
+        text: String(r.text || r.review_text || r.body || r.review__text || "").trim(),
+      }))
+      .filter((r) => r.text.length > 0);
 
-    const get = (obj, ...keys) => {
-      for (const k of keys) {
-        const val = obj && obj[k];
-        if (val !== undefined && val !== null && String(val).trim() !== "") return String(val).trim();
-      }
-      return "";
-    };
+    // Empty state
+    if (!items.length) {
+      root.innerHTML = "";
+      return;
+    }
 
-    const formatText = (t) =>
-      escapeHtml(t)
-        .replace(/\n\s*\n/g, "<br><br>")
-        .replace(/\n/g, "<br>");
+    // Helpers
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]));
+    }
+    function formatText(text) {
+      return escapeHtml(text).replace(/\n/g, "<br>");
+    }
 
-    (rows || [])
-      .filter(r => (r.is_enabled === undefined ? true : boolish(r.is_enabled)))
-      .forEach((r, idx) => {
-        // Backward-compatible field names:
-        const name = get(r, "name", "author", "who");
-        const role = get(r, "role", "title", "position");
-        const meta = get(r, "company_or_city", "company", "city");
-        const text = get(r, "text", "review", "body");
-        const source = get(r, "source", "src");
+    // Ensure modal exists (for full text)
+    function ensureModal() {
+      let modal = document.getElementById("reviewModal");
+      if (modal) return modal;
 
-        const div = document.createElement("article");
-        div.className = "review";
-        div.dataset.reviewIndex = String(idx + 1);
-
-        div.innerHTML = `
-          <div class="review__who">
-            ${name ? `<div class="review__name">${escapeHtml(name)}</div>` : ""}
-            ${(role || meta) ? `<div class="review__role">${escapeHtml([role, meta].filter(Boolean).join(" · "))}</div>` : ""}
+      modal = document.createElement("div");
+      modal.id = "reviewModal";
+      modal.className = "review-modal";
+      modal.innerHTML = `
+        <div class="review-modal__overlay" data-close="1"></div>
+        <div class="review-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="reviewModalTitle">
+          <button class="review-modal__close" type="button" aria-label="Закрыть" data-close="1">×</button>
+          <div class="review-modal__meta">
+            <div class="review-modal__name" id="reviewModalTitle"></div>
+            <div class="review-modal__role" id="reviewModalRole"></div>
           </div>
-          <p class="review__text">${formatText(text)}</p>
-          ${source ? `<div class="review__src">${escapeHtml(source)}</div>` : ""}
-        `;
-        root.appendChild(div);
+          <div class="review-modal__text" id="reviewModalText"></div>
+        </div>
+      `;
+
+      // Close logic
+      modal.addEventListener("click", (e) => {
+        const t = e.target;
+        if (t && t.dataset && t.dataset.close) closeModal();
       });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeModal();
+      });
+
+      document.body.appendChild(modal);
+      return modal;
+    }
+
+    function openModal(item) {
+      const modal = ensureModal();
+      const title = modal.querySelector("#reviewModalTitle");
+      const roleEl = modal.querySelector("#reviewModalRole");
+      const textEl = modal.querySelector("#reviewModalText");
+
+      if (title) title.textContent = item.name || "Отзыв";
+      if (roleEl) {
+        roleEl.textContent = item.role || "";
+        roleEl.hidden = !item.role;
+      }
+      if (textEl) textEl.innerHTML = formatText(item.text || "");
+
+      modal.classList.add("is-open");
+      document.body.classList.add("modal-open");
+    }
+
+    function closeModal() {
+      const modal = document.getElementById("reviewModal");
+      if (!modal) return;
+      modal.classList.remove("is-open");
+      document.body.classList.remove("modal-open");
+    }
+
+    // Build carousel
+    root.innerHTML = "";
+    const wrap = document.createElement("div");
+    wrap.className = "reviews-carousel";
+
+    const prev = document.createElement("button");
+    prev.type = "button";
+    prev.className = "reviews-carousel__nav reviews-carousel__nav--prev";
+    prev.setAttribute("aria-label", "Предыдущий отзыв");
+    prev.innerHTML = "‹";
+
+    const next = document.createElement("button");
+    next.type = "button";
+    next.className = "reviews-carousel__nav reviews-carousel__nav--next";
+    next.setAttribute("aria-label", "Следующий отзыв");
+    next.innerHTML = "›";
+
+    const viewport = document.createElement("div");
+    viewport.className = "reviews-carousel__viewport";
+    viewport.tabIndex = 0;
+
+    const track = document.createElement("div");
+    track.className = "reviews-carousel__track";
+
+    viewport.appendChild(track);
+
+    const footer = document.createElement("div");
+    footer.className = "reviews-carousel__footer";
+
+    const counter = document.createElement("div");
+    counter.className = "reviews-carousel__counter";
+    counter.innerHTML = `<span class="reviews-carousel__current">1</span><span class="reviews-carousel__sep"> / </span><span class="reviews-carousel__total">${items.length}</span>`;
+
+    const dots = document.createElement("div");
+    dots.className = "reviews-carousel__dots";
+    dots.setAttribute("role", "tablist");
+    dots.setAttribute("aria-label", "Переключатель отзывов");
+
+    footer.appendChild(counter);
+    footer.appendChild(dots);
+
+    wrap.appendChild(prev);
+    wrap.appendChild(viewport);
+    wrap.appendChild(next);
+    wrap.appendChild(footer);
+
+    root.appendChild(wrap);
+
+    const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // Cards
+    items.forEach((item, idx) => {
+      const card = document.createElement("article");
+      card.className = "review-card";
+      card.dataset.index = String(idx);
+
+      // Header (name + role)
+      const head = document.createElement("div");
+      head.className = "review-card__head";
+
+      const nameEl = document.createElement("div");
+      nameEl.className = "review-card__name";
+      nameEl.textContent = item.name || "Клиент";
+
+      head.appendChild(nameEl);
+
+      if (item.role) {
+        const roleEl = document.createElement("div");
+        roleEl.className = "review-card__role";
+        roleEl.textContent = item.role;
+        head.appendChild(roleEl);
+      }
+
+      // Excerpt (clamped)
+      const textEl = document.createElement("div");
+      textEl.className = "review-card__text review-card__text--clamp";
+      textEl.textContent = item.text.replace(/\s+/g, " ").trim();
+
+      // Actions
+      const actions = document.createElement("div");
+      actions.className = "review-card__actions";
+
+      // Show "read more" only when long enough
+      if (item.text.length > 220) {
+        const more = document.createElement("button");
+        more.type = "button";
+        more.className = "review-card__more";
+        more.textContent = "Читать полностью";
+        more.addEventListener("click", () => openModal(item));
+        actions.appendChild(more);
+      }
+
+      card.appendChild(head);
+      card.appendChild(textEl);
+      if (actions.childNodes.length) card.appendChild(actions);
+
+      track.appendChild(card);
+
+      // Dots for small counts only (otherwise it becomes noise)
+      if (items.length <= 9) {
+        const dot = document.createElement("button");
+        dot.type = "button";
+        dot.className = "reviews-carousel__dot" + (idx === 0 ? " is-active" : "");
+        dot.setAttribute("role", "tab");
+        dot.setAttribute("aria-label", `Отзыв ${idx + 1}`);
+        dot.setAttribute("aria-selected", idx === 0 ? "true" : "false");
+        dot.addEventListener("click", () => scrollToIndex(idx));
+        dots.appendChild(dot);
+      }
+    });
+
+    if (items.length > 9) {
+      dots.hidden = true;
+    }
+
+    const cards = Array.from(track.children);
+    let activeIndex = 0;
+
+    function updateUi(i) {
+      activeIndex = i;
+      const cur = counter.querySelector(".reviews-carousel__current");
+      if (cur) cur.textContent = String(i + 1);
+
+      prev.disabled = i <= 0;
+      next.disabled = i >= cards.length - 1;
+
+      if (!dots.hidden) {
+        const all = dots.querySelectorAll(".reviews-carousel__dot");
+        all.forEach((btn, idx) => {
+          const on = idx === i;
+          btn.classList.toggle("is-active", on);
+          btn.setAttribute("aria-selected", on ? "true" : "false");
+        });
+      }
+    }
+
+    function scrollToIndex(i) {
+      const idx = Math.max(0, Math.min(i, cards.length - 1));
+      const left = cards[idx].offsetLeft;
+      viewport.scrollTo({ left, behavior: reduceMotion ? "auto" : "smooth" });
+      updateUi(idx);
+    }
+
+    prev.addEventListener("click", () => scrollToIndex(activeIndex - 1));
+    next.addEventListener("click", () => scrollToIndex(activeIndex + 1));
+
+    // Keyboard support
+    viewport.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        scrollToIndex(activeIndex - 1);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        scrollToIndex(activeIndex + 1);
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        scrollToIndex(0);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        scrollToIndex(cards.length - 1);
+      }
+    });
+
+    // Keep index in sync on swipe/scroll
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            const idx = parseInt(entry.target.dataset.index || "0", 10);
+            if (!Number.isNaN(idx)) updateUi(idx);
+          }
+        },
+        { root: viewport, threshold: 0.6 }
+      );
+      cards.forEach((c) => io.observe(c));
+    } else {
+      // Fallback: compute nearest card on scroll end
+      let t = null;
+      viewport.addEventListener("scroll", () => {
+        if (t) window.clearTimeout(t);
+        t = window.setTimeout(() => {
+          const x = viewport.scrollLeft;
+          let best = 0;
+          let bestDist = Infinity;
+          cards.forEach((c, idx) => {
+            const dist = Math.abs(c.offsetLeft - x);
+            if (dist < bestDist) {
+              bestDist = dist;
+              best = idx;
+            }
+          });
+          updateUi(best);
+        }, 80);
+      });
+    }
+
+    // Initial UI state
+    updateUi(0);
   }
 
   function renderFAQ(containerId, rows) {
