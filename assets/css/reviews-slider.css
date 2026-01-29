@@ -1,0 +1,245 @@
+/* ================================
+   Reviews carousel (Variant A)
+   ================================ */
+
+.reviews-carousel {
+  position: relative;
+  margin-top: 16px;
+}
+
+.reviews-carousel__viewport {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 56px 10px;
+}
+
+.reviews-carousel__viewport:focus {
+  outline: none;
+}
+
+.reviews-carousel__track {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.review-card {
+  scroll-snap-align: start;
+  flex: 0 0 calc((100% - 20px) / 2);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  padding: 18px 18px 16px;
+}
+
+@media (max-width: 900px) {
+  .reviews-carousel__viewport {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .review-card {
+    flex-basis: 86%;
+  }
+}
+
+.review-card__head {
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 14px;
+}
+
+.review-card__name {
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.review-card__role {
+  margin-top: 6px;
+  font-size: 14px;
+  opacity: 0.72;
+}
+
+.review-card__text {
+  font-size: 16px;
+  line-height: 1.55;
+  opacity: 0.85;
+}
+
+.review-card__text--clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 8;
+  overflow: hidden;
+}
+
+.review-card__actions {
+  margin-top: 12px;
+}
+
+.review-card__more {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.review-card__more:hover {
+  opacity: 0.9;
+}
+
+.reviews-carousel__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.reviews-carousel__nav:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.reviews-carousel__nav--prev { left: 8px; }
+.reviews-carousel__nav--next { right: 8px; }
+
+@media (max-width: 900px) {
+  .reviews-carousel__nav {
+    display: none;
+  }
+}
+
+.reviews-carousel__footer {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.reviews-carousel__counter {
+  font-size: 14px;
+  opacity: 0.65;
+}
+
+.reviews-carousel__dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.reviews-carousel__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.reviews-carousel__dot.is-active {
+  background: rgba(0, 0, 0, 0.40);
+}
+
+/* ================================
+   Review modal (full text)
+   ================================ */
+
+.review-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 9999;
+}
+
+.review-modal.is-open {
+  display: flex;
+}
+
+.review-modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.review-modal__dialog {
+  position: relative;
+  width: min(900px, 100%);
+  max-height: 85vh;
+  overflow: auto;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.60);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  padding: 20px 20px 18px;
+}
+
+.review-modal__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.70);
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-modal__meta {
+  padding-right: 52px;
+}
+
+.review-modal__name {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.review-modal__role {
+  margin-top: 6px;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.review-modal__text {
+  margin-top: 14px;
+  font-size: 16px;
+  line-height: 1.65;
+  opacity: 0.9;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
