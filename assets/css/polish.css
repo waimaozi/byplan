@@ -428,53 +428,79 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
 }
 
 #stepsList li p{
+  margin: 0;
+  color: rgba(0,0,0,.62);
+  line-height: 1.4;
+}
+
+/* Number bubble + vertical line (JS will add data-step, but we can also fallback to CSS counter) */
+#stepsList{
+  counter-reset: step;
+}
+#stepsList li{
+  counter-increment: step;
+}
+#stepsList li::before{
+  content: counter(step);
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 0.85rem;
+  background: rgba(0,0,0,.08);
+  border: 1px solid rgba(0,0,0,.10);
+  color: rgba(0,0,0,.72);
+}
+#stepsList::after{
+  content:"";
+  position:absolute;
+  left: 25px;
+  top: 20px;
+  bottom: 20px;
+  width: 2px;
+  background: rgba(0,0,0,.08);
+  border-radius: 99px;
+  pointer-events:none;
+}
+html.js #for .card.reveal:nth-child(4){ transition-delay: 180ms; }
+html.js #for .card.reveal:nth-child(5){ transition-delay: 240ms; }
+html.js #for .card.reveal:nth-child(6){ transition-delay: 300ms; }
+
+/* Уменьшаем отступ между заголовком шага и текстом */
+#stepsList li strong{
+  margin-bottom: 6px !important;   /* было больше */
+}
+
+#stepsList li p{
   margin-top: 0 !important;        /* на всякий */
 }
 
-/* ===== REVIEWS typography / hierarchy (name / role / text) ===== */
-.review{
-  padding: 0;
-  overflow: hidden;
-}
-
-.review__who{
-  padding: 14px 16px 12px;
-  background: rgba(255,255,255,.18);
-  border-bottom: 1px solid rgba(0,0,0,.06);
+/* Reviews: name / role / text */
+.review__head{
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
 }
 
 .review__name{
   font-weight: 800;
   letter-spacing: -0.01em;
-  margin: 0;
+  margin: 0 0 6px 0;
 }
 
 .review__role{
-  margin-top: 4px;
   opacity: .75;
   font-size: 0.95em;
-  font-weight: 600;
+  margin: 0 0 12px 0;
 }
 
 .review__text{
-  padding: 14px 16px 16px;
   margin: 0;
-  line-height: 1.55;
-  color: rgba(0,0,0,.70);
+  line-height: 1.6;
 }
 
-/* Optional: source line under the text */
-.review__src{
-  padding: 0 16px 16px;
-  opacity: .6;
-  font-size: .9em;
-}
-
-/* Optional: clamp very long reviews (uncomment if needed)
-.review__text{
-  display: -webkit-box;
-  -webkit-line-clamp: 8;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-*/
