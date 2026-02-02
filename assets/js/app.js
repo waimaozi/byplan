@@ -337,6 +337,101 @@ function escapeAttr(str) {
     });
   }
 
+
+  function renderFAQ(containerId, rows) {
+    const root = el(containerId);
+    if (!root) return;
+    root.innerHTML = "";
+
+    rows.forEach((r, idx) => {
+      const item = document.createElement("div");
+      item.className = "faq-item";
+      const qId = `faq-${idx}`;
+      item.innerHTML = `
+        <button class="faq-q" type="button" aria-expanded="false" aria-controls="${qId}">
+          <span>${escapeHtml(r.q || "")}</span>
+          <span class="faq-icon" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-a" id="${qId}" hidden>${escapeHtml(r.a || "")}</div>
+      `;
+      root.appendChild(item);
+    });
+
+    // accordion behavior
+    root.querySelectorAll(".faq-q").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const expanded = btn.getAttribute("aria-expanded") === "true";
+        const targetId = btn.getAttribute("aria-controls");
+        const ans = document.getElementById(targetId);
+        if (!ans) return;
+        btn.setAttribute("aria-expanded", String(!expanded));
+        ans.hidden = expanded;
+        const icon = btn.querySelector(".faq-icon");
+        if (icon) icon.textContent = expanded ? "+" : "–";
+      });
+    });
+  }
+
+
+  function renderContacts(containerId, rows, kv) {
+    const root = el(containerId);
+    if (!root) return;
+    root.innerHTML = "";
+
+    // If 'contacts' tab exists, render it.
+    if (rows.length) {
+      rows.forEach(r => {
+        const card = document.createElement("div");
+        card.className = "contact-card";
+        const url = (r.url || "").trim();
+        const title = (r.title || "").trim();
+        const text = (r.text || "").trim();
+        const label = (r.label || "").trim() || "Открыть";
+        card.innerHTML = `
+          <div class="contact-card__title">${escapeHtml(title)}</div>
+          <div class="contact-card__text">${escapeHtml(text)}</div>
+          ${url ? `<div style="margin-top:10px"><a class="btn btn--ghost" href="${escapeAttr(url)}" ${isExternal(url) ? 'target="_blank" rel="noopener"' : ""}>${escapeHtml(label)}</a></div>` : ""}
+        `;
+        root.appendChild(card);
+      });
+      return;
+    }
+
+    // Otherwise render basic contacts from KV
+    const fallback = [];
+    if (kv.telegram_url) fallback.push({ title: "Telegram", text: kv.telegram_handle ? `@${kv.telegram_handle}` : "Написать в Telegram", url: kv.telegram_url, label: "Написать" });
+    if (kv.contact_email) fallback.push({ title: "Email", text: kv.contact_email, url: `mailto:${kv.contact_email}`, label: "Написать" });
+    if (kv.contact_phone) fallback.push({ title: "Телефон", text: kv.contact_phone, url: `tel:${kv.contact_phone.replace(/\s+/g,"")}`, label: "Позвонить" });
+
+    fallback.forEach(r => {
+      const card = document.createElement("div");
+      card.className = "contact-card";
+      card.innerHTML = `
+        <div class="contact-card__title">${escapeHtml(r.title)}</div>
+        <div class="contact-card__text">${escapeHtml(r.text)}</div>
+        <div style="margin-top:10px"><a class="btn btn--ghost" href="${escapeAttr(r.url)}">${escapeHtml(r.label)}</a></div>
+      `;
+      root.appendChild(card);
+    });
+  }
+
+
+  function isExternal(url) {
+    if (!url) return false;
+    return /^https?:\/\//i.test(url);
+  }
+
+
+  function escapeHtml(str) {
+    return String(str ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+
   async function main() {
     setText("#year", String(new Date().getFullYear()));
     setupNavToggle();
