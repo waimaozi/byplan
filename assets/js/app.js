@@ -229,382 +229,93 @@
     });
   }
 
-    function renderReviews(containerId, rows) {
-    const root = el(containerId);
-    if (!root) return;
+  function renderReviews(containerId, rows) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
 
-    // Normalize rows: accept both new template (name/role/text) and legacy (who/text)
-    const items = (rows || [])
-      .map((r) => ({
-        name: String(r.name || r.review_name || r.who || r.review__name || "").trim(),
-        role: String(r.role || r.review_role || r.subtitle || r.review__role || "").trim(),
-        text: String(r.text || r.review_text || r.body || r.review__text || "").trim(),
-      }))
-      .filter((r) => r.text.length > 0);
+  const html = (rows || []).map((r, idx) => {
+    const name = escapeHtml(r.name || "");
+    const role = escapeHtml(r.role || "");
+    const textRaw = String(r.text || "");
+    const textHtml = escapeHtml(textRaw).replace(/\n/g, "<br>");
 
-    // Empty state
-    if (!items.length) {
-      root.innerHTML = "";
-      return;
-    }
+    // Optional case assets (before/after) attached to a review.
+    // Supported column names in Google Sheets (any of):
+    // - case_before_url / case_after_url (recommended)
+    // - case_before / case_after
+    // - before_url / after_url
+    const caseBefore = normalizeAssetUrl(r.case_before_url || r.case_before || r.before_url || "");
+    const caseAfter  = normalizeAssetUrl(r.case_after_url  || r.case_after  || r.after_url  || "");
+    const caseTitleRaw = String(r.case_title || r.case_name || "");
+    const caseTitleEnc = encodeURIComponent(caseTitleRaw);
 
-    // Helpers
-    function escapeHtml(str) {
-      return String(str).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]));
-    }
-    function formatText(text) {
-      return escapeHtml(text).replace(/\n/g, "<br>");
-    }
+    const capBeforeRaw = String(r.case_before_caption || r.before_caption || "");
+    const capAfterRaw  = String(r.case_after_caption  || r.after_caption  || "");
+    const capBeforeEnc = encodeURIComponent(capBeforeRaw);
+    const capAfterEnc  = encodeURIComponent(capAfterRaw);
 
-    // Ensure modal exists (for full text)
-    function ensureModal() {
-      let modal = document.getElementById("reviewModal");
-      if (modal) return modal;
+    const commentRaw = String(r.case_comment || r.case_note || r.case_explain || "");
+    const commentEnc = encodeURIComponent(commentRaw);
 
-      modal = document.createElement("div");
-      modal.id = "reviewModal";
-      modal.className = "review-modal";
-      modal.innerHTML = `
-        <div class="review-modal__overlay" data-close="1"></div>
-        <div class="review-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="reviewModalTitle">
-          <button class="review-modal__close" type="button" aria-label="Закрыть" data-close="1">×</button>
-          <div class="review-modal__meta">
-            <div class="review-modal__name" id="reviewModalTitle"></div>
-            <div class="review-modal__role" id="reviewModalRole"></div>
+    const hasCase = Boolean(caseBefore || caseAfter || capBeforeRaw || capAfterRaw || commentRaw || caseTitleRaw);
+
+    const dataAttrs = hasCase
+      ? ` data-has-case="1"
+          data-case-before="${escapeAttr(caseBefore)}"
+          data-case-after="${escapeAttr(caseAfter)}"
+          data-case-title="${escapeAttr(caseTitleEnc)}"
+          data-case-before-caption="${escapeAttr(capBeforeEnc)}"
+          data-case-after-caption="${escapeAttr(capAfterEnc)}"
+          data-case-comment="${escapeAttr(commentEnc)}"`
+      : "";
+
+    const previewHtml = (hasCase && caseBefore && caseAfter)
+      ? `
+        <div class="review__casePreview" aria-hidden="true">
+          <div class="review__caseThumb">
+            <span class="review__caseLabel">Было</span>
+            <img src="${escapeAttr(caseBefore)}" alt="" loading="lazy" />
           </div>
-          <div class="review-modal__text" id="reviewModalText"></div>
+          <div class="review__caseThumb">
+            <span class="review__caseLabel">Стало</span>
+            <img src="${escapeAttr(caseAfter)}" alt="" loading="lazy" />
+          </div>
+        </div>`
+      : "";
+
+    const caseBtnHtml = hasCase
+      ? `<button class="btn review__caseBtn" type="button" data-action="review-case">Смотреть план (было/стало)</button>`
+      : "";
+
+    return `
+      <article class="review reveal"${dataAttrs}>
+        <div class="review__who">
+          <div class="review__name">${name}</div>
+          ${role ? `<div class="review__role">${role}</div>` : ``}
         </div>
-      `;
+        <div class="review__text">${textHtml}</div>
+        ${hasCase ? `
+          <div class="review__case">
+            ${previewHtml}
+            <div class="review__caseActions">
+              ${caseBtnHtml}
+            </div>
+          </div>` : ``}
+      </article>
+    `;
+  }).join("");
 
-      // Close logic
-      modal.addEventListener("click", (e) => {
-        const t = e.target;
-        if (t && t.dataset && t.dataset.close) closeModal();
-      });
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeModal();
-      });
+  el.innerHTML = html;
+}
 
-      document.body.appendChild(modal);
-      return modal;
-    }
-
-    function openModal(item) {
-      const modal = ensureModal();
-      const title = modal.querySelector("#reviewModalTitle");
-      const roleEl = modal.querySelector("#reviewModalRole");
-      const textEl = modal.querySelector("#reviewModalText");
-
-      if (title) title.textContent = item.name || "Отзыв";
-      if (roleEl) {
-        roleEl.textContent = item.role || "";
-        roleEl.hidden = !item.role;
-      }
-      if (textEl) textEl.innerHTML = formatText(item.text || "");
-
-      modal.classList.add("is-open");
-      document.body.classList.add("modal-open");
-    }
-
-    function closeModal() {
-      const modal = document.getElementById("reviewModal");
-      if (!modal) return;
-      modal.classList.remove("is-open");
-      document.body.classList.remove("modal-open");
-    }
-
-    // Build carousel
-    root.innerHTML = "";
-    const wrap = document.createElement("div");
-    wrap.className = "reviews-carousel";
-
-    const prev = document.createElement("button");
-    prev.type = "button";
-    prev.className = "reviews-carousel__nav reviews-carousel__nav--prev";
-    prev.setAttribute("aria-label", "Предыдущий отзыв");
-    prev.innerHTML = "‹";
-
-    const next = document.createElement("button");
-    next.type = "button";
-    next.className = "reviews-carousel__nav reviews-carousel__nav--next";
-    next.setAttribute("aria-label", "Следующий отзыв");
-    next.innerHTML = "›";
-
-    const viewport = document.createElement("div");
-    viewport.className = "reviews-carousel__viewport";
-    viewport.tabIndex = 0;
-
-    const track = document.createElement("div");
-    track.className = "reviews-carousel__track";
-
-    viewport.appendChild(track);
-
-    const footer = document.createElement("div");
-    footer.className = "reviews-carousel__footer";
-
-    const counter = document.createElement("div");
-    counter.className = "reviews-carousel__counter";
-    counter.innerHTML = `<span class="reviews-carousel__current">1</span><span class="reviews-carousel__sep"> / </span><span class="reviews-carousel__total">${items.length}</span>`;
-
-    const dots = document.createElement("div");
-    dots.className = "reviews-carousel__dots";
-    dots.setAttribute("role", "tablist");
-    dots.setAttribute("aria-label", "Переключатель отзывов");
-
-    footer.appendChild(counter);
-    footer.appendChild(dots);
-
-    wrap.appendChild(prev);
-    wrap.appendChild(viewport);
-    wrap.appendChild(next);
-    wrap.appendChild(footer);
-
-    root.appendChild(wrap);
-
-    const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    // Cards
-    items.forEach((item, idx) => {
-      const card = document.createElement("article");
-      card.className = "review-card";
-      card.dataset.index = String(idx);
-
-      // Header (name + role)
-      const head = document.createElement("div");
-      head.className = "review-card__head";
-
-      const nameEl = document.createElement("div");
-      nameEl.className = "review-card__name";
-      nameEl.textContent = item.name || "Клиент";
-
-      head.appendChild(nameEl);
-
-      if (item.role) {
-        const roleEl = document.createElement("div");
-        roleEl.className = "review-card__role";
-        roleEl.textContent = item.role;
-        head.appendChild(roleEl);
-      }
-
-      // Excerpt (clamped)
-      const textEl = document.createElement("div");
-      textEl.className = "review-card__text review-card__text--clamp";
-      textEl.textContent = item.text.replace(/\s+/g, " ").trim();
-
-      // Actions
-      const actions = document.createElement("div");
-      actions.className = "review-card__actions";
-
-      // Show "read more" only when long enough
-      if (item.text.length > 220) {
-        const more = document.createElement("button");
-        more.type = "button";
-        more.className = "review-card__more";
-        more.textContent = "Читать полностью";
-        more.addEventListener("click", () => openModal(item));
-        actions.appendChild(more);
-      }
-
-      card.appendChild(head);
-      card.appendChild(textEl);
-      if (actions.childNodes.length) card.appendChild(actions);
-
-      track.appendChild(card);
-
-      // Dots for small counts only (otherwise it becomes noise)
-      if (items.length <= 9) {
-        const dot = document.createElement("button");
-        dot.type = "button";
-        dot.className = "reviews-carousel__dot" + (idx === 0 ? " is-active" : "");
-        dot.setAttribute("role", "tab");
-        dot.setAttribute("aria-label", `Отзыв ${idx + 1}`);
-        dot.setAttribute("aria-selected", idx === 0 ? "true" : "false");
-        dot.addEventListener("click", () => scrollToIndex(idx));
-        dots.appendChild(dot);
-      }
-    });
-
-    if (items.length > 9) {
-      dots.hidden = true;
-    }
-
-    const cards = Array.from(track.children);
-    let activeIndex = 0;
-
-    function updateUi(i) {
-      activeIndex = i;
-      const cur = counter.querySelector(".reviews-carousel__current");
-      if (cur) cur.textContent = String(i + 1);
-
-      prev.disabled = i <= 0;
-      next.disabled = i >= cards.length - 1;
-
-      if (!dots.hidden) {
-        const all = dots.querySelectorAll(".reviews-carousel__dot");
-        all.forEach((btn, idx) => {
-          const on = idx === i;
-          btn.classList.toggle("is-active", on);
-          btn.setAttribute("aria-selected", on ? "true" : "false");
-        });
-      }
-    }
-
-    function scrollToIndex(i) {
-      const idx = Math.max(0, Math.min(i, cards.length - 1));
-      const left = cards[idx].offsetLeft;
-      viewport.scrollTo({ left, behavior: reduceMotion ? "auto" : "smooth" });
-      updateUi(idx);
-    }
-
-    prev.addEventListener("click", () => scrollToIndex(activeIndex - 1));
-    next.addEventListener("click", () => scrollToIndex(activeIndex + 1));
-
-    // Keyboard support
-    viewport.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        scrollToIndex(activeIndex - 1);
-      } else if (e.key === "ArrowRight") {
-        e.preventDefault();
-        scrollToIndex(activeIndex + 1);
-      } else if (e.key === "Home") {
-        e.preventDefault();
-        scrollToIndex(0);
-      } else if (e.key === "End") {
-        e.preventDefault();
-        scrollToIndex(cards.length - 1);
-      }
-    });
-
-    // Keep index in sync on swipe/scroll
-    if ("IntersectionObserver" in window) {
-      const io = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            if (!entry.isIntersecting) continue;
-            const idx = parseInt(entry.target.dataset.index || "0", 10);
-            if (!Number.isNaN(idx)) updateUi(idx);
-          }
-        },
-        { root: viewport, threshold: 0.6 }
-      );
-      cards.forEach((c) => io.observe(c));
-    } else {
-      // Fallback: compute nearest card on scroll end
-      let t = null;
-      viewport.addEventListener("scroll", () => {
-        if (t) window.clearTimeout(t);
-        t = window.setTimeout(() => {
-          const x = viewport.scrollLeft;
-          let best = 0;
-          let bestDist = Infinity;
-          cards.forEach((c, idx) => {
-            const dist = Math.abs(c.offsetLeft - x);
-            if (dist < bestDist) {
-              bestDist = dist;
-              best = idx;
-            }
-          });
-          updateUi(best);
-        }, 80);
-      });
-    }
-
-    // Initial UI state
-    updateUi(0);
-  }
-
-  function renderFAQ(containerId, rows) {
-    const root = el(containerId);
-    if (!root) return;
-    root.innerHTML = "";
-
-    rows.forEach((r, idx) => {
-      const item = document.createElement("div");
-      item.className = "faq-item";
-      const qId = `faq-${idx}`;
-      item.innerHTML = `
-        <button class="faq-q" type="button" aria-expanded="false" aria-controls="${qId}">
-          <span>${escapeHtml(r.q || "")}</span>
-          <span class="faq-icon" aria-hidden="true">+</span>
-        </button>
-        <div class="faq-a" id="${qId}" hidden>${escapeHtml(r.a || "")}</div>
-      `;
-      root.appendChild(item);
-    });
-
-    // accordion behavior
-    root.querySelectorAll(".faq-q").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const expanded = btn.getAttribute("aria-expanded") === "true";
-        const targetId = btn.getAttribute("aria-controls");
-        const ans = document.getElementById(targetId);
-        if (!ans) return;
-        btn.setAttribute("aria-expanded", String(!expanded));
-        ans.hidden = expanded;
-        const icon = btn.querySelector(".faq-icon");
-        if (icon) icon.textContent = expanded ? "+" : "–";
-      });
-    });
-  }
-
-  function renderContacts(containerId, rows, kv) {
-    const root = el(containerId);
-    if (!root) return;
-    root.innerHTML = "";
-
-    // If 'contacts' tab exists, render it.
-    if (rows.length) {
-      rows.forEach(r => {
-        const card = document.createElement("div");
-        card.className = "contact-card";
-        const url = (r.url || "").trim();
-        const title = (r.title || "").trim();
-        const text = (r.text || "").trim();
-        const label = (r.label || "").trim() || "Открыть";
-        card.innerHTML = `
-          <div class="contact-card__title">${escapeHtml(title)}</div>
-          <div class="contact-card__text">${escapeHtml(text)}</div>
-          ${url ? `<div style="margin-top:10px"><a class="btn btn--ghost" href="${escapeAttr(url)}" ${isExternal(url) ? 'target="_blank" rel="noopener"' : ""}>${escapeHtml(label)}</a></div>` : ""}
-        `;
-        root.appendChild(card);
-      });
-      return;
-    }
-
-    // Otherwise render basic contacts from KV
-    const fallback = [];
-    if (kv.telegram_url) fallback.push({ title: "Telegram", text: kv.telegram_handle ? `@${kv.telegram_handle}` : "Написать в Telegram", url: kv.telegram_url, label: "Написать" });
-    if (kv.contact_email) fallback.push({ title: "Email", text: kv.contact_email, url: `mailto:${kv.contact_email}`, label: "Написать" });
-    if (kv.contact_phone) fallback.push({ title: "Телефон", text: kv.contact_phone, url: `tel:${kv.contact_phone.replace(/\s+/g,"")}`, label: "Позвонить" });
-
-    fallback.forEach(r => {
-      const card = document.createElement("div");
-      card.className = "contact-card";
-      card.innerHTML = `
-        <div class="contact-card__title">${escapeHtml(r.title)}</div>
-        <div class="contact-card__text">${escapeHtml(r.text)}</div>
-        <div style="margin-top:10px"><a class="btn btn--ghost" href="${escapeAttr(r.url)}">${escapeHtml(r.label)}</a></div>
-      `;
-      root.appendChild(card);
-    });
-  }
-
-  function isExternal(url) {
-    if (!url) return false;
-    return /^https?:\/\//i.test(url);
-  }
-
-  function escapeHtml(str) {
-    return String(str ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
-
-  function escapeAttr(str) {
+function normalizeAssetUrl(url) {
+  const u = String(url ?? "").trim();
+  if (!u) return "";
+  if (/^https?:\/\//i.test(u)) return u;
+  // relative paths: strip leading slashes so GitHub Pages resolves correctly
+  return u.replace(/^\/+/, "");
+}
+function escapeAttr(str) {
     return escapeHtml(str).replaceAll("`", "&#096;");
   }
 
@@ -704,6 +415,7 @@
     // 11) Reviews
     const reviews = (await Sheets.fetchTab(sheetId, tabs.reviews).catch(() => [])).slice(0, limits.reviews || 999);
     if (reviews.length) renderReviews("reviewsGrid", reviews);
+    initReviewCases();
 
     // 12) FAQ
     const faq = (await Sheets.fetchTab(sheetId, tabs.faq).catch(() => [])).slice(0, limits.faq || 999);
@@ -717,4 +429,150 @@
   document.addEventListener("DOMContentLoaded", () => {
     main().catch(err => console.error(err));
   });
+
+
+// ---------------------------
+// Review case modal (Before/After)
+// ---------------------------
+function ensureReviewCaseModal() {
+  let modal = document.getElementById("reviewCaseModal");
+  if (modal) return modal;
+
+  modal = document.createElement("div");
+  modal.id = "reviewCaseModal";
+  modal.className = "case-modal";
+  modal.hidden = true;
+
+  modal.innerHTML = `
+    <div class="case-modal__backdrop" data-action="case-close"></div>
+    <div class="case-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="caseModalTitle">
+      <button class="case-modal__close" type="button" data-action="case-close" aria-label="Закрыть">✕</button>
+      <div class="case-modal__head">
+        <div class="case-modal__badge">Кейс</div>
+        <h3 class="case-modal__title" id="caseModalTitle">Было / стало</h3>
+      </div>
+
+      <div class="case-modal__compare">
+        <figure class="case-figure case-figure--before">
+          <figcaption class="case-figure__cap">Было</figcaption>
+          <a class="case-figure__link" target="_blank" rel="noopener">
+            <img class="case-figure__img" alt="План до" loading="lazy" />
+          </a>
+          <div class="case-figure__note" data-part="beforeNote"></div>
+        </figure>
+
+        <figure class="case-figure case-figure--after">
+          <figcaption class="case-figure__cap">Стало</figcaption>
+          <a class="case-figure__link" target="_blank" rel="noopener">
+            <img class="case-figure__img" alt="План после" loading="lazy" />
+          </a>
+          <div class="case-figure__note" data-part="afterNote"></div>
+        </figure>
+      </div>
+
+      <div class="case-modal__comment" data-part="comment" hidden>
+        <div class="case-modal__commentLabel">Комментарий Натальи</div>
+        <div class="case-modal__commentText"></div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Close handlers
+  modal.addEventListener("click", (e) => {
+    const close = e.target && e.target.closest('[data-action="case-close"]');
+    if (close) closeReviewCaseModal();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeReviewCaseModal();
+  });
+
+  return modal;
+}
+
+function openReviewCaseModalFromCard(card) {
+  const modal = ensureReviewCaseModal();
+
+  const beforeUrl = normalizeAssetUrl(card.getAttribute("data-case-before") || "");
+  const afterUrl  = normalizeAssetUrl(card.getAttribute("data-case-after") || "");
+
+  const titleEnc = card.getAttribute("data-case-title") || "";
+  const title = decodeURIComponent(titleEnc || "");
+
+  const beforeCap = decodeURIComponent(card.getAttribute("data-case-before-caption") || "");
+  const afterCap  = decodeURIComponent(card.getAttribute("data-case-after-caption") || "");
+  const comment   = decodeURIComponent(card.getAttribute("data-case-comment") || "");
+
+  const titleEl = modal.querySelector(".case-modal__title");
+  titleEl.textContent = title || "Было / стало";
+
+  const figBefore = modal.querySelector(".case-figure--before");
+  const figAfter  = modal.querySelector(".case-figure--after");
+
+  // Before
+  if (beforeUrl) {
+    figBefore.hidden = false;
+    const link = figBefore.querySelector(".case-figure__link");
+    const img = figBefore.querySelector(".case-figure__img");
+    link.href = beforeUrl;
+    img.src = beforeUrl;
+    figBefore.querySelector('[data-part="beforeNote"]').innerHTML = beforeCap ? escapeHtml(beforeCap).replace(/\n/g, "<br>") : "";
+  } else {
+    figBefore.hidden = true;
+  }
+
+  // After
+  if (afterUrl) {
+    figAfter.hidden = false;
+    const link = figAfter.querySelector(".case-figure__link");
+    const img = figAfter.querySelector(".case-figure__img");
+    link.href = afterUrl;
+    img.src = afterUrl;
+    figAfter.querySelector('[data-part="afterNote"]').innerHTML = afterCap ? escapeHtml(afterCap).replace(/\n/g, "<br>") : "";
+  } else {
+    figAfter.hidden = true;
+  }
+
+  // Comment
+  const commentWrap = modal.querySelector('[data-part="comment"]');
+  if (comment && comment.trim()) {
+    commentWrap.hidden = false;
+    commentWrap.querySelector(".case-modal__commentText").innerHTML = escapeHtml(comment).replace(/\n/g, "<br>");
+  } else {
+    commentWrap.hidden = true;
+  }
+
+  modal.hidden = false;
+  document.body.classList.add("case-modal-open");
+
+  // Focus close for accessibility
+  const closeBtn = modal.querySelector(".case-modal__close");
+  closeBtn && closeBtn.focus();
+}
+
+function closeReviewCaseModal() {
+  const modal = document.getElementById("reviewCaseModal");
+  if (!modal || modal.hidden) return;
+  modal.hidden = true;
+  document.body.classList.remove("case-modal-open");
+}
+
+function initReviewCases() {
+  // Event delegation so it works even if the slider re-wraps/clones nodes.
+  if (window.__byplanReviewCasesInit) return;
+  window.__byplanReviewCasesInit = true;
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target && e.target.closest('[data-action="review-case"]');
+    if (!btn) return;
+
+    const card = btn.closest(".review");
+    if (!card) return;
+
+    openReviewCaseModalFromCard(card);
+  });
+}
+
 })();
