@@ -436,9 +436,9 @@ function escapeAttr(str) {
     renderContacts("contactCards", contacts, kv);
   }
 
-  bindReviewMoreModal();
 
   document.addEventListener("DOMContentLoaded", () => {
+    bindReviewMoreModal();
     main().catch(err => console.error(err));
   });
 
@@ -518,7 +518,7 @@ function openReviewTextModal({ name = "", role = "", text = "" } = {}) {
   if (roleEl) roleEl.textContent = role;
   if (textEl) {
     // preserve line breaks
-    textEl.innerHTML = escapeHtml(String(text ?? "")).replaceAll("\n", "<br>");
+    textEl.innerHTML = escapeHtml(String(text ?? "")).replace(/\r?\n/g, "<br>");
   }
 
   el.classList.add("is-open");
