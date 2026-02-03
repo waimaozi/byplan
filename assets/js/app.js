@@ -325,6 +325,12 @@ function escapeHtml(str) {
     .replaceAll("'", "&#39;");
 }
 
+
+function isExternal(url) {
+  // absolute http(s) links open in a new tab
+  return /^https?:\/\//i.test(String(url || ""));
+}
+
 function escapeAttr(str) {
     return escapeHtml(str).replaceAll("`", "&#096;");
   }
