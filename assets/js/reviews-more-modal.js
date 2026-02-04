@@ -59,6 +59,9 @@
     return modal;
   }
 
+  // Store opener to return focus on close (a11y)
+  let lastOpener = null;
+
   function openModal({ name, role, text }) {
     const modal = ensureModal();
     const nameEl = modal.querySelector("#reviewModalName");
@@ -83,9 +86,24 @@
   function closeModal() {
     const modal = document.getElementById(MODAL_ID);
     if (!modal) return;
-    modal.classList.remove("is-open");
-    modal.setAttribute("aria-hidden", "true");
-    document.body.classList.remove("modal-open");
+
+    // IMPORTANT: move focus OUT of the modal BEFORE hiding it with aria-hidden,
+    // otherwise Chrome blocks aria-hidden and logs a warning.
+    const opener = lastOpener;
+    lastOpener = null;
+    try {
+      if (opener && document.contains(opener) && typeof opener.focus === 'function') {
+        opener.focus({ preventScroll: true });
+      } else if (document.activeElement && typeof document.activeElement.blur === 'function') {
+        document.activeElement.blur();
+      }
+    } catch (e) {
+      try { opener && opener.focus && opener.focus(); } catch (_) {}
+    }
+
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
   }
 
   // CAPTURE listener: overrides any previous "read more" logic that breaks layout.
@@ -127,6 +145,9 @@
         "";
 
       const full = decodeHtml(fullRaw).trim();
+
+      // Remember which element opened the modal (for focus return on close)
+      lastOpener = btn;
 
       openModal({ name, role, text: full || "" });
     },
