@@ -122,7 +122,14 @@
       e.stopPropagation();
       if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
 
-      const card = btn.closest(".review-card") || btn.closest(".review") || btn;
+      // Depending on the renderer, the data-* payload can live either on the
+      // slide wrapper (e.g. .review-slide) or on the card itself (.review-card).
+      const card =
+        btn.closest(".review-slide") ||
+        btn.closest(".review-card") ||
+        btn.closest(".review") ||
+        btn.closest("[data-review-id]") ||
+        btn;
 
       const name = decodeHtml(
         btn.getAttribute("data-name") ||
@@ -138,10 +145,23 @@
           ""
       ).trim();
 
+      // Full text may come from different attributes depending on the renderer.
+      // We support both the newer "data-full" and the older "data-text" conventions.
+      // (The reviews carousel renderer writes full text into data-text.)
       const fullRaw =
+        // Preferred: explicit full text
         btn.getAttribute("data-full") ||
         (btn.dataset ? btn.dataset.full : "") ||
+        // Backwards compatibility: some renderers store full text in data-text
+        btn.getAttribute("data-text") ||
+        (btn.dataset ? btn.dataset.text : "") ||
+        // Also accept a couple of semantic variants
+        btn.getAttribute("data-review-text") ||
+        (btn.dataset ? btn.dataset.reviewText : "") ||
         (card && card.getAttribute ? card.getAttribute("data-full") : "") ||
+        (card && card.getAttribute ? card.getAttribute("data-text") : "") ||
+        (card && card.dataset ? card.dataset.full : "") ||
+        (card && card.dataset ? card.dataset.text : "") ||
         "";
 
       const full = decodeHtml(fullRaw).trim();
