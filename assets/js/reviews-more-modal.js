@@ -1,0 +1,135 @@
+/* BYPLAN — Reviews "Read full" modal (override)
+   Purpose:
+   - Make "Читать полностью" open a proper modal instead of expanding inside the carousel.
+   - Runs in capture phase and stops propagation to override any older/broken handlers.
+*/
+
+(function () {
+  "use strict";
+
+  const MODAL_ID = "reviewTextModal";
+
+  function decodeHtml(str) {
+    if (str == null) return "";
+    // Decode HTML entities that may be stored in data-* attributes.
+    const ta = document.createElement("textarea");
+    ta.innerHTML = String(str);
+    return ta.value;
+  }
+
+  function ensureModal() {
+    let modal = document.getElementById(MODAL_ID);
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = MODAL_ID;
+      modal.className = "review-modal";
+      modal.setAttribute("aria-hidden", "true");
+      modal.innerHTML = `
+        <div class="review-modal__overlay" data-close="1"></div>
+        <div class="review-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="reviewModalName">
+          <button class="review-modal__close" type="button" aria-label="Закрыть" data-close="1">×</button>
+          <div class="review-modal__meta">
+            <div class="review-modal__name" id="reviewModalName"></div>
+            <div class="review-modal__role" id="reviewModalRole"></div>
+          </div>
+          <div class="review-modal__text" id="reviewModalText"></div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      // Close on overlay/close button
+      modal.addEventListener("click", (e) => {
+        const t = e.target;
+        if (t && t.getAttribute && t.getAttribute("data-close") === "1") {
+          e.preventDefault();
+          closeModal();
+        }
+      });
+
+      // Close on ESC
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeModal();
+      });
+    }
+
+    // Make sure line breaks in plain text are preserved even if CSS got changed.
+    const textEl = modal.querySelector("#reviewModalText");
+    if (textEl) textEl.style.whiteSpace = "pre-wrap";
+
+    return modal;
+  }
+
+  function openModal({ name, role, text }) {
+    const modal = ensureModal();
+    const nameEl = modal.querySelector("#reviewModalName");
+    const roleEl = modal.querySelector("#reviewModalRole");
+    const textEl = modal.querySelector("#reviewModalText");
+
+    if (nameEl) nameEl.textContent = name || "";
+    if (roleEl) {
+      roleEl.textContent = role || "";
+      roleEl.style.display = role ? "block" : "none";
+    }
+    if (textEl) textEl.textContent = text || "";
+
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+
+    const closeBtn = modal.querySelector(".review-modal__close");
+    if (closeBtn) closeBtn.focus({ preventScroll: true });
+  }
+
+  function closeModal() {
+    const modal = document.getElementById(MODAL_ID);
+    if (!modal) return;
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-open");
+  }
+
+  // CAPTURE listener: overrides any previous "read more" logic that breaks layout.
+  document.addEventListener(
+    "click",
+    (e) => {
+      const btn = e.target && e.target.closest
+        ? e.target.closest(
+            "[data-review-more], .review-card__more, .review__more, [data-review-more-btn]"
+          )
+        : null;
+      if (!btn) return;
+
+      // Stop other handlers (bubble + target) from running.
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+
+      const card = btn.closest(".review-card") || btn.closest(".review") || btn;
+
+      const name = decodeHtml(
+        btn.getAttribute("data-name") ||
+          (card && card.getAttribute ? card.getAttribute("data-name") : "") ||
+          (card && card.querySelector ? card.querySelector(".review-card__name")?.textContent : "") ||
+          ""
+      ).trim();
+
+      const role = decodeHtml(
+        btn.getAttribute("data-role") ||
+          (card && card.getAttribute ? card.getAttribute("data-role") : "") ||
+          (card && card.querySelector ? card.querySelector(".review-card__role")?.textContent : "") ||
+          ""
+      ).trim();
+
+      const fullRaw =
+        btn.getAttribute("data-full") ||
+        (btn.dataset ? btn.dataset.full : "") ||
+        (card && card.getAttribute ? card.getAttribute("data-full") : "") ||
+        "";
+
+      const full = decodeHtml(fullRaw).trim();
+
+      openModal({ name, role, text: full || "" });
+    },
+    true
+  );
+})();
