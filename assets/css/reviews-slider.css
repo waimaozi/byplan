@@ -183,38 +183,37 @@
 .review-modal__overlay {
   position: absolute;
   inset: 0;
-  /* Darker backdrop so the modal reads as a separate white "window" */
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  /* Keep overlay behind the dialog (fixes cases when overlay covers the card) */
+  z-index: 0;
 }
 
 .review-modal__dialog {
   position: relative;
-  width: min(920px, 100%);
+  /* Always above overlay */
+  z-index: 1;
+  width: min(900px, 100%);
   max-height: 85vh;
-  /* White card (not glass) so the long review reads comfortably */
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.35);
-  border-radius: 28px;
-
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  overflow: auto;
+  border-radius: 24px;
+  /* Force readable white card even if other styles override backgrounds */
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1px solid rgba(255, 255, 255, 0.60);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  padding: 20px 20px 18px;
 }
 
 .review-modal__close {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 12px;
+  right: 12px;
   width: 40px;
   height: 40px;
   border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.10);
-  background: #fff;
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.70);
   cursor: pointer;
   font-size: 22px;
   line-height: 1;
@@ -224,9 +223,7 @@
 }
 
 .review-modal__meta {
-  padding: 22px 64px 16px 22px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0));
+  padding-right: 52px;
 }
 
 .review-modal__name {
@@ -242,14 +239,10 @@
 }
 
 .review-modal__text {
-  margin-top: 0;
-  padding: 18px 22px 22px 22px;
-  overflow: auto;
-  flex: 1 1 auto;
-  -webkit-overflow-scrolling: touch;
+  margin-top: 14px;
   font-size: 16px;
   line-height: 1.65;
-  opacity: 0.96;
+  opacity: 0.9;
 }
 
 body.modal-open {
