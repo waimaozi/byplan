@@ -235,10 +235,7 @@
 
   const html = (rows || []).map((r, idx) => {
     const name = escapeHtml(r.name || "");
-    const roleRaw = String(r.role || "").replace(/\s+/g," ").trim();
-    const orgRaw  = String(r.company_or_city || r.org || r.organization || r.company || r.org_name || r.employer || r.workplace || r.city || "").replace(/\s+/g," ").trim();
-    const metaRaw = [roleRaw, orgRaw].filter(Boolean).join(" · ");
-    const role = escapeHtml(metaRaw);
+    const role = escapeHtml(r.role || "");
     const textRaw = String(r.text || "");
     const textHtml = escapeHtml(textRaw).replace(/\n/g, "<br>");
 
@@ -341,39 +338,87 @@ function escapeAttr(str) {
   }
 
 
-  function renderFAQ(containerId, rows) {
-    const root = el(containerId);
-    if (!root) return;
-    root.innerHTML = "";
+  function renderFAQ(rows) {
+  const root = $("#faqList");
+  if (!root) return;
+  root.innerHTML = "";
+  root.dataset.skeleton = "0";
 
-    rows.forEach((r, idx) => {
-      const item = document.createElement("div");
-      item.className = "faq-item";
-      const qId = `faq-${idx}`;
-      item.innerHTML = `
-        <button class="faq-q" type="button" aria-expanded="false" aria-controls="${qId}">
-          <span>${escapeHtml(r.q || "")}</span>
-          <span class="faq-icon" aria-hidden="true">+</span>
-        </button>
-        <div class="faq-a" id="${qId}" hidden>${escapeHtml(r.a || "")}</div>
-      `;
-      root.appendChild(item);
+  // Defensive getter: supports different column names in Google Sheets
+  const pick = (r, keys) => {
+    for (const k of keys) {
+      if (!r) continue;
+      if (Object.prototype.hasOwnProperty.call(r, k)) {
+        const v = r[k];
+        if (v !== null && v !== undefined) {
+          const s = String(v).trim();
+          if (s) return s;
+        }
+      }
+    }
+    return "";
+  };
+
+  const enabledRows = (rows || []).filter((r) => {
+    const raw = (r && r.is_enabled !== undefined && r.is_enabled !== null) ? String(r.is_enabled) : "1";
+    return raw.trim() !== "0";
+  });
+
+  enabledRows.forEach((r, i) => {
+    const qText = pick(r, ["q", "question", "Q", "вопрос", "Вопрос"]);
+    const aText = pick(r, ["a", "answer", "A", "ответ", "Ответ", "text", "body"]);
+
+    // Skip completely empty rows (common in Sheets)
+    if (!qText && !aText) return;
+
+    const item = document.createElement("div");
+    item.className = "faq-item reveal";
+    item.setAttribute("data-reveal", "");
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "faq-q";
+    btn.setAttribute("aria-expanded", "false");
+    btn.setAttribute("aria-controls", `faq-${i}`);
+
+    const label = document.createElement("span");
+    label.className = "faq-q__label";
+    label.textContent = qText || "";
+
+    const icon = document.createElement("span");
+    icon.className = "faq-icon";
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = "+";
+
+    btn.append(label, icon);
+
+    const ans = document.createElement("div");
+    ans.className = "faq-a";
+    ans.id = `faq-${i}`;
+    ans.textContent = aText || "";
+    ans.style.whiteSpace = "pre-line"; // preserve line breaks from Sheets
+    ans.hidden = true;
+
+    // If some CSS accidentally forces display:none for .faq-a,
+    // inline style makes the open state deterministic.
+    ans.style.display = "none";
+
+    btn.addEventListener("click", () => {
+      const open = btn.getAttribute("aria-expanded") !== "true";
+      btn.setAttribute("aria-expanded", String(open));
+      item.classList.toggle("is-open", open);
+      icon.textContent = open ? "−" : "+";
+
+      ans.hidden = !open;
+      ans.style.display = open ? "block" : "none";
     });
 
-    // accordion behavior
-    root.querySelectorAll(".faq-q").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const expanded = btn.getAttribute("aria-expanded") === "true";
-        const targetId = btn.getAttribute("aria-controls");
-        const ans = document.getElementById(targetId);
-        if (!ans) return;
-        btn.setAttribute("aria-expanded", String(!expanded));
-        ans.hidden = expanded;
-        const icon = btn.querySelector(".faq-icon");
-        if (icon) icon.textContent = expanded ? "+" : "–";
-      });
-    });
-  }
+    item.append(btn, ans);
+    root.appendChild(item);
+  });
+
+  observeReveals();
+}
 
 
   function renderContacts(containerId, rows, kv) {
