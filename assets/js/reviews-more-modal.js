@@ -1,12 +1,31 @@
+/* reviews-more-modal.js
+   Opens a "Read full review" modal for review cards.
+   - Works with both old/new card markups
+   - Tries to fill name/role/company/text from:
+     1) data-* attributes on the card
+     2) elements inside the card
+     3) (optional) Google Sheets "reviews" tab via cfg.SHEET_ID lookup
+*/
 (() => {
   "use strict";
 
   const MODAL_ID = "reviewTextModal";
-  let bound = false;
+  const SHEET_TAB = "reviews";
 
-  // Small, local escaping helper (do NOT rely on globals from other bundles)
+  let lastActiveEl = null;
+  let reviewsLookupPromise = null;
+  let reviewsByName = new Map();
+  let reviewsById = new Map();
+
+  function norm(s) {
+    return String(s || "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+  }
+
   function escapeHtml(str) {
-    return String(str ?? "")
+    return String(str || "")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
@@ -14,282 +33,348 @@
       .replace(/'/g, "&#39;");
   }
 
-  function normalizeOneLine(str) {
-    return String(str ?? "").replace(/\s+/g, " ").trim();
+  function safeTextToHtml(text) {
+    const t = String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
+    if (!t) return "";
+    // Split into paragraphs; keep single newlines as breaks inside paragraph for better readability
+    const paragraphs = t.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+    if (!paragraphs.length) return "";
+    return paragraphs
+      .map((p) => {
+        const withBreaks = p.split("\n").map((l) => escapeHtml(l)).join("<br>");
+        return `<p>${withBreaks}</p>`;
+      })
+      .join("");
   }
 
-  function buildMeta(role, org) {
-    const r = normalizeOneLine(role);
-    const o = normalizeOneLine(org);
-    if (r && o) return `${r} · ${o}`;
-    return r || o || "";
+  function truthy(v) {
+    if (v === true) return true;
+    if (typeof v === "number") return v !== 0;
+    const s = String(v || "").trim().toLowerCase();
+    if (!s) return false;
+    return ["1", "true", "yes", "y", "да", "ok"].includes(s);
   }
 
-  function ensureModal() {
-    let modal = document.getElementById(MODAL_ID);
-    const template = `
-      <div class="review-modal__overlay" data-close="1" aria-hidden="true"></div>
-      <div class="review-modal__panel" role="dialog" aria-modal="true" aria-labelledby="reviewModalTitle">
-        <div class="review-modal__header">
-          <div class="review-modal__title" id="reviewModalTitle"></div>
-          <button class="review-modal__close" type="button" aria-label="Закрыть">×</button>
+  function pick(obj, keys) {
+    for (const k of keys) {
+      if (!k) continue;
+      if (Object.prototype.hasOwnProperty.call(obj, k) && obj[k] !== null && obj[k] !== undefined && String(obj[k]).trim() !== "") {
+        return obj[k];
+      }
+    }
+    return "";
+  }
+
+  async function loadReviewsLookup() {
+    try {
+      const cfg = window.cfg || window.CFG || {};
+      const sheetId = cfg.SHEET_ID || cfg.sheetId || "";
+      if (!sheetId) return;
+
+      const url =
+        "https://docs.google.com/spreadsheets/d/" +
+        encodeURIComponent(sheetId) +
+        "/gviz/tq?tqx=out:json&sheet=" +
+        encodeURIComponent(SHEET_TAB);
+
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) return;
+
+      const txt = await res.text();
+      const jsonStr = txt.substring(txt.indexOf("{"), txt.lastIndexOf("}") + 1);
+      const data = JSON.parse(jsonStr);
+      const table = data && data.table;
+      if (!table || !table.cols || !table.rows) return;
+
+      const headers = table.cols.map((c) => (c && c.label ? String(c.label).trim() : ""));
+      const rows = table.rows.map((r) => {
+        const obj = {};
+        headers.forEach((h, i) => {
+          const cell = r && r.c ? r.c[i] : null;
+          obj[h] = cell && cell.v !== undefined && cell.v !== null ? cell.v : "";
+        });
+        return obj;
+      });
+
+      // Build lookups
+      const byName = new Map();
+      const byId = new Map();
+
+      rows.forEach((r) => {
+        // If there's an enable flag — respect it. If not — treat as enabled.
+        const enabledRaw = pick(r, ["is_enabled", "enabled", "isEnabled", "publish", "published"]);
+        const isEnabled = enabledRaw === "" ? true : truthy(enabledRaw);
+        if (!isEnabled) return;
+
+        const id = String(pick(r, ["id", "ID"])).trim();
+        const name = String(pick(r, ["name", "Name", "fio", "ФИО", "клиент"])).trim();
+
+        if (id) byId.set(id, r);
+        if (name) byName.set(norm(name), r);
+      });
+
+      reviewsByName = byName;
+      reviewsById = byId;
+    } catch (e) {
+      // Silent fail — modal still works from DOM/data-attrs.
+      console.warn("[reviews-more-modal] lookup load failed:", e);
+    }
+  }
+
+  function ensureLookupStarted() {
+    if (!reviewsLookupPromise) {
+      reviewsLookupPromise = loadReviewsLookup();
+    }
+    return reviewsLookupPromise;
+  }
+
+  function ensureModalMarkup() {
+    let modalEl = document.getElementById(MODAL_ID);
+    if (modalEl) return modalEl;
+
+    modalEl = document.createElement("div");
+    modalEl.id = MODAL_ID;
+    modalEl.className = "review-modal";
+    modalEl.setAttribute("aria-hidden", "true");
+
+    modalEl.innerHTML = `
+      <div class="review-modal__overlay" data-review-modal-overlay></div>
+
+      <div class="review-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="reviewModalName">
+        <button class="review-modal__close" type="button" data-review-modal-close aria-label="Закрыть">×</button>
+
+        <div class="review-modal__meta">
+          <div class="review-modal__name" id="reviewModalName"></div>
+          <div class="review-modal__role" id="reviewModalRole"></div>
         </div>
-        <div class="review-modal__role" id="reviewModalRole" style="display:none"></div>
+
         <div class="review-modal__text" id="reviewModalText"></div>
       </div>
     `;
 
-    if (!modal) {
-      modal = document.createElement("div");
-      modal.id = MODAL_ID;
-      modal.className = "review-modal";
-      modal.setAttribute("aria-hidden", "true");
-      modal.innerHTML = template;
-      document.body.appendChild(modal);
-      return modal;
-    }
+    document.body.appendChild(modalEl);
 
-    // If modal exists but missing crucial parts, re-hydrate it.
-    const hasPanel = modal.querySelector(".review-modal__panel");
-    const hasTitle = modal.querySelector("#reviewModalTitle, .review-modal__title");
-    const hasText = modal.querySelector("#reviewModalText, .review-modal__text");
-    if (!hasPanel || !hasTitle || !hasText) {
-      modal.innerHTML = template;
-    }
-    if (!modal.classList.contains("review-modal")) modal.classList.add("review-modal");
-    if (!modal.hasAttribute("aria-hidden")) modal.setAttribute("aria-hidden", "true");
-    return modal;
+    const overlay = modalEl.querySelector("[data-review-modal-overlay]");
+    const closeBtn = modalEl.querySelector("[data-review-modal-close]");
+
+    if (overlay) overlay.addEventListener("click", closeModal);
+    if (closeBtn) closeBtn.addEventListener("click", closeModal);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modalEl.classList.contains("is-open")) closeModal();
+    });
+
+    return modalEl;
   }
 
-  function openModal({ title, meta, text }) {
-    const modal = ensureModal();
+  function openModal(payload) {
+    const modalEl = ensureModalMarkup();
+    lastActiveEl = document.activeElement;
 
-    const titleEl = modal.querySelector("#reviewModalTitle") || modal.querySelector(".review-modal__title");
-    const roleEl  = modal.querySelector("#reviewModalRole") || modal.querySelector(".review-modal__role");
-    const textEl  = modal.querySelector("#reviewModalText") || modal.querySelector(".review-modal__text");
+    const nameEl = modalEl.querySelector("#reviewModalName");
+    const roleEl = modalEl.querySelector("#reviewModalRole");
+    const textEl = modalEl.querySelector("#reviewModalText");
 
-    if (titleEl) titleEl.textContent = title || "Отзыв";
+    const name = String(payload.name || "").trim();
+    const role = String(payload.role || "").trim();
+    const text = String(payload.text || "").trim();
 
-    const metaText = normalizeOneLine(meta);
-    if (roleEl) {
-      roleEl.textContent = metaText;
-      roleEl.style.display = metaText ? "" : "none";
-    }
+    if (nameEl) nameEl.textContent = name || "Отзыв";
+    if (roleEl) roleEl.textContent = role;
+    if (textEl) textEl.innerHTML = safeTextToHtml(text);
 
-    if (textEl) {
-      const safe = escapeHtml(String(text ?? "")).replace(/\n/g, "<br>");
-      textEl.innerHTML = safe;
-    }
-
-    modal.classList.add("is-open");
-    modal.setAttribute("aria-hidden", "false");
+    modalEl.classList.add("is-open");
+    modalEl.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");
 
-    const closeBtn = modal.querySelector(".review-modal__close");
-    if (closeBtn) closeBtn.focus({ preventScroll: true });
+    const closeBtn = modalEl.querySelector("[data-review-modal-close]");
+    if (closeBtn && typeof closeBtn.focus === "function") {
+      closeBtn.focus({ preventScroll: true });
+    }
   }
 
   function closeModal() {
-    const modal = document.getElementById(MODAL_ID);
-    if (!modal) return;
+    const modalEl = document.getElementById(MODAL_ID);
+    if (!modalEl) return;
 
-    // Move focus away BEFORE we hide the modal (prevents aria-hidden warning)
-    try { document.activeElement && document.activeElement.blur && document.activeElement.blur(); } catch(e){}
+    // Move focus away before hiding — avoids aria-hidden warning in Chrome
+    if (lastActiveEl && typeof lastActiveEl.focus === "function") {
+      try {
+        lastActiveEl.focus({ preventScroll: true });
+      } catch (_) {}
+    }
 
-    modal.classList.remove("is-open");
-    modal.setAttribute("aria-hidden", "true");
+    modalEl.classList.remove("is-open");
+    modalEl.setAttribute("aria-hidden", "true");
     document.body.classList.remove("modal-open");
   }
 
-  function getTextFromCard(card) {
-    if (!card) return "";
-    const el =
-      card.querySelector(".review-card__text") ||
-      card.querySelector(".review__text") ||
-      card.querySelector(".review-slide__text") ||
-      card.querySelector(".review-text-full") ||
-      card.querySelector(".review-text");
-    return el ? el.textContent.trim() : "";
+  function getTextFromElement(el) {
+    if (!el) return "";
+    // Prefer innerText to keep <br> as newlines where possible
+    const t = (el.innerText || el.textContent || "").trim();
+    return t;
   }
 
-  function getTitleFromCard(card) {
-    if (!card) return "";
-    const el =
-      card.querySelector(".review-card__name") ||
-      card.querySelector(".review__name") ||
-      card.querySelector(".review-slide__name") ||
-      card.querySelector(".review-name") ||
-      card.querySelector("h3");
-    return el ? el.textContent.trim() : "";
+  function getReviewDataFromCard(card) {
+    if (!card) return { name: "", role: "", text: "" };
+
+    // 1) data-* attributes (preferred)
+    const ds = card.dataset || {};
+    const dataName = ds.reviewName || card.getAttribute("data-review-name") || "";
+    const dataRole = ds.reviewRole || card.getAttribute("data-review-role") || "";
+    const dataOrg = ds.reviewOrg || ds.reviewCompany || ds.reviewCompanyOrCity || card.getAttribute("data-review-org") || "";
+    const dataText =
+      ds.reviewFull ||
+      ds.reviewText ||
+      card.getAttribute("data-review-full") ||
+      card.getAttribute("data-review-text") ||
+      "";
+
+    // 2) DOM fallbacks
+    const nameEl =
+      card.querySelector(".review-card__name, .review__name, .review__title, h3, h4") || null;
+    const roleEl =
+      card.querySelector(".review-card__role, .review__role, .review__meta, .review-card__meta, .review__subtitle") || null;
+    const textEl =
+      card.querySelector(".review__full, .review-card__full, .review__text, .review-card__text, .review__body, p") || null;
+
+    const name = (String(dataName).trim() || (nameEl ? String(nameEl.textContent || "").trim() : "")).trim();
+    const roleFromDom = roleEl ? String(roleEl.textContent || "").trim() : "";
+    const roleParts = [String(dataRole).trim(), String(dataOrg).trim()].filter(Boolean);
+    const role = (roleParts.join(" · ") || roleFromDom).trim();
+
+    let text = String(dataText).trim();
+    if (!text) text = getTextFromElement(textEl);
+    return { name, role, text };
   }
 
-  function getMetaFromCard(card) {
-    if (!card) return "";
-    const el =
-      card.querySelector(".review-card__role") ||
-      card.querySelector(".review__role") ||
-      card.querySelector(".review-slide__role") ||
-      card.querySelector(".review-role");
-    return el ? el.textContent.trim() : "";
+  function findRecordForCard(card) {
+    if (!card) return null;
+
+    const id = (card.dataset && (card.dataset.reviewId || card.dataset.id)) || card.getAttribute("data-review-id") || "";
+    if (id && reviewsById && reviewsById.has(id)) return reviewsById.get(id);
+
+    const name = getReviewDataFromCard(card).name;
+    const key = norm(name);
+    if (key && reviewsByName && reviewsByName.has(key)) return reviewsByName.get(key);
+
+    return null;
   }
 
-  async function fetchReviewsFromSheet() {
-    const id = (window.cfg && window.cfg.SHEET_ID) || (typeof cfg !== "undefined" && cfg && cfg.SHEET_ID);
-    if (!id) return null;
+  function applyRecordToCard(card, rec) {
+    if (!card || !rec) return;
 
-    const url = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(id)}/gviz/tq?tqx=out:json&sheet=reviews`;
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error(`Failed to load reviews sheet: ${res.status}`);
-    const raw = await res.text();
+    const name = String(pick(rec, ["name", "Name"])).trim();
+    const role = String(pick(rec, ["role", "Role"])).trim();
+    const org = String(pick(rec, ["company_or_city", "company", "org", "organization", "city"])).trim();
+    const text = String(pick(rec, ["text", "Text", "review", "отзыв"])).trim();
+    const id = String(pick(rec, ["id", "ID"])).trim();
 
-    // gviz wraps JSON as: google.visualization.Query.setResponse({...});
-    const jsonStr = raw.substring(raw.indexOf("{"), raw.lastIndexOf("}") + 1);
-    const data = JSON.parse(jsonStr);
+    // Store for modal
+    card.dataset.reviewName = name || card.dataset.reviewName || "";
+    card.dataset.reviewRole = role || card.dataset.reviewRole || "";
+    card.dataset.reviewOrg = org || card.dataset.reviewOrg || "";
+    card.dataset.reviewFull = text || card.dataset.reviewFull || "";
+    if (id) card.dataset.reviewId = id;
 
-    const table = data.table;
-    const cols = (table.cols || []).map((c) => (c.label || "").trim());
+    // Ensure role line is present on card (short view)
+    const roleLine = [role, org].filter(Boolean).join(" · ").trim();
+    if (roleLine) {
+      const existing =
+        card.querySelector(".review-card__role, .review__role, .review__meta") || null;
 
-    const rows = (table.rows || []).map((r) => {
-      const obj = {};
-      cols.forEach((label, i) => {
-        const cell = r.c && r.c[i];
-        const val = cell && (cell.v !== null && cell.v !== undefined) ? cell.v : "";
-        obj[label] = val;
-      });
-      return obj;
-    });
-
-    // keep only enabled if that column exists
-    return rows.filter((r) => {
-      if (!("is_enabled" in r)) return true;
-      const v = String(r.is_enabled).trim().toLowerCase();
-      return v === "1" || v === "true" || v === "yes" || v === "y" || v === "да";
-    });
-  }
-
-  function buildIndex(reviews) {
-    const byId = new Map();
-    const byName = new Map();
-    (reviews || []).forEach((r) => {
-      const id = normalizeOneLine(r.id);
-      const name = normalizeOneLine(r.name);
-      if (id) byId.set(id, r);
-      if (name && !byName.has(name)) byName.set(name, r);
-    });
-    return { byId, byName };
-  }
-
-  function hydrateCardsWithReviews(index) {
-    const cards = document.querySelectorAll(".review-card, .review, .review-slide");
-    cards.forEach((card) => {
-      const id = normalizeOneLine(card.getAttribute("data-review-id") || card.dataset.reviewId);
-      const name = normalizeOneLine(getTitleFromCard(card));
-      const row = (id && index.byId.get(id)) || (name && index.byName.get(name));
-      if (!row) return;
-
-      // Update meta line with role + company/city (if present)
-      const meta = buildMeta(row.role, row.company_or_city || row.company || row.organization || row.org || row.city);
-      let metaEl =
-        card.querySelector(".review-card__role") ||
-        card.querySelector(".review__role") ||
-        card.querySelector(".review-slide__role");
-
-      // If the layout doesn't have a meta element yet (some templates), create it right after the name.
-      if (!metaEl && meta) {
-        const nameEl = card.querySelector(".review-card__name, .review__name, .review-slide__name");
-        if (nameEl) {
-          metaEl = document.createElement("div");
-          if (card.classList.contains("review-card")) metaEl.className = "review-card__role";
-          else if (card.classList.contains("review")) metaEl.className = "review__role";
-          else metaEl.className = "review-slide__role";
-          nameEl.insertAdjacentElement("afterend", metaEl);
+      if (existing) {
+        // Only fill if empty / missing org
+        if (!String(existing.textContent || "").trim()) {
+          existing.textContent = roleLine;
+        }
+      } else {
+        // Insert after the name
+        const nameEl = card.querySelector(".review-card__name, .review__name, .review__title, h3, h4");
+        const div = document.createElement("div");
+        div.className = "review-card__role";
+        div.textContent = roleLine;
+        if (nameEl && nameEl.parentNode) {
+          nameEl.insertAdjacentElement("afterend", div);
+        } else {
+          card.insertAdjacentElement("afterbegin", div);
         }
       }
-
-      if (metaEl) {
-        metaEl.textContent = meta;
-        metaEl.style.display = meta ? "" : "none";
-      }
-
-      // Put the full payload on the "more" button for reliable modal opening
-      const moreBtn = card.querySelector(".review-more") || card.querySelector(".review-card__more");
-      if (moreBtn) {
-        if (!moreBtn.dataset.title) moreBtn.dataset.title = normalizeOneLine(row.name) || name;
-        if (!moreBtn.dataset.role) moreBtn.dataset.role = normalizeOneLine(row.role || "");
-        if (!moreBtn.dataset.org) moreBtn.dataset.org = normalizeOneLine(row.company_or_city || "");
-        if (!moreBtn.dataset.full) moreBtn.dataset.full = String(row.text || "").trim();
-      }
-    });
-  }
-
-  function bind(reviewIndex) {
-    if (bound) return;
-    bound = true;
-
-    // Ensure modal exists early (so CSS can apply consistently)
-    ensureModal();
-
-    // Open modal on "read more"
-    document.addEventListener("click", (e) => {
-      const btn = e.target.closest(".review-more, .review-card__more");
-      if (!btn) return;
-
-      e.preventDefault();
-
-      const card = btn.closest(".review-card, .review-slide, .review");
-      const title = normalizeOneLine(btn.dataset.title) || getTitleFromCard(card) || "Отзыв";
-      const role  = normalizeOneLine(btn.dataset.role)  || "";
-      const org   = normalizeOneLine(btn.dataset.org)   || "";
-      const meta  = buildMeta(role, org) || getMetaFromCard(card);
-
-      const text =
-        (btn.dataset.full && String(btn.dataset.full).trim()) ||
-        (btn.dataset.text && String(btn.dataset.text).trim()) ||
-        getTextFromCard(card);
-
-      openModal({ title, meta, text });
-    });
-
-    // Close modal (overlay click or close button)
-    document.addEventListener("click", (e) => {
-      const modal = document.getElementById(MODAL_ID);
-      if (!modal || !modal.classList.contains("is-open")) return;
-
-      if (e.target.closest(`#${MODAL_ID} .review-modal__close`) || e.target.closest(`#${MODAL_ID} [data-close="1"]`)) {
-        e.preventDefault();
-        closeModal();
-      }
-    });
-
-    // Escape key closes modal
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeModal();
-    });
-
-    // If we already have fetched reviews — hydrate cards immediately
-    if (reviewIndex) {
-      hydrateCardsWithReviews(reviewIndex);
     }
+
+    // Mark as enhanced to avoid repeats
+    card.dataset.reviewEnhanced = "1";
   }
 
-  async function init() {
-    try {
-      // Bind immediately so UI doesn't "freeze" if network is slow
-      bind(null);
-
-      const reviews = await fetchReviewsFromSheet();
-      if (!reviews) return;
-
-      const idx = buildIndex(reviews);
-      hydrateCardsWithReviews(idx);
-    } catch (err) {
-      console.warn("[reviews-more-modal] init failed:", err);
-    }
+  function getReviewsRoot() {
+    return document.getElementById("reviewsGrid") || document.getElementById("reviews") || document.body;
   }
 
+  let enhanceScheduled = false;
+
+  async function enhanceCardsNow() {
+    await ensureLookupStarted();
+    const root = getReviewsRoot();
+    const cards = root.querySelectorAll(".review, .review-card, article.review");
+    cards.forEach((card) => {
+      if (!card || (card.dataset && card.dataset.reviewEnhanced === "1")) return;
+      const rec = findRecordForCard(card);
+      if (rec) applyRecordToCard(card, rec);
+    });
+  }
+
+  function scheduleEnhanceCards() {
+    if (enhanceScheduled) return;
+    enhanceScheduled = true;
+    // Run in next microtask to batch multiple DOM updates
+    Promise.resolve().then(async () => {
+      enhanceScheduled = false;
+      await enhanceCardsNow();
+    });
+  }
+
+  function startEnhancer() {
+    // Initial pass (may run before reviews are rendered — that's OK)
+    scheduleEnhanceCards();
+
+    // Observe reviews container for async rendering
+    const root = getReviewsRoot();
+    if (!root || root === document.body) return;
+
+    const obs = new MutationObserver(() => scheduleEnhanceCards());
+    obs.observe(root, { childList: true, subtree: true });
+  }
+
+  // Click handler: open modal
+  document.addEventListener("click", async (e) => {
+    const trigger = e.target.closest(
+      "[data-review-more], [data-review-more-btn], .review__more, .review-card__more, .review-more"
+    );
+    if (!trigger) return;
+
+    const card = trigger.closest("[data-review], .review, .review-card, article");
+    if (!card) return;
+
+    e.preventDefault();
+
+    // Ensure we have lookup (so we can fill missing role/org/text)
+    await ensureLookupStarted();
+
+    // Try to apply record into card dataset
+    const rec = findRecordForCard(card);
+    if (rec) applyRecordToCard(card, rec);
+
+    const payload = getReviewDataFromCard(card);
+    openModal(payload);
+  });
+
+  // Preload lookup and enhance cards (role/org + dataset) on load
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
+    document.addEventListener("DOMContentLoaded", () => {
+      startEnhancer();
+    });
   } else {
-    init();
+    startEnhancer();
   }
 })();
