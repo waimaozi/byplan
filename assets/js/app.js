@@ -339,7 +339,7 @@ function escapeAttr(str) {
 
 
   function renderFAQ(rows) {
-  const root = $("#faqList");
+  const root = el("faqList");
   if (!root) return;
   root.innerHTML = "";
   root.dataset.skeleton = "0";
@@ -562,7 +562,7 @@ function escapeAttr(str) {
 
     // 12) FAQ
     const faq = (await Sheets.fetchTab(sheetId, tabs.faq).catch(() => [])).slice(0, limits.faq || 999);
-    if (faq.length) renderFAQ("faqList", faq);
+    if (faq.length) renderFAQ(faq);
 
     // 13) Contacts
     const contacts = (await Sheets.fetchTab(sheetId, tabs.contacts).catch(() => [])).slice(0, limits.contacts || 999);
