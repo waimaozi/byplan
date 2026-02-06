@@ -223,40 +223,78 @@
       </div>
     </section>
 
-    <!-- PRINCIPLES -->
-    <section class="section" id="principles">
-      <div class="container">
-        <h2 data-kv="principles_title">Наши принципы</h2>
-        <p class="muted" data-kv="principles_subtitle">Чтобы было быстро, честно и реализуемо — у нас есть рамки.</p>
+   <!-- Principles slider: 2 screens (Do / Don't) -->
+<div class="principles-slider" data-principles-slider data-index="0">
+  <div class="principles-slider__top">
+    <div class="principles-tabs" role="tablist" aria-label="Принципы: делаем / не делаем">
+      <button
+        class="principles-tab is-active"
+        type="button"
+        role="tab"
+        aria-selected="true"
+        aria-controls="principlesSlideDo"
+        id="principlesTabDo"
+        data-index="0"
+      >
+        <span class="principles-tab__icon" aria-hidden="true">✓</span>
+        <span class="principles-tab__label" data-kv="do_title">Делаем</span>
+      </button>
 
-        <div class="two-col principles">
-          <div>
-            <h3 class="h3" data-kv="do_title">Делаем</h3>
-            <ul class="bullets" id="doList"></ul>
-          </div>
-          <div>
-            <h3 class="h3" data-kv="dont_title">Не делаем</h3>
-            <ul class="bullets" id="dontList"></ul>
-          </div>
-        </div>
+      <button
+        class="principles-tab"
+        type="button"
+        role="tab"
+        aria-selected="false"
+        aria-controls="principlesSlideDont"
+        id="principlesTabDont"
+        data-index="1"
+      >
+        <span class="principles-tab__icon" aria-hidden="true">✕</span>
+        <span class="principles-tab__label" data-kv="dont_title">Не делаем</span>
+      </button>
+    </div>
 
-        <div class="mistakes" id="mistakesSection">
-          <h3 class="h3" data-kv="mistakes_title">Проверяем планировку на типовые ошибки</h3>
-          <p class="muted" data-kv="mistakes_subtitle">Короткий чеклист, который экономит деньги и метры.</p>
-          <div class="grid cards" id="mistakesGrid"></div>
-        </div>
+    <div class="principles-hint muted" aria-hidden="true">2 экрана · свайп / клик</div>
+  </div>
 
-        <div class="container form-strip form-strip--compact" id="principlesFormStrip">
-          <div class="form-strip__text">
-            <div class="form-strip__title" data-kv="strip2_title">Готовы стартовать?</div>
-            <div class="form-strip__subtitle" data-kv="strip2_subtitle">Заполните анкету — уточним сроки и стоимость.</div>
-          </div>
-          <div class="form-strip__cta">
-            <a class="btn btn--primary" data-kv-link="brief_url" href="#contact" data-kv="strip2_cta">Заполнить анкету</a>
-          </div>
-        </div>
+  <div class="principles-carousel" id="principlesCarousel">
+    <div class="principles-carousel__viewport" tabindex="0">
+      <div class="principles-carousel__track">
+        <article
+          class="principles-slide is-do is-active"
+          role="tabpanel"
+          id="principlesSlideDo"
+          aria-labelledby="principlesTabDo"
+        >
+          <header class="principles-slide__head">
+            <div class="principles-slide__mark" aria-hidden="true">✓</div>
+            <h3 class="h3 principles-slide__title" data-kv="do_title">Делаем</h3>
+          </header>
+          <ul class="principles-list" id="doList"></ul>
+        </article>
+
+        <article
+          class="principles-slide is-dont"
+          role="tabpanel"
+          id="principlesSlideDont"
+          aria-labelledby="principlesTabDont"
+        >
+          <header class="principles-slide__head">
+            <div class="principles-slide__mark" aria-hidden="true">✕</div>
+            <h3 class="h3 principles-slide__title" data-kv="dont_title">Не делаем</h3>
+          </header>
+          <ul class="principles-list" id="dontList"></ul>
+        </article>
       </div>
-    </section>
+    </div>
+
+    <div class="principles-dots" aria-hidden="true">
+      <span class="principles-dot is-active"></span>
+      <span class="principles-dot"></span>
+    </div>
+  </div>
+</div>
+
 
     <!-- CASES -->
     <section class="section section--alt" id="cases">
