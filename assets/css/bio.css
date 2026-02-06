@@ -37,6 +37,12 @@
   overflow: hidden;
 }
 
+/* IMPORTANT: allow the text column to shrink inside flex.
+   Without min-width:0 long content may overflow horizontally. */
+#about .about-card > div{
+  min-width: 0;
+}
+
 #about .about-photo{ flex: 0 0 118px; }
 
 #about .about-photo img{
@@ -67,6 +73,8 @@
   color: rgba(28,27,27,.86);
   line-height: 1.55;
   text-wrap: pretty;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* Clamp (JS toggles classes) */
@@ -207,6 +215,7 @@
   /* height is controlled by JS for nicer layout */
   height: auto;
   transition: height 220ms var(--about-ease);
+  min-width: 0;
 }
 
 #about .about-carousel__track{
@@ -215,11 +224,13 @@
   transform: translate3d(0,0,0);
   transition: transform 220ms var(--about-ease);
   will-change: transform;
+  min-width: 0;
 }
 
 #about .about-slide{
   flex: 0 0 100%;
   padding: 0;
+  min-width: 0;
 }
 
 #about .about-dots{
