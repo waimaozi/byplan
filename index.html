@@ -413,6 +413,15 @@
   <script src="assets/js/config.js"></script>
   <script src="assets/js/sheets.js"></script>
   <script src="assets/js/app-core.js?v=1"></script>
+  <script>
+  // DOM helpers (no jQuery). Required by app.js (FAQ и не только).
+  window.$  = window.$  || function (sel, root) {
+    return (root || document).querySelector(sel);
+  };
+  window.$$ = window.$$ || function (sel, root) {
+    return Array.from((root || document).querySelectorAll(sel));
+  };
+</script>
   <script src="assets/js/app.js?v=4"></script>
   <script src="assets/js/principles-slider.js?v=1"></script>
   <script src="assets/js/polish.js?v=1"></script>
