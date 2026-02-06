@@ -1,30 +1,148 @@
 /* ============================================================
-   BYPLAN — bio.css (About slider)
+   BYPLAN — bio.css (About mini slider)
    Scope: ONLY #about block
+
+   What this file does:
+   - Keeps the original #about markup (2 columns on desktop, stacked on mobile).
+   - Inside the LEFT card (.about-card) creates a small 2-screen slider:
+       1) Биография (about-bio)
+       2) Подход (trustBullets)
+   - The RIGHT column ("Почему можно доверять" + stats + PDF) stays on the page
+     and is NOT turned into a separate swipe screen.
    ============================================================ */
 
 #about{
+  /* local tokens */
+  --about-card-bg: rgba(255,255,255,.42);
+  --about-border: rgba(0,0,0,.10);
+  --about-border-strong: rgba(0,0,0,.14);
+  --about-shadow: 0 14px 38px rgba(0,0,0,.12);
+  --about-ease: cubic-bezier(.2,.8,.2,1);
+}
+
+/* ------------------------------
+   Left card (bio)
+   ------------------------------ */
+#about .about-card{
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  padding: 18px 18px 16px;
+  border: 1px solid var(--about-border);
+  border-radius: 26px;
+  background: var(--about-card-bg);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--about-shadow);
+  overflow: hidden;
+}
+
+#about .about-photo{ flex: 0 0 118px; }
+
+#about .about-photo img{
+  width: 118px;
+  height: 118px;
+  object-fit: cover;
+  border-radius: 22px;
+  border: 1px solid var(--about-border);
+  box-shadow: 0 18px 45px rgba(0,0,0,.16);
+}
+
+#about .about-name{
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-size: 1.2rem;
+  margin: 2px 0 2px;
+}
+
+#about .about-role{
+  margin: 0 0 10px;
+  color: var(--muted, rgba(28,27,27,.72));
+  font-weight: 600;
+}
+
+/* Bio text */
+#about .about-bio{
+  margin: 0;
+  color: rgba(28,27,27,.86);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+/* Clamp (JS toggles classes) */
+#about .about-bio.about-bio--clamp{
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  overflow: hidden;
   position: relative;
+  padding-bottom: 8px;
 }
 
-/* Fallback layout (if JS disabled): keep two-col looking decent */
-#about .container.two-col{
-  gap: 22px;
-  align-items: start;
+#about .about-bio.about-bio--clamp:not(.is-expanded)::after{
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 2.6em;
+  pointer-events: none;
+  background: linear-gradient(to bottom,
+    rgba(255,255,255,0),
+    rgba(237,232,236,.95));
 }
 
-/* ---------- About slider shell ---------- */
-#about .about-slider{
-  margin-top: 6px;
+#about .about-bio.is-expanded{
+  display: block;
+  -webkit-line-clamp: initial;
+  padding-bottom: 0;
 }
 
-#about .about-slider__top{
+#about .bio-toggle{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--about-border);
+  background: rgba(255,255,255,.55);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: rgba(28,27,27,.86);
+  font-weight: 650;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 160ms var(--about-ease), box-shadow 160ms var(--about-ease);
+}
+
+#about .bio-toggle:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 14px 32px rgba(0,0,0,.12);
+}
+
+#about .bio-toggle:active{
+  transform: translateY(0);
+  box-shadow: 0 10px 22px rgba(0,0,0,.10);
+}
+
+#about .bio-toggle__chev{
+  opacity: .7;
+  font-size: 0.95em;
+}
+
+/* ------------------------------
+   About mini slider (inside .about-card)
+   ------------------------------ */
+#about .about-mini{
+  margin-top: 12px;
+}
+
+#about .about-mini__top{
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 #about .about-tabs{
@@ -40,30 +158,30 @@
   gap: 8px;
   padding: 9px 12px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--glass-bg, rgba(255,255,255,.40));
-  color: var(--text);
-  font-weight: 700;
+  border: 1px solid var(--about-border);
+  background: rgba(255,255,255,.35);
+  color: rgba(28,27,27,.90);
+  font-weight: 750;
   line-height: 1;
   cursor: pointer;
   user-select: none;
   transition:
-    transform var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out),
-    opacity var(--dur-fast) var(--ease-out);
+    transform 160ms var(--about-ease),
+    box-shadow 160ms var(--about-ease),
+    background 160ms var(--about-ease),
+    border-color 160ms var(--about-ease),
+    opacity 160ms var(--about-ease);
 }
 
 #about .about-tab:hover{
   transform: translateY(-1px);
-  box-shadow: var(--elev-1, 0 10px 24px rgba(0,0,0,.10));
-  border-color: rgba(0,0,0,.14);
+  box-shadow: 0 14px 32px rgba(0,0,0,.12);
+  border-color: var(--about-border-strong);
 }
 
 #about .about-tab.is-active{
-  background: rgba(255,255,255,.75);
-  border-color: rgba(0,0,0,.16);
+  background: rgba(255,255,255,.70);
+  border-color: var(--about-border-strong);
 }
 
 #about .about-tab__icon{
@@ -77,54 +195,38 @@
   font-size: 12px;
 }
 
-#about .about-hint{
-  white-space: nowrap;
-  opacity: .75;
-}
-
-/* ---------- Carousel ---------- */
+/* slider viewport */
 #about .about-carousel{
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  box-shadow: var(--elev-1, 0 10px 24px rgba(0,0,0,.10));
+  position: relative;
 }
 
 #about .about-carousel__viewport{
   overflow: hidden;
-  border-radius: var(--radius);
   outline: none;
+  touch-action: pan-y;
   /* height is controlled by JS for nicer layout */
   height: auto;
-  transition: height var(--dur) var(--ease-out);
+  transition: height 220ms var(--about-ease);
 }
 
 #about .about-carousel__track{
   display: flex;
   width: 200%;
   transform: translate3d(0,0,0);
-  transition: transform var(--dur) var(--ease-out);
+  transition: transform 220ms var(--about-ease);
   will-change: transform;
 }
 
 #about .about-slide{
   flex: 0 0 100%;
-  padding: 18px 18px 16px;
-  opacity: .98;
+  padding: 0;
 }
 
-#about .about-slide.is-active{
-  opacity: 1;
-}
-
-/* Dots */
 #about .about-dots{
   display: flex;
   justify-content: center;
   gap: 8px;
-  padding: 10px 0 12px;
+  margin-top: 10px;
 }
 
 #about .about-dot{
@@ -132,7 +234,7 @@
   height: 8px;
   border-radius: 999px;
   background: rgba(0,0,0,.18);
-  transition: transform var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+  transition: transform 160ms var(--about-ease), opacity 160ms var(--about-ease);
   opacity: .55;
 }
 
@@ -141,187 +243,133 @@
   transform: scale(1.15);
 }
 
-/* ---------- Slide content: Bio ---------- */
-
-/* When inside slider, remove "card" feeling from the inner block */
-#about .about-slider .about-card{
-  background: transparent;
-  border: 0;
-  padding: 0;
-  box-shadow: none;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
+/* Slide 2 (bullets) spacing */
+#about .about-slide--bullets{
+  padding-top: 4px;
 }
 
-/* Bio layout */
-#about .about-card{
-  display: grid;
-  grid-template-columns: 132px 1fr;
-  gap: 16px;
-  align-items: start;
-}
-
-#about .about-photo{
-  width: 132px;
-  height: 132px;
-  border-radius: 20px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.30);
-  box-shadow: 0 10px 26px rgba(0,0,0,.10);
-}
-
-#about .about-photo img{
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-#about .about-name{
-  font-size: 1.25rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  margin-top: 2px;
-}
-
-#about .about-role{
-  margin-top: 4px;
-  color: var(--muted);
-  font-weight: 600;
-}
-
-#about .about-bio{
-  margin-top: 10px;
-  margin-bottom: 0;
-}
-
-/* Trust bullets as chips */
+/* ------------------------------
+   Trust bullets => chips/cards
+   (These are shown in slide 2)
+   ------------------------------ */
 #about #trustBullets{
   list-style: none;
   padding: 0;
-  margin: 14px 0 0;
+  margin: 0;
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 #about #trustBullets li{
-  position: relative;
-  padding: 12px 14px 12px 40px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.40);
-  line-height: 1.25;
-  overflow: hidden;
-  transition:
-    transform var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out);
-  /* stagger support */
-  animation-delay: calc(var(--i, 0) * 40ms);
-}
-
-#about #trustBullets li::before{
-  content: "✓";
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-weight: 900;
-  opacity: .75;
-}
-
-/* ---------- Slide content: Trust ---------- */
-#about .about-slide h2{
-  margin-top: 0;
-}
-
-#about #statsGrid{
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0,1fr));
-  gap: 12px;
-  margin-top: 14px;
-}
-
-#about #statsGrid .stat{
+  padding: 12px 14px;
   border-radius: 18px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.40);
-  padding: 14px 14px 12px;
-  min-height: 92px;
+  border: 1px solid var(--about-border);
+  background: rgba(255,255,255,.35);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: rgba(28,27,27,.86);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.28);
+}
+
+/* ------------------------------
+   Right column: stats
+   ------------------------------ */
+#about .grid.stats{
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+#about .stat{
+  padding: 16px 16px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--about-border);
+  background: rgba(255,255,255,.38);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.26);
+  min-height: 88px;
+
+  opacity: 0;
+  transform: translateY(8px);
   transition:
-    transform var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out);
-  animation-delay: calc(var(--i, 0) * 40ms);
+    opacity 360ms var(--about-ease),
+    transform 360ms var(--about-ease);
 }
 
-#about #statsGrid .stat:hover{
-  transform: translateY(-2px);
-  box-shadow: var(--elev-1, 0 10px 24px rgba(0,0,0,.10));
-  border-color: rgba(0,0,0,.14);
+#about .stat.is-in{
+  opacity: 1;
+  transform: none;
 }
 
-#about #statsGrid .stat__num{
+#about .stat__num{
   margin: 0;
-  font-size: 1.6rem;
-  font-weight: 900;
+  font-weight: 850;
   letter-spacing: -0.02em;
-  line-height: 1.05;
+  line-height: 1.02;
+  font-size: clamp(1.45rem, 2.5vw, 2.1rem);
 }
 
-#about #statsGrid .stat__label{
-  margin: 6px 0 0;
-  color: var(--muted);
-  font-weight: 600;
-  line-height: 1.25;
+#about .stat__label{
+  margin: 8px 0 0;
+  color: var(--muted, rgba(28,27,27,.72));
+  font-size: 0.95rem;
+  line-height: 1.35;
 }
 
-/* Doc sample card */
+/* Doc sample callout */
 #about .doc-sample{
-  margin-top: 14px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.40);
-  padding: 16px;
+  margin-top: 16px;
+  border-radius: 22px;
+  border: 1px solid var(--about-border);
+  background: rgba(255,255,255,.32);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.28);
 }
 
 #about .doc-sample__title{
   font-weight: 800;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
-#about .doc-sample__subtitle{
-  margin-top: 6px;
-  color: var(--muted);
-}
-
-/* ---------- Responsive ---------- */
-@media (max-width: 720px){
+/* ------------------------------
+   Responsive
+   ------------------------------ */
+@media (max-width: 860px){
   #about .about-card{
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: flex-start;
   }
-  #about .about-photo{
-    width: 120px;
-    height: 120px;
+
+  #about .about-photo{ flex: 0 0 auto; }
+
+  #about .about-photo img{
+    width: 132px;
+    height: 132px;
+    border-radius: 26px;
   }
-  #about #statsGrid{
-    grid-template-columns: 1fr;
-  }
-  #about .about-hint{
-    display: none;
+
+  #about .grid.stats{
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
 }
 
-/* Respect reduced motion */
+/* ------------------------------
+   Reduced motion
+   ------------------------------ */
 @media (prefers-reduced-motion: reduce){
-  #about .about-carousel__track,
-  #about .about-carousel__viewport,
+  #about .stat{
+    transition: none;
+    transform: none;
+    opacity: 1;
+  }
+  #about .bio-toggle,
   #about .about-tab,
-  #about #trustBullets li,
-  #about #statsGrid .stat{
+  #about .about-carousel__viewport,
+  #about .about-carousel__track,
+  #about .about-dot{
     transition: none !important;
-    animation: none !important;
   }
 }
