@@ -220,7 +220,7 @@
 
 #about .about-carousel__track{
   display: flex;
-  width: 200%;
+  width: 100%; /* track is viewport-width; slides overflow horizontally */
   transform: translate3d(0,0,0);
   transition: transform 220ms var(--about-ease);
   will-change: transform;
@@ -229,6 +229,7 @@
 
 #about .about-slide{
   flex: 0 0 100%;
+  width: 100%;
   padding: 0;
   min-width: 0;
 }

@@ -234,14 +234,25 @@
     var startY = 0;
     var threshold = 46;
 
+    function isInteractiveTarget(t) {
+      if (!t || !t.closest) return false;
+      return !!t.closest('button, a, input, textarea, select, label, summary, [role="button"], .about-tab, .bio-toggle');
+    }
+
+    var pointerCaptured = false;
+    var activePointerId = null;
+
     function onDown(e) {
       if (!viewport) return;
       if (e.pointerType === 'mouse' && e.button !== 0) return;
+      // Don't hijack clicks on real controls inside the slider
+      if (isInteractiveTarget(e.target)) return;
       down = true;
       dragging = false;
+      pointerCaptured = false;
+      activePointerId = e.pointerId;
       startX = e.clientX;
       startY = e.clientY;
-      try { viewport.setPointerCapture(e.pointerId); } catch (err) {}
     }
 
     function onMove(e) {
@@ -254,6 +265,16 @@
       if (!dragging) {
         if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
           dragging = true;
+          // Capture pointer ONLY when we are really dragging.
+          // This prevents breaking clicks on buttons (e.g. "Читать полностью").
+          if (!pointerCaptured) {
+            try {
+              if (activePointerId != null) viewport.setPointerCapture(activePointerId);
+              pointerCaptured = true;
+            } catch (err) {
+              pointerCaptured = false;
+            }
+          }
         } else if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) {
           // vertical scroll — do not hijack
           down = false;
@@ -356,6 +377,11 @@
 
     btn.addEventListener('click', function () {
       var expanded = bio.classList.toggle('is-expanded');
+
+      // When expanded, remove clamp styles to avoid any browser quirks.
+      // When collapsed, enable clamp again (recalc may remove it if not needed).
+      if (expanded) bio.classList.remove('about-bio--clamp');
+      else bio.classList.add('about-bio--clamp');
 
       btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
 
