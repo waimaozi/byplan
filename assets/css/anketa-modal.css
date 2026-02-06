@@ -1,0 +1,368 @@
+/* ============================================================
+   BYPLAN — anketa-modal.css (v1)
+   Module: Анкета (модальное окно + пошаговая форма)
+   Notes:
+   - Отдельный модуль, не трогает существующие стили/скрипты.
+   - Классы с префиксом anketa- чтобы избежать конфликтов.
+   ============================================================ */
+
+body.anketa-lock{
+  overflow: hidden;
+}
+
+.anketa-modal{
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.anketa-modal[hidden]{ display: none !important; }
+
+.anketa-modal__backdrop{
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+}
+
+.anketa-modal__dialog{
+  position: relative;
+  width: min(980px, 100%);
+  max-height: min(86vh, 920px);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255,255,255,.18);
+
+  background: rgba(255,255,255,.30);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+
+  box-shadow: 0 24px 80px rgba(0,0,0,.35);
+  overflow: hidden;
+}
+
+.anketa-modal__header{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.18);
+}
+
+.anketa-modal__kicker{
+  font-weight: 800;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  font-size: 0.86rem;
+  color: rgba(28,27,27,.75);
+  margin-bottom: 4px;
+}
+
+.anketa-modal__title{
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+  font-size: 1.12rem;
+}
+
+.anketa-modal__meta{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.anketa-progress{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: .92rem;
+  color: rgba(28,27,27,.72);
+}
+
+.anketa-progress__bar{
+  width: 120px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.20);
+  border: 1px solid rgba(0,0,0,.08);
+  overflow: hidden;
+}
+.anketa-progress__bar > span{
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: rgba(28,27,27,.65);
+}
+
+.anketa-modal__header-actions{
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.anketa-link{
+  border: 0;
+  background: transparent;
+  color: rgba(28,27,27,.75);
+  text-decoration: underline;
+  text-underline-offset: .2em;
+  padding: 8px 6px;
+  border-radius: 10px;
+}
+.anketa-link:hover{ opacity: .9; }
+.anketa-link:focus-visible{ outline: 3px solid rgba(110,76,61,.35); outline-offset: 3px; }
+
+.anketa-modal__close{
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,.14);
+  background: rgba(255,255,255,.22);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.anketa-form{
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* важно для scroll внутри */
+}
+
+.anketa-body{
+  padding: 18px;
+  overflow: auto;
+  min-height: 0;
+}
+
+.anketa-step{
+  display: none;
+  animation: anketaFade .12s ease-out;
+}
+
+.anketa-step.is-active{
+  display: block;
+}
+
+@keyframes anketaFade{
+  from{ opacity: 0; transform: translateY(6px); }
+  to{ opacity: 1; transform: translateY(0); }
+}
+
+.anketa-step h3{
+  margin: 0 0 10px 0;
+  font-size: 1.02rem;
+  font-weight: 800;
+}
+
+.anketa-text{
+  margin: 0 0 14px 0;
+  color: rgba(28,27,27,.72);
+}
+
+.anketa-hint{
+  margin-top: -6px;
+  margin-bottom: 14px;
+  font-size: .92rem;
+  color: rgba(28,27,27,.72);
+}
+
+.anketa-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 760px){
+  .anketa-grid{ grid-template-columns: 1fr; }
+  .anketa-progress__bar{ width: 92px; }
+  .anketa-modal{ padding: 10px; }
+  .anketa-modal__dialog{ max-height: 92vh; }
+}
+
+.anketa-field{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.anketa-label{
+  font-weight: 650;
+  color: rgba(28,27,27,.92);
+}
+
+.anketa-req{
+  color: rgba(110,76,61,.95);
+  font-weight: 800;
+  margin-left: 4px;
+}
+
+.anketa-input,
+.anketa-textarea,
+.anketa-select{
+  width: 100%;
+  border: 1px solid rgba(0,0,0,.14);
+  border-radius: 16px;
+  padding: 12px 12px;
+  background: rgba(255,255,255,.22);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: rgba(28,27,27,.92);
+}
+
+.anketa-textarea{
+  min-height: 120px;
+  resize: vertical;
+}
+
+.anketa-checkboxes{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+  margin: 10px 0 0 0;
+}
+
+@media (max-width: 760px){
+  .anketa-checkboxes{ grid-template-columns: 1fr; }
+}
+
+.anketa-check{
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(255,255,255,.18);
+}
+
+.anketa-check input{
+  margin-top: 3px;
+}
+
+.anketa-check label{
+  cursor: pointer;
+  color: rgba(28,27,27,.88);
+}
+
+.anketa-block{
+  padding: 14px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(255,255,255,.16);
+  margin-bottom: 12px;
+}
+
+.anketa-block__title{
+  font-weight: 800;
+  margin: 0 0 10px 0;
+}
+
+.anketa-zones details{
+  border-radius: 18px;
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(255,255,255,.16);
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+
+.anketa-zones summary{
+  list-style: none;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.anketa-zones summary::-webkit-details-marker{ display: none; }
+
+.anketa-zones summary::after{
+  content: "▾";
+  opacity: .7;
+}
+.anketa-zones details[open] summary::after{
+  content: "▴";
+}
+
+.anketa-zones .anketa-grid{
+  margin-top: 12px;
+}
+
+.anketa-nav{
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-top: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.18);
+}
+
+.anketa-nav .btn{
+  min-width: 160px;
+}
+
+@media (max-width: 760px){
+  .anketa-nav{
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  .anketa-nav .btn{
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.anketa-points{
+  margin-top: 10px;
+}
+
+.anketa-points.is-collapsed .anketa-point.is-hidden{
+  display: none;
+}
+
+.anketa-divider{
+  height: 1px;
+  background: rgba(0,0,0,.10);
+  margin: 12px 0;
+}
+
+.anketa-success{
+  padding: 10px 0 2px 0;
+}
+
+.anketa-success__title{
+  font-weight: 900;
+  font-size: 1.2rem;
+  margin: 0 0 8px 0;
+}
+
+.anketa-success__text{
+  color: rgba(28,27,27,.72);
+  margin: 0 0 12px 0;
+}
+
+.anketa-success__box{
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(255,255,255,.16);
+  border-radius: 18px;
+  padding: 12px;
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  max-height: 220px;
+  overflow: auto;
+}
+
