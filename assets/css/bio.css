@@ -20,6 +20,19 @@
   --about-ease: cubic-bezier(.2,.8,.2,1);
 }
 
+
+/* ------------------------------
+   TEMP: hide duplicated right column ("Почему можно доверять")
+   User decision: keep only bio mini-slider (Биография/Подход) in the left card.
+   ------------------------------ */
+#about .container.two-col{
+  /* force single-column layout for this section only */
+  display: block;
+}
+#about .container.two-col > div:nth-child(2){
+  display: none !important;
+}
+
 /* ------------------------------
    Left card (bio)
    ------------------------------ */
@@ -220,7 +233,7 @@
 
 #about .about-carousel__track{
   display: flex;
-  width: 100%; /* track is viewport-width; slides overflow horizontally */
+  width: 200%;
   transform: translate3d(0,0,0);
   transition: transform 220ms var(--about-ease);
   will-change: transform;
@@ -229,7 +242,6 @@
 
 #about .about-slide{
   flex: 0 0 100%;
-  width: 100%;
   padding: 0;
   min-width: 0;
 }
