@@ -365,8 +365,32 @@ function escapeAttr(str) {
   });
 
   enabledRows.forEach((r, i) => {
-    const qText = pick(r, ["q", "question", "Q", "вопрос", "Вопрос"]);
-    const aText = pick(r, ["a", "answer", "A", "ответ", "Ответ", "text", "body"]);
+    // Support both object rows and array rows (in case the sheet parser changes)
+    let qText = "";
+    let aText = "";
+    if (Array.isArray(r)) {
+      qText = String(r[0] ?? "").trim();
+      aText = String(r[1] ?? "").trim();
+    } else {
+      const qKeys = ["q", "question", "Q", "вопрос", "Вопрос", "title", "h", "header", "name"];
+      const aKeys = ["a", "answer", "A", "ответ", "Ответ", "answer_text", "answer_md", "answer_html", "text", "body", "details", "desc", "description", "content"];
+      qText = pick(r, qKeys) || "";
+      aText = pick(r, aKeys) || "";
+      if (!aText) {
+        const qLower = new Set(qKeys.map((k) => String(k).toLowerCase()));
+        const metaLower = new Set(["id", "is_enabled", "enabled", "show", "display", "order", "sort", "priority"]);
+        for (const [k, v] of Object.entries(r)) {
+          const key = String(k).toLowerCase();
+          if (qLower.has(key)) continue;
+          if (metaLower.has(key)) continue;
+          const val = String(v ?? "").trim();
+          if (!val) continue;
+          if (val === String(qText).trim()) continue;
+          aText = val;
+          break;
+        }
+      }
+    }
 
     // Skip completely empty rows (common in Sheets)
     if (!qText && !aText) return;
@@ -416,8 +440,7 @@ function escapeAttr(str) {
     item.append(btn, ans);
     root.appendChild(item);
   });
-
-  observeReveals();
+  if (typeof observeReveals === "function") observeReveals();
 }
 
 
