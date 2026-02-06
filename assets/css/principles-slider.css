@@ -1,0 +1,315 @@
+/* ============================================================
+   BYPLAN — principles-slider.css
+   Scope: #principles only
+   Purpose: split "Делаем / Не делаем" into 2 animated screens
+   ============================================================ */
+
+#principles .principles-slider{
+  margin-top: 18px;
+}
+
+#principles .principles-slider__top{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Tabs */
+#principles .principles-tabs{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(255,255,255,.22);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.30);
+}
+
+#principles .principles-tab{
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: rgba(28,27,27,.78);
+  border-radius: 999px;
+  padding: 10px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 750;
+  line-height: 1;
+  transition:
+    background 220ms var(--ease-out, cubic-bezier(.2,.8,.2,1)),
+    box-shadow 220ms var(--ease-out, cubic-bezier(.2,.8,.2,1)),
+    transform 220ms var(--ease-out, cubic-bezier(.2,.8,.2,1)),
+    color 220ms var(--ease-out, cubic-bezier(.2,.8,.2,1));
+}
+
+#principles .principles-tab__icon{
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 14px;
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(255,255,255,.40);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
+}
+
+/* Slightly different tint for the icons */
+#principles .principles-tab[data-index="0"] .principles-tab__icon{
+  background: rgba(72, 168, 114, .16);
+  border-color: rgba(72, 168, 114, .30);
+}
+#principles .principles-tab[data-index="1"] .principles-tab__icon{
+  background: rgba(210, 92, 92, .14);
+  border-color: rgba(210, 92, 92, .28);
+}
+
+#principles .principles-tab:hover{
+  background: rgba(255,255,255,.30);
+  transform: translateY(-1px);
+}
+
+#principles .principles-tab.is-active{
+  background: rgba(255,255,255,.70);
+  color: rgba(28,27,27,.92);
+  box-shadow: 0 14px 34px rgba(0,0,0,.12);
+}
+
+#principles .principles-hint{
+  font-size: 0.95rem;
+  opacity: .85;
+}
+
+/* Carousel */
+#principles .principles-carousel{
+  margin-top: 14px;
+}
+
+#principles .principles-carousel__viewport{
+  overflow: hidden;
+  border-radius: var(--radius, 26px);
+  outline: none;
+  touch-action: pan-y;
+}
+
+#principles .principles-carousel__track{
+  display: flex;
+  width: 200%;
+  transform: translateX(0%);
+  transition: transform 520ms var(--ease-out, cubic-bezier(.2,.8,.2,1));
+  will-change: transform;
+}
+
+#principles .principles-slider[data-index="1"] .principles-carousel__track{
+  transform: translateX(-50%);
+}
+
+/* Slide card */
+#principles .principles-slide{
+  flex: 0 0 50%;
+  padding: 22px 22px 18px;
+  position: relative;
+  overflow: hidden;
+
+  border: 1px solid rgba(0,0,0,.08);
+  background: rgba(255,255,255,.60);
+  box-shadow: 0 14px 38px rgba(0,0,0,.14);
+}
+
+/* Inner spacing on small screens */
+@media (max-width: 640px){
+  #principles .principles-slide{ padding: 18px 16px 14px; }
+}
+
+/* Decorative blob */
+#principles .principles-slide::before{
+  content: "";
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  right: -220px;
+  top: -220px;
+  border-radius: 50%;
+  filter: blur(2px);
+  opacity: .55;
+}
+
+#principles .principles-slide.is-do::before{
+  background: radial-gradient(circle at 30% 30%, rgba(72,168,114,.50), rgba(72,168,114,0) 62%);
+}
+
+#principles .principles-slide.is-dont::before{
+  background: radial-gradient(circle at 30% 30%, rgba(210,92,92,.45), rgba(210,92,92,0) 62%);
+}
+
+/* Big mark */
+#principles .principles-slide::after{
+  content: "✓";
+  position: absolute;
+  right: -18px;
+  top: -28px;
+  font-size: 220px;
+  font-weight: 900;
+  line-height: 1;
+  opacity: .08;
+  transform: rotate(10deg);
+}
+
+#principles .principles-slide.is-dont::after{
+  content: "✕";
+  opacity: .075;
+}
+
+/* Floating motion for the big mark */
+@media (prefers-reduced-motion: no-preference){
+  #principles .principles-slide::after{
+    animation: principles-mark-float 6.6s ease-in-out infinite;
+  }
+}
+
+@keyframes principles-mark-float{
+  0%, 100%{ transform: translate(0,0) rotate(10deg); }
+  50%{ transform: translate(-10px, 10px) rotate(8deg); }
+}
+
+/* Head */
+#principles .principles-slide__head{
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+#principles .principles-slide__mark{
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 18px;
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(255,255,255,.40);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
+}
+
+#principles .principles-slide.is-do .principles-slide__mark{
+  border-color: rgba(72, 168, 114, .32);
+  background: rgba(72, 168, 114, .16);
+}
+
+#principles .principles-slide.is-dont .principles-slide__mark{
+  border-color: rgba(210, 92, 92, .30);
+  background: rgba(210, 92, 92, .14);
+}
+
+#principles .principles-slide__title{
+  margin: 0;
+}
+
+/* List */
+#principles .principles-list{
+  position: relative;
+  z-index: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+#principles .principles-list li{
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 12px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,.06);
+  background: rgba(255,255,255,.28);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.28);
+}
+
+#principles .principles-list li::before{
+  content: "✓";
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
+  font-weight: 900;
+  font-size: 13px;
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(255,255,255,.40);
+  margin-top: 1px;
+}
+
+#principles .principles-slide.is-do .principles-list li::before{
+  background: rgba(72,168,114,.16);
+  border-color: rgba(72,168,114,.30);
+  content: "✓";
+}
+
+#principles .principles-slide.is-dont .principles-list li::before{
+  background: rgba(210,92,92,.14);
+  border-color: rgba(210,92,92,.28);
+  content: "✕";
+}
+
+/* Stagger reveal for the active slide */
+@media (prefers-reduced-motion: no-preference){
+  #principles .principles-slide.is-active .principles-list li{
+    animation: principles-item-in 520ms var(--ease-out, cubic-bezier(.2,.8,.2,1)) both;
+    animation-delay: calc(var(--i, 0) * 70ms);
+  }
+}
+
+@keyframes principles-item-in{
+  from{ opacity: 0; transform: translateY(10px); }
+  to{ opacity: 1; transform: translateY(0); }
+}
+
+/* Dots */
+#principles .principles-dots{
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+#principles .principles-dot{
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.22);
+  transition:
+    width 240ms var(--ease-out, cubic-bezier(.2,.8,.2,1)),
+    background 240ms var(--ease-out, cubic-bezier(.2,.8,.2,1)),
+    opacity 240ms var(--ease-out, cubic-bezier(.2,.8,.2,1));
+  opacity: .55;
+}
+
+#principles .principles-dot.is-active{
+  width: 24px;
+  background: rgba(0,0,0,.38);
+  opacity: .9;
+}
+
+/* Reduced motion: keep everything snappy */
+@media (prefers-reduced-motion: reduce){
+  #principles .principles-carousel__track{ transition: none; }
+  #principles .principles-slide::after{ animation: none; }
+  #principles .principles-slide.is-active .principles-list li{ animation: none; }
+}
