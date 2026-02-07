@@ -64,7 +64,12 @@
   border-radius: 22px;
   border: 1px solid var(--about-border);
   box-shadow: 0 18px 45px rgba(0,0,0,.16);
+  cursor: zoom-in;
+  transition: transform 160ms var(--about-ease), filter 160ms var(--about-ease);
 }
+
+#about .about-photo img.is-zoomable:hover{ filter: saturate(1.03); }
+#about .about-photo img.is-zoomable:active{ transform: scale(0.98); }
 
 #about .about-name{
   font-weight: 800;
@@ -394,5 +399,91 @@
   #about .about-carousel__track,
   #about .about-dot{
     transition: none !important;
+  }
+}
+
+
+/* ------------------------------
+   Designer photo modal (click-to-zoom)
+   ------------------------------ */
+.about-photo-modal{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  background: rgba(20,18,19,.55);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms cubic-bezier(.2,.8,.2,1);
+}
+
+.about-photo-modal.is-open{
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.about-photo-modal__dialog{
+  position: relative;
+  transform: translateY(10px) scale(.98);
+  transition: transform 200ms cubic-bezier(.2,.8,.2,1);
+}
+
+.about-photo-modal.is-open .about-photo-modal__dialog{
+  transform: none;
+}
+
+.about-photo-modal__img{
+  display: block;
+  max-width: min(560px, 92vw);
+  max-height: 82vh;
+  width: auto;
+  height: auto;
+  border-radius: 26px;
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 28px 90px rgba(0,0,0,.55);
+  background: rgba(255,255,255,.06);
+}
+
+.about-photo-modal__close{
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(0,0,0,.42);
+  color: rgba(255,255,255,.92);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.about-photo-modal__close:hover{
+  background: rgba(0,0,0,.58);
+}
+
+html.about-photo-open,
+body.about-photo-open{
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .about-photo-modal,
+  .about-photo-modal__dialog{
+    transition: none !important;
+  }
+  .about-photo-modal__dialog{
+    transform: none !important;
   }
 }

@@ -234,25 +234,14 @@
     var startY = 0;
     var threshold = 46;
 
-    function isInteractiveTarget(t) {
-      if (!t || !t.closest) return false;
-      return !!t.closest('button, a, input, textarea, select, label, summary, [role="button"], .about-tab, .bio-toggle');
-    }
-
-    var pointerCaptured = false;
-    var activePointerId = null;
-
     function onDown(e) {
       if (!viewport) return;
       if (e.pointerType === 'mouse' && e.button !== 0) return;
-      // Don't hijack clicks on real controls inside the slider
-      if (isInteractiveTarget(e.target)) return;
       down = true;
       dragging = false;
-      pointerCaptured = false;
-      activePointerId = e.pointerId;
       startX = e.clientX;
       startY = e.clientY;
+      try { viewport.setPointerCapture(e.pointerId); } catch (err) {}
     }
 
     function onMove(e) {
@@ -265,16 +254,6 @@
       if (!dragging) {
         if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
           dragging = true;
-          // Capture pointer ONLY when we are really dragging.
-          // This prevents breaking clicks on buttons (e.g. "Читать полностью").
-          if (!pointerCaptured) {
-            try {
-              if (activePointerId != null) viewport.setPointerCapture(activePointerId);
-              pointerCaptured = true;
-            } catch (err) {
-              pointerCaptured = false;
-            }
-          }
         } else if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) {
           // vertical scroll — do not hijack
           down = false;
@@ -323,6 +302,116 @@
     window.addEventListener('resize', function () { syncMiniHeight(mini); }, { passive: true });
     window.addEventListener('load', function () { syncMiniHeight(mini); }, { passive: true });
   }
+
+
+  /* ------------------------------
+     Designer photo: click-to-zoom (lightbox)
+     ------------------------------ */
+  function ensureDesignerPhotoModal() {
+    var modal = document.querySelector('.about-photo-modal');
+    if (modal) return modal;
+
+    modal = document.createElement('div');
+    modal.className = 'about-photo-modal';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Фото дизайнера');
+    modal.setAttribute('aria-hidden', 'true');
+    modal.hidden = true;
+
+    modal.innerHTML =
+      '<div class="about-photo-modal__dialog" role="document">' +
+      '  <button class="about-photo-modal__close" type="button" aria-label="Закрыть">✕</button>' +
+      '  <img class="about-photo-modal__img" alt="">' +
+      '</div>';
+
+    document.body.appendChild(modal);
+
+    modal.addEventListener('click', function (e) {
+      var closeBtn = e.target && e.target.closest ? e.target.closest('.about-photo-modal__close') : null;
+      if (closeBtn) {
+        closeDesignerPhotoModal();
+        return;
+      }
+
+      var dialog = e.target && e.target.closest ? e.target.closest('.about-photo-modal__dialog') : null;
+      if (!dialog && e.target === modal) closeDesignerPhotoModal();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      var opened = document.querySelector('.about-photo-modal.is-open');
+      if (!opened) return;
+      closeDesignerPhotoModal();
+    });
+
+    return modal;
+  }
+
+  function openDesignerPhotoModal(src, alt) {
+    if (!src) return;
+    var modal = ensureDesignerPhotoModal();
+    var img = modal.querySelector('.about-photo-modal__img');
+    if (!img) return;
+
+    img.src = src;
+    img.alt = alt || 'Фото дизайнера';
+
+    modal.hidden = false;
+    modal.setAttribute('aria-hidden', 'false');
+
+    // trigger transition
+    try { modal.offsetHeight; } catch (e) {}
+    modal.classList.add('is-open');
+
+    document.documentElement.classList.add('about-photo-open');
+    document.body.classList.add('about-photo-open');
+  }
+
+  function closeDesignerPhotoModal() {
+    var modal = document.querySelector('.about-photo-modal');
+    if (!modal || modal.hidden) return;
+
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+
+    document.documentElement.classList.remove('about-photo-open');
+    document.body.classList.remove('about-photo-open');
+
+    var img = modal.querySelector('.about-photo-modal__img');
+    window.setTimeout(function () {
+      modal.hidden = true;
+      if (img) img.src = '';
+    }, 220);
+  }
+
+  function initDesignerPhotoZoom() {
+    var img = root.querySelector('#designerPhoto');
+    if (!img) return;
+
+    if (img.dataset.zoomBound === '1') return;
+    img.dataset.zoomBound = '1';
+
+    // make it feel clickable
+    img.classList.add('is-zoomable');
+
+    img.addEventListener('click', function () {
+      var src = img.currentSrc || img.getAttribute('src');
+      openDesignerPhotoModal(src, img.alt);
+    });
+
+    // Optional keyboard access
+    if (!img.hasAttribute('tabindex')) img.setAttribute('tabindex', '0');
+    if (!img.hasAttribute('role')) img.setAttribute('role', 'button');
+    img.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        var src = img.currentSrc || img.getAttribute('src');
+        openDesignerPhotoModal(src, img.alt);
+      }
+    });
+  }
+
 
   /* ------------------------------
      Bio clamp + toggle
@@ -377,11 +466,6 @@
 
     btn.addEventListener('click', function () {
       var expanded = bio.classList.toggle('is-expanded');
-
-      // When expanded, remove clamp styles to avoid any browser quirks.
-      // When collapsed, enable clamp again (recalc may remove it if not needed).
-      if (expanded) bio.classList.remove('about-bio--clamp');
-      else bio.classList.add('about-bio--clamp');
 
       btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
 
@@ -522,6 +606,7 @@
      Bootstrapping
      ------------------------------ */
   function init() {
+    initDesignerPhotoZoom();
     buildMiniSlider();
     indexStagger();
 
