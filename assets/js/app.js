@@ -427,15 +427,18 @@ function escapeAttr(str) {
     // inline style makes the open state deterministic.
     ans.style.display = "none";
 
-    btn.addEventListener("click", () => {
-      const open = btn.getAttribute("aria-expanded") !== "true";
-      btn.setAttribute("aria-expanded", String(open));
-      item.classList.toggle("is-open", open);
-      icon.textContent = open ? "−" : "+";
+btn.addEventListener("click", (e) => {
+  e.stopPropagation(); // важно: чтобы не сработал setupFAQ() из polish.js
 
-      ans.hidden = !open;
-      ans.style.display = open ? "block" : "none";
-    });
+  const open = btn.getAttribute("aria-expanded") !== "true";
+  btn.setAttribute("aria-expanded", String(open));
+  item.classList.toggle("is-open", open);
+  icon.textContent = open ? "−" : "+";
+
+  ans.hidden = !open;
+  ans.style.display = open ? "block" : "none";
+});
+
 
     item.append(btn, ans);
     root.appendChild(item);
