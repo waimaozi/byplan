@@ -240,49 +240,72 @@
     const root = qs("#faqList");
     if (!root) return;
 
-    // Event delegation
+    // Event delegation (single source of truth for FAQ accordion)
     root.addEventListener("click", (e) => {
       const btn = e.target.closest(".faq-q");
-      if (!btn) return;
+      if (!btn || !root.contains(btn)) return;
 
       const item = btn.closest(".faq-item") || btn.parentElement;
       const panel = item?.querySelector?.(".faq-a");
       if (!panel) return;
 
+      const icon = btn.querySelector(".faq-icon");
+
       const isOpen = btn.getAttribute("aria-expanded") === "true";
       const next = !isOpen;
 
-      // Close others (optional; feels premium)
+      // Close others (premium feel, prevents giant long-open list)
       qsa(".faq-q[aria-expanded='true']", root).forEach(b => {
         if (b === btn) return;
+
         b.setAttribute("aria-expanded", "false");
         const it = b.closest(".faq-item");
+        if (it) it.classList.remove("is-open");
+
+        const ic = b.querySelector(".faq-icon");
+        if (ic) ic.textContent = "+";
+
         const p = it?.querySelector?.(".faq-a");
-        if (p){
-          p.style.maxHeight = "0px";
+        if (p) {
+          // Ensure panel is measurable/visible for animation control
+          p.style.display = "block";
+          p.style.overflow = "hidden";
+          p.style.transition = "max-height 220ms cubic-bezier(.2,.8,.2,1), opacity 220ms cubic-bezier(.2,.8,.2,1)";
           p.style.opacity = "0";
+          p.style.maxHeight = "0px";
           setTimeout(() => { p.hidden = true; }, 220);
         }
       });
 
+      // Toggle current
       btn.setAttribute("aria-expanded", next ? "true" : "false");
+      if (item) item.classList.toggle("is-open", next);
+      if (icon) icon.textContent = next ? "−" : "+";
+
+      // Make sure the panel is actually displayable before measuring
       panel.hidden = false;
+      panel.style.display = "block";
 
       // Animate height
       panel.style.overflow = "hidden";
       panel.style.transition = "max-height 220ms cubic-bezier(.2,.8,.2,1), opacity 220ms cubic-bezier(.2,.8,.2,1)";
       panel.style.opacity = next ? "1" : "0";
 
-      if (next){
-        // measure after unhide
+      if (next) {
+        // Start from 0 for a reliable animation
+        panel.style.maxHeight = "0px";
+        // measure after unhide + display
         const h = panel.scrollHeight;
-        panel.style.maxHeight = h + "px";
+        requestAnimationFrame(() => {
+          panel.style.maxHeight = h + "px";
+        });
       } else {
         panel.style.maxHeight = "0px";
         setTimeout(() => { panel.hidden = true; }, 220);
       }
     });
   };
+
 
   const ensureLightbox = () => {
     let backdrop = qs(".lb-backdrop");

@@ -423,23 +423,6 @@ function escapeAttr(str) {
     ans.style.whiteSpace = "pre-line"; // preserve line breaks from Sheets
     ans.hidden = true;
 
-    // If some CSS accidentally forces display:none for .faq-a,
-    // inline style makes the open state deterministic.
-    ans.style.display = "none";
-
-btn.addEventListener("click", (e) => {
-  e.stopPropagation(); // важно: чтобы не сработал setupFAQ() из polish.js
-
-  const open = btn.getAttribute("aria-expanded") !== "true";
-  btn.setAttribute("aria-expanded", String(open));
-  item.classList.toggle("is-open", open);
-  icon.textContent = open ? "−" : "+";
-
-  ans.hidden = !open;
-  ans.style.display = open ? "block" : "none";
-});
-
-
     item.append(btn, ans);
     root.appendChild(item);
   });
