@@ -1,32 +1,33 @@
 /* ============================================================
-   BYPLAN — bio.js (About mini slider)
+   BYPLAN — bio.js (Root version)
    Scope: ONLY #about block
 
-   Changes vs previous version:
-   - We DO NOT turn the whole #about into a 2-screen slider.
-   - We only split the LEFT card (.about-card) into 2 screens:
-       1) Биография (about-bio)
-       2) Подход (trustBullets)
-   - The RIGHT column ("Почему можно доверять" + stats + PDF) stays as normal
-     content on the page (no swipe screen) -> no conceptual duplication.
+   Fixes:
+   - "Works only when DevTools open" bug:
+     1) Do NOT hijack pointer events when user clicks buttons/links inside the slide
+        (prevents swipe handler from eating "Читать полностью" click).
+     2) Recalc clamp after fonts load + on window load.
 
-   Also includes:
-   - "Read more" toggle for the bio if it overflows
+   Features:
+   - Mini slider inside .about-card: "Биография" / "Подход"
+   - Click-to-zoom for designer photo
+   - Bio clamp + "Читать полностью"
    - Stats reveal + number count-up
    ============================================================ */
 
 (function () {
   'use strict';
 
-  if (window.__byplanAboutMiniV1) return;
-  window.__byplanAboutMiniV1 = true;
+  if (window.__byplanBioRootV1) return;
+  window.__byplanBioRootV1 = true;
 
   var root = document.getElementById('about');
   if (!root) return;
 
   var prefersReducedMotion = false;
   try {
-    prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    prefersReducedMotion =
+      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   } catch (e) {
     prefersReducedMotion = false;
   }
@@ -73,17 +74,16 @@
     var card = root.querySelector('.about-card');
     if (!card) return;
 
-    // Body is the 2nd child of .about-card in the current markup
-    var body = card.children && card.children.length > 1 ? card.children[1] : null;
+    // Body is the text column (usually second child)
+    var body = null;
+    if (card.children && card.children.length > 1) body = card.children[1];
     if (!body) return;
 
     var bio = body.querySelector('.about-bio');
     var bullets = body.querySelector('#trustBullets');
 
-    // If either is missing, do nothing
     if (!bio || !bullets) return;
 
-    // Avoid re-init
     root.dataset.aboutMiniReady = '1';
 
     // Build slider skeleton
@@ -117,35 +117,34 @@
       '  </div>' +
       '</div>';
 
-    // Insert the mini slider where the bio paragraph used to start
     body.insertBefore(mini, bio);
 
-    // Move existing nodes into slides (IDs are preserved!)
+    // Move nodes into slides (IDs preserved)
     var slideBio = mini.querySelector('#aboutMiniSlideBio');
     var slideBullets = mini.querySelector('#aboutMiniSlideBullets');
     if (slideBio) slideBio.appendChild(bio);
     if (slideBullets) slideBullets.appendChild(bullets);
 
-    // Setup interactions
     setupMiniInteractions(mini);
 
-    // Stagger bullets for any CSS delays
     indexStagger();
 
-    // Re-stagger when sheet data updates bullets later
+    // Re-stagger + resync height when bullets update from Sheets
     try {
       var mo = new MutationObserver(function () {
         indexStagger();
         syncMiniHeight(mini);
       });
-      mo.observe(bullets, { childList: true });
+      mo.observe(bullets, { childList: true, subtree: false });
     } catch (e) {
       // ignore
     }
 
-    // Initial height
+    // Initial height after layout settles
     try {
-      window.requestAnimationFrame(function () { syncMiniHeight(mini); });
+      window.requestAnimationFrame(function () {
+        syncMiniHeight(mini);
+      });
     } catch (e) {
       syncMiniHeight(mini);
     }
@@ -157,6 +156,7 @@
     var slides = mini.querySelectorAll('.about-slide');
     var idx = parseInt(mini.dataset.index || '0', 10) || 0;
     idx = clamp(idx, 0, 1);
+
     var active = slides && slides.length ? slides[idx] : null;
     if (!viewport || !active) return;
 
@@ -202,7 +202,9 @@
       if (prefersReducedMotion) {
         syncMiniHeight(mini);
       } else {
-        window.requestAnimationFrame(function () { syncMiniHeight(mini); });
+        window.requestAnimationFrame(function () {
+          syncMiniHeight(mini);
+        });
       }
     }
 
@@ -227,21 +229,30 @@
       });
     }
 
-    // Swipe / drag
+    // Swipe / drag (FIXED: don't eat clicks on buttons/links)
     var down = false;
     var dragging = false;
     var startX = 0;
     var startY = 0;
     var threshold = 46;
 
+    function isInteractiveTarget(node) {
+      if (!node || !node.closest) return false;
+      return !!node.closest(
+        'button, a, input, textarea, select, label, [role="button"], [data-no-swipe]'
+      );
+    }
+
     function onDown(e) {
       if (!viewport) return;
+      if (isInteractiveTarget(e.target)) return; // <-- IMPORTANT FIX
       if (e.pointerType === 'mouse' && e.button !== 0) return;
+
       down = true;
       dragging = false;
       startX = e.clientX;
       startY = e.clientY;
-      try { viewport.setPointerCapture(e.pointerId); } catch (err) {}
+      // Do NOT setPointerCapture here (only after we are sure it is a drag)
     }
 
     function onMove(e) {
@@ -250,10 +261,13 @@
       var dx = e.clientX - startX;
       var dy = e.clientY - startY;
 
-      // Determine intent
       if (!dragging) {
         if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
           dragging = true;
+          // Capture only now (real drag) — so clicks on "Читать полностью" are not broken
+          try {
+            viewport.setPointerCapture(e.pointerId);
+          } catch (err) {}
         } else if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) {
           // vertical scroll — do not hijack
           down = false;
@@ -262,10 +276,10 @@
       }
       if (!dragging) return;
 
-      // Rubberband
       var pct = (dx / Math.max(1, viewport.clientWidth)) * 100;
       track.style.transition = 'none';
-      track.style.transform = 'translate3d(calc(' + (-index * 100) + '% + ' + pct + '%),0,0)';
+      track.style.transform =
+        'translate3d(calc(' + (-index * 100) + '% + ' + pct + '%),0,0)';
 
       e.preventDefault();
     }
@@ -295,14 +309,35 @@
       viewport.addEventListener('pointercancel', onUp);
     }
 
-    // Initial
     applyIndex(index, { force: true });
 
-    // Keep height synced
-    window.addEventListener('resize', function () { syncMiniHeight(mini); }, { passive: true });
-    window.addEventListener('load', function () { syncMiniHeight(mini); }, { passive: true });
-  }
+    window.addEventListener(
+      'resize',
+      function () {
+        syncMiniHeight(mini);
+      },
+      { passive: true }
+    );
 
+    window.addEventListener(
+      'load',
+      function () {
+        syncMiniHeight(mini);
+      },
+      { passive: true }
+    );
+
+    // Also resync after fonts load (height can change)
+    try {
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(function () {
+          setTimeout(function () {
+            syncMiniHeight(mini);
+          }, 0);
+        });
+      }
+    } catch (e) {}
+  }
 
   /* ------------------------------
      Designer photo: click-to-zoom (lightbox)
@@ -328,13 +363,15 @@
     document.body.appendChild(modal);
 
     modal.addEventListener('click', function (e) {
-      var closeBtn = e.target && e.target.closest ? e.target.closest('.about-photo-modal__close') : null;
+      var closeBtn =
+        e.target && e.target.closest ? e.target.closest('.about-photo-modal__close') : null;
       if (closeBtn) {
         closeDesignerPhotoModal();
         return;
       }
 
-      var dialog = e.target && e.target.closest ? e.target.closest('.about-photo-modal__dialog') : null;
+      var dialog =
+        e.target && e.target.closest ? e.target.closest('.about-photo-modal__dialog') : null;
       if (!dialog && e.target === modal) closeDesignerPhotoModal();
     });
 
@@ -360,8 +397,9 @@
     modal.hidden = false;
     modal.setAttribute('aria-hidden', 'false');
 
-    // trigger transition
-    try { modal.offsetHeight; } catch (e) {}
+    try {
+      modal.offsetHeight;
+    } catch (e) {}
     modal.classList.add('is-open');
 
     document.documentElement.classList.add('about-photo-open');
@@ -392,7 +430,6 @@
     if (img.dataset.zoomBound === '1') return;
     img.dataset.zoomBound = '1';
 
-    // make it feel clickable
     img.classList.add('is-zoomable');
 
     img.addEventListener('click', function () {
@@ -400,9 +437,9 @@
       openDesignerPhotoModal(src, img.alt);
     });
 
-    // Optional keyboard access
     if (!img.hasAttribute('tabindex')) img.setAttribute('tabindex', '0');
     if (!img.hasAttribute('role')) img.setAttribute('role', 'button');
+
     img.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
@@ -412,7 +449,6 @@
     });
   }
 
-
   /* ------------------------------
      Bio clamp + toggle
      ------------------------------ */
@@ -420,11 +456,9 @@
     var bio = root.querySelector('.about-bio');
     if (!bio) return;
 
-    // Avoid duplicate init
     if (bio.dataset.bioInit === '1') return;
     bio.dataset.bioInit = '1';
 
-    // Clamp by default
     bio.classList.add('about-bio--clamp');
 
     var btn = document.createElement('button');
@@ -437,10 +471,18 @@
 
     bio.insertAdjacentElement('afterend', btn);
 
+    function syncMiniIfAny() {
+      var mini = root.querySelector('.about-mini');
+      if (mini) {
+        if (prefersReducedMotion) syncMiniHeight(mini);
+        else window.requestAnimationFrame(function () { syncMiniHeight(mini); });
+      }
+    }
+
     function recalc() {
-      // If expanded, keep button visible
       if (bio.classList.contains('is-expanded')) {
         btn.hidden = false;
+        syncMiniIfAny();
         return;
       }
 
@@ -448,25 +490,34 @@
       var need = bio.scrollHeight > bio.clientHeight + 6;
       btn.hidden = !need;
 
-      if (!need) {
-        bio.classList.remove('about-bio--clamp');
-      } else {
-        bio.classList.add('about-bio--clamp');
-      }
+      if (!need) bio.classList.remove('about-bio--clamp');
+      else bio.classList.add('about-bio--clamp');
 
-      // Update mini slider height if present
-      var mini = root.querySelector('.about-mini');
-      if (mini) syncMiniHeight(mini);
+      syncMiniIfAny();
     }
 
-    // Recalc after fonts/content settle
-    setTimeout(recalc, 0);
-    setTimeout(recalc, 300);
+    // Recalc after layout / fonts / load
+    try {
+      window.requestAnimationFrame(recalc);
+    } catch (e) {
+      setTimeout(recalc, 0);
+    }
+    setTimeout(recalc, 200);
+    setTimeout(recalc, 600);
+
     window.addEventListener('resize', recalc, { passive: true });
+    window.addEventListener('load', recalc, { passive: true });
+
+    try {
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(function () {
+          setTimeout(recalc, 0);
+        });
+      }
+    } catch (e) {}
 
     btn.addEventListener('click', function () {
       var expanded = bio.classList.toggle('is-expanded');
-
       btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
 
       var text = btn.querySelector('.bio-toggle__text');
@@ -474,12 +525,7 @@
       if (text) text.textContent = expanded ? 'Свернуть' : 'Читать полностью';
       if (chev) chev.textContent = expanded ? '▴' : '▾';
 
-      // Height sync
-      var mini = root.querySelector('.about-mini');
-      if (mini) {
-        if (prefersReducedMotion) syncMiniHeight(mini);
-        else window.requestAnimationFrame(function () { syncMiniHeight(mini); });
-      }
+      syncMiniIfAny();
 
       if (!expanded) recalc();
     });
@@ -509,8 +555,7 @@
      ------------------------------ */
   function parseNumberParts(raw) {
     var s = String(raw || '').trim();
-    // prefix + number + suffix
-    var m = s.match(/^([^0-9]*)([0-9]+(?:[\.,][0-9]+)?)(.*)$/);
+    var m = s.match(/^([^0-9]*)([0-9]+(?:[\\.,][0-9]+)?)(.*)$/);
     if (!m) return null;
 
     var prefix = m[1] || '';
@@ -522,7 +567,7 @@
 
     var decimals = 0;
     if (numStr.indexOf('.') !== -1 || numStr.indexOf(',') !== -1) {
-      var parts = numStr.split(/[\.,]/);
+      var parts = numStr.split(/[\\.,]/);
       decimals = (parts[1] || '').length;
     }
 
@@ -541,7 +586,6 @@
     if (!parts) return;
 
     el.dataset.animated = '1';
-
     if (prefersReducedMotion) return;
 
     var start = performance.now();
@@ -559,11 +603,8 @@
       var v = from + (to - from) * easeOutCubic(p);
       el.textContent = parts.prefix + format(v) + parts.suffix;
 
-      if (p < 1) {
-        requestAnimationFrame(frame);
-      } else {
-        el.textContent = parts.prefix + format(to) + parts.suffix;
-      }
+      if (p < 1) requestAnimationFrame(frame);
+      else el.textContent = parts.prefix + format(to) + parts.suffix;
     }
 
     requestAnimationFrame(frame);
@@ -585,21 +626,26 @@
       return;
     }
 
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
+    var io = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
 
-        var stat = entry.target;
-        stat.classList.add('is-in');
+          var stat = entry.target;
+          stat.classList.add('is-in');
 
-        var num = stat.querySelector('.stat__num');
-        if (num) animateNumber(num);
+          var num = stat.querySelector('.stat__num');
+          if (num) animateNumber(num);
 
-        io.unobserve(stat);
-      });
-    }, { threshold: 0.35 });
+          io.unobserve(stat);
+        });
+      },
+      { threshold: 0.35 }
+    );
 
-    items.forEach(function (stat) { io.observe(stat); });
+    items.forEach(function (stat) {
+      io.observe(stat);
+    });
   }
 
   /* ------------------------------
@@ -607,10 +653,12 @@
      ------------------------------ */
   function init() {
     initDesignerPhotoZoom();
+
+    // Build slider (can be built even before Sheets fill bullets)
     buildMiniSlider();
     indexStagger();
 
-    // Wait for bio content from Sheets (KV)
+    // Wait for bio content (Sheets KV) then init toggle
     waitFor(
       function () {
         var bio = root.querySelector('.about-bio');
