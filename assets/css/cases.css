@@ -1,478 +1,217 @@
 /* ============================================================
-   byplan — cases.css (module)
-   Purpose:
-   - Premium "Примеры работ" grid (case cards)
-   - Before/After preview on card
-   - Case modal with big compare + scenes
-   Scope: ONLY #cases section + .case-dialog (modal)
+   BYPLAN — cases.css (v1)
+   Module: Cases modal (примеры работ) + story-like UI
+   Notes:
+   - Модульный файл. Не трогает app.js и существующие секции.
+   - Внутри модалки мы переиспользуем готовые классы из story.css:
+     .story-grid, .story-plan, .story-card, .story-stepper, .story-pill и т.д.
    ============================================================ */
 
-/* ---------- Grid ---------- */
-#cases .cases{
-  display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-@media (max-width: 980px){
-  #cases .cases{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
-@media (max-width: 640px){
-  #cases .cases{ grid-template-columns: 1fr; }
-}
-
-/* ---------- Card base (rendered by app.js as .case-card) ---------- */
-#cases .case-card{
-  border: 1px solid rgba(0,0,0,.08);
-  border-radius: var(--radius);
-  background: rgba(255,255,255,.55);
-  box-shadow: var(--shadow-soft);
+body.cases-lock{
   overflow: hidden;
+}
 
+/* Make case cards feel clickable (except inner links) */
+#casesGrid .case-card{
+  cursor: pointer;
+}
+#casesGrid .case-card a{
+  cursor: pointer;
+}
+
+/* Modal shell */
+.cases-modal{
+  position: fixed;
+  inset: 0;
+  z-index: 2800;
   display: flex;
-  flex-direction: column;
-  min-height: 100%;
-}
-
-#cases .case-card:focus-visible{
-  outline: 3px solid rgba(110,76,61,.35);
-  outline-offset: 3px;
-}
-
-#cases .case-card__img{
-  position: relative;
-  border-bottom: 1px solid rgba(0,0,0,.06);
-  background: rgba(255,255,255,.28);
-  min-height: 210px;
-}
-
-/* if app.js still outputs a single <img> */
-#cases .case-card__img > img{
-  width: 100%;
-  height: 100%;
-  min-height: 210px;
-  object-fit: contain;
-  display: block;
-}
-
-#cases .case-card__body{
-  padding: 14px 16px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-#cases .case-card__title{
-  margin: 0;
-  font-weight: 850;
-  letter-spacing: -0.02em;
-  font-size: 1.06rem;
-}
-
-#cases .case-card__meta{
-  color: var(--muted);
-  font-weight: 650;
-  font-size: .95rem;
-}
-
-/* Clamp “Задача/Результат” lines so cards don’t become huge */
-#cases .case-card__body > div{
-  color: rgba(28,27,27,.88);
-  font-size: .96rem;
-  line-height: 1.45;
-}
-
-#cases .case-card__body > div strong{
-  font-weight: 800;
-}
-
-#cases .case-card__body > div .muted{
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* ---------- Before/After preview (injected by cases.js) ---------- */
-#cases .case-preview{
-  --pos: 56%;
-  position: relative;
-  height: 210px;
-  overflow: hidden;
-
-  background: rgba(255,255,255,.72);
-}
-
-#cases .case-preview__img{
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
-#cases .case-preview__after{
-  position: absolute;
-  inset: 0;
-  width: var(--pos);
-  overflow: hidden;
-  border-right: 1px solid rgba(0,0,0,.10);
-  transition: width 520ms var(--ease-out);
-}
-
-#cases .case-preview__handle{
-  position: absolute;
-  top: 0; bottom: 0;
-  left: var(--pos);
-  width: 2px;
-  transform: translateX(-1px);
-  background: rgba(0,0,0,.16);
-  transition: left 520ms var(--ease-out);
-  pointer-events: none;
-}
-
-#cases .case-preview__handle::after{
-  content:"";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(0,0,0,.14);
-  background: rgba(255,255,255,.65);
-  box-shadow: 0 12px 28px rgba(0,0,0,.14);
-}
-
-#cases .case-preview__badge{
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  padding: 9px 12px;
-  border-radius: 999px;
-
-  font-weight: 750;
-  font-size: .92rem;
-
-  border: 1px solid rgba(0,0,0,.12);
-  background: rgba(255,255,255,.35);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.30);
-}
-
-#cases .case-preview__label{
-  position: absolute;
-  bottom: 12px;
-  padding: 7px 10px;
-  border-radius: 999px;
-
-  font-weight: 750;
-  font-size: .86rem;
-  color: rgba(28,27,27,.78);
-
-  border: 1px solid rgba(0,0,0,.12);
-  background: rgba(255,255,255,.28);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.30);
-}
-
-#cases .case-preview__label--before{ left: 12px; }
-#cases .case-preview__label--after{ right: 12px; }
-
-#cases .case-preview__cta{
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  opacity: 0;
-  transition: opacity 220ms var(--ease-out);
-  pointer-events: none;
-}
-
-#cases .case-preview__cta span{
-  padding: 12px 16px;
-  border-radius: 999px;
-  background: rgba(28,27,27,.86);
-  color: #fff;
-  border: 1px solid rgba(255,255,255,.18);
-  box-shadow: var(--elev-2);
-  font-weight: 750;
-}
-
-/* Subtle “expensive” hover: show full AFTER + CTA */
-@media (hover:hover) and (pointer:fine){
-  #cases .case-card:hover .case-preview{ --pos: 100%; }
-  #cases .case-card:hover .case-preview__cta{ opacity: 1; }
-}
-
-/* ---------- Modal (case dialog) ---------- */
-.case-dialog{
-  width: min(1120px, calc(100vw - 28px));
-  border: none;
-  padding: 0;
-  background: transparent;
-}
-
-.case-dialog::backdrop{
-  background: rgba(0,0,0,.45);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-.case-dialog__panel{
-  position: relative;
-  border-radius: 28px;
-  overflow: hidden;
-
-  background: rgba(255,255,255,.92);
-  border: 1px solid rgba(255,255,255,.60);
-  box-shadow: var(--elev-3);
-
-  max-height: 86vh;
-  overflow: auto;
-
-  padding: 18px 18px 16px;
-}
-
-.case-dialog__close{
-  position: absolute;
-  top: 10px;
-  right: 10px;
-
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-
-  border: 1px solid rgba(0,0,0,.12);
-  background: rgba(255,255,255,.28);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.30);
-
-  font-size: 24px;
-  line-height: 1;
-  display: grid;
-  place-items: center;
-}
-
-.case-dialog__head{
-  padding-right: 54px;
-  margin-bottom: 12px;
-}
-
-.case-dialog__title{
-  margin: 2px 0 6px 0;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  font-size: 1.35rem;
-}
-
-.case-dialog__meta{
-  color: var(--muted);
-  font-weight: 650;
-}
-
-.case-dialog__grid{
-  display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
-  gap: 16px;
-}
-
-@media (max-width: 980px){
-  .case-dialog__grid{ grid-template-columns: 1fr; }
-}
-
-.case-dialog__viewer{
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* Big compare */
-.case-compare{
-  --pos: 56%;
-  position: relative;
-  border-radius: 22px;
-  overflow: hidden;
-  background: rgba(255,255,255,.70);
-  border: 1px solid rgba(0,0,0,.10);
-  box-shadow: var(--elev-1);
-
-  min-height: 380px;
-}
-
-@media (max-width: 640px){
-  .case-compare{ min-height: 320px; }
-}
-
-.case-compare__img{
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
-.case-compare__after{
-  position: absolute;
-  inset: 0;
-  width: var(--pos);
-  overflow: hidden;
-  border-right: 1px solid rgba(0,0,0,.10);
-}
-
-.case-compare__handle{
-  position: absolute;
-  top: 0; bottom: 0;
-  left: var(--pos);
-  width: 2px;
-  transform: translateX(-1px);
-  background: rgba(0,0,0,.18);
-  pointer-events: none;
-}
-
-.case-compare__handle::after{
-  content:"";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  border: 1px solid rgba(0,0,0,.14);
-  background: rgba(255,255,255,.72);
-  box-shadow: 0 14px 34px rgba(0,0,0,.16);
-}
-
-.case-compare__range{
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: ew-resize;
-  touch-action: none;
-}
-
-.case-compare__labels{
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 12px;
-
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  pointer-events: none;
-}
-
-.case-compare__labels span{
-  padding: 8px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(0,0,0,.12);
-  background: rgba(255,255,255,.28);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.30);
-
-  font-weight: 750;
-  font-size: .88rem;
-  color: rgba(28,27,27,.78);
-}
-
-/* Scenes selector */
-.case-scenes{
-  display: flex;
-  gap: 10px;
-  overflow: auto;
-  padding-bottom: 4px;
-}
-
-.case-scene{
-  flex: 0 0 auto;
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
-  gap: 10px;
   align-items: center;
-
-  padding: 10px 12px;
-  border-radius: 18px;
-
-  border: 1px solid rgba(0,0,0,.12);
-  background: rgba(255,255,255,.22);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.30);
-
-  text-align: left;
-  min-width: 220px;
+  justify-content: center;
+  padding: 14px;
 }
 
-.case-scene[aria-pressed="true"]{
-  border-color: rgba(110,76,61,.30);
-  box-shadow: 0 14px 34px rgba(0,0,0,.12);
-}
+.cases-modal[hidden]{ display: none !important; }
 
-.case-scene__thumb{
-  position: relative;
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  overflow: hidden;
-  border: 1px solid rgba(0,0,0,.10);
-  background: rgba(255,255,255,.70);
-}
-
-.case-scene__thumb img{
+.cases-modal__backdrop{
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  background: rgba(0,0,0,.55);
 }
 
-.case-scene__thumb img:last-child{
-  clip-path: inset(0 0 0 52%);
+.cases-modal__dialog{
+  position: relative;
+  width: min(1160px, 100%);
+  max-height: min(92vh, 980px);
+  overflow: auto;
+
+  border-radius: calc(var(--radius) + 10px);
+  border: 1px solid rgba(255,255,255,.16);
+
+  /* Story-like dark volume background */
+  background:
+    radial-gradient(900px 520px at 18% 22%, rgba(255,255,255,.14), rgba(255,255,255,0) 62%),
+    radial-gradient(780px 560px at 82% 78%, rgba(196, 140, 110, .18), rgba(196, 140, 110, 0) 62%),
+    linear-gradient(180deg, rgba(22, 22, 23, .92), rgba(18, 18, 19, .92));
+  color: rgba(255,255,255,.92);
+
+  box-shadow: 0 30px 120px rgba(0,0,0,.55);
+
+  padding: 22px 22px 20px;
 }
 
-.case-scene__label{
-  font-weight: 750;
-  color: rgba(28,27,27,.86);
-  line-height: 1.2;
+.cases-modal__dialog::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .22;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(255,255,255,.65), rgba(255,255,255,0) 40%),
+    radial-gradient(circle at 70% 70%, rgba(255,255,255,.18), rgba(255,255,255,0) 52%);
+  mix-blend-mode: overlay;
 }
 
-/* Info column */
-.case-dialog__info{
-  border: 1px solid rgba(0,0,0,.08);
-  border-radius: 22px;
-  background: rgba(255,255,255,.55);
-  box-shadow: var(--shadow-soft);
-  padding: 14px 14px 16px;
+.cases-modal__dialog > *{
+  position: relative;
+  z-index: 1;
+}
+
+.cases-modal__dialog .muted{ color: rgba(255,255,255,.72); }
+.cases-modal__dialog a{ color: rgba(255,255,255,.92); }
+
+.cases-modal__top{
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 10px;
 }
 
-.case-dialog__section h4{
-  margin: 0 0 6px 0;
-  font-weight: 850;
-  letter-spacing: -0.02em;
-}
-
-.case-dialog__section p{
+.cases-modal__badge.badge{
   margin: 0;
-  color: rgba(28,27,27,.86);
-  line-height: 1.55;
+  background: rgba(255,255,255,.10);
+  border-color: rgba(255,255,255,.18);
+  color: rgba(255,255,255,.88);
 }
 
-.case-dialog__actions{
+.cases-modal__close{
+  flex: 0 0 auto;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.88);
+  height: 44px;
+  width: 44px;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  transition: transform .18s ease, background .18s ease, border-color .18s ease, opacity .18s ease;
+}
+.cases-modal__close:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.12);
+}
+
+.cases-modal__head h2{
+  margin: 10px 0 10px;
+  letter-spacing: -.02em;
+}
+.cases-modal__meta{
   display: flex;
   flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-top: 6px;
+}
+
+.cases-modal__meta .cases-modal__meta-item{
+  color: rgba(255,255,255,.78);
+  font-size: .98rem;
+}
+
+.cases-modal__meta strong{
+  color: rgba(255,255,255,.90);
+}
+
+/* Scenes tabs (top-level navigation) */
+.cases-scenes{
+  display: flex;
   gap: 10px;
-  margin-top: 4px;
+  flex-wrap: wrap;
+  margin: 14px 0 6px;
+}
+
+@media (max-width: 860px){
+  .cases-scenes{
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .cases-scenes::-webkit-scrollbar{ height: 6px; }
+  .cases-scenes::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.18); border-radius: 999px; }
+}
+
+/* Tighten story-grid spacing inside modal */
+.cases-modal__dialog .story-grid{
+  margin-top: 16px;
+}
+
+/* If a scene has no comment, make layout 1-column */
+.cases-modal__dialog.is-no-comment .story-grid{
+  grid-template-columns: 1fr;
+}
+.cases-modal__dialog.is-no-comment .cases-side{
+  display: none;
+}
+
+/* Comment title inside right card */
+.cases-comment-title{
+  font-weight: 800;
+  margin: 2px 0 12px;
+  letter-spacing: -.01em;
+}
+
+/* Summary block */
+.cases-summary{
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,.14);
+}
+.cases-summary__kicker{
+  font-size: .92rem;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.62);
+}
+.cases-summary__text{
+  margin: 10px 0 0;
+  color: rgba(255,255,255,.82);
+  line-height: 1.6;
+}
+
+/* Soft open/close animation */
+.cases-modal{
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease;
+}
+.cases-modal.is-open{
+  opacity: 1;
+  pointer-events: auto;
+}
+.cases-modal__dialog{
+  transform: translateY(8px) scale(.985);
+  transition: transform .22s ease;
+}
+.cases-modal.is-open .cases-modal__dialog{
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .cases-modal,
+  .cases-modal__dialog,
+  .cases-modal__close{
+    transition: none !important;
+  }
 }
