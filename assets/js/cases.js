@@ -1,18 +1,12 @@
 /* ============================================================
-   BYPLAN — cases.js (v1)
-   Module: Cases modal (примеры работ) with story-like UI
-   Data:
-   - Google Sheets tab "cases" (already used by app.js)
-   - Google Sheets tab "cases_media" (new)
-   Behaviour:
-   - Click any .case-card -> open modal for that case_id
-   - Inside modal:
-     * Scene tabs (label from cases_media)
-     * Left: image with "Стало/Было" pills (if both URLs exist)
-     * Right: comment points rendered as stepper chips (N points) + optional summary
-   Notes:
-   - Does NOT modify app.js.
-   - Reuses story.css components (pill/stepper/card look).
+   BYPLAN — cases.js (v1.1)
+   Fixes for "добить v1" (как вы показываете на скрине):
+   1) cases_media rows больше НЕ обязаны иметь before/after в каждой строке.
+      Если у сцены нет картинок — мы сохраняем предыдущую (обычно из 1-й сцены).
+   2) Если comment НЕ размечен нумерацией (1., 2., ...),
+      то вместо "Комментарий" используем label сцены (например "Спальня").
+   3) Клик по ссылке <a href="#">Открыть</a> теперь тоже открывает модалку
+      (а реальные ссылки не перехватываем).
    ============================================================ */
 
 (function () {
@@ -50,21 +44,22 @@
   }
 
   function textToHtml(s) {
-    // Preserve newlines (including blank lines).
     return escapeHtml(s).replace(/\n/g, '<br>');
   }
 
   function normalizeUrl(u) {
     const s = String(u ?? '').trim();
     if (!s) return '';
-    // Keep absolute / protocol-relative / data URLs as-is
     if (/^(https?:)?\/\//i.test(s) || /^data:/i.test(s)) return s;
-    // Avoid leading slash which can break on GitHub Pages subpaths
     return s.replace(/^\/+/, '');
   }
 
   function num(v) {
-    const n = Number(String(v ?? '').replace(',', '.'));
+    const s = String(v ?? '').trim();
+    if (!s) return 999999;
+    const m = s.match(/^\s*(\d+)/);
+    if (m) return Number(m[1]);
+    const n = Number(s.replace(',', '.'));
     return Number.isFinite(n) ? n : 999999;
   }
 
@@ -76,7 +71,7 @@
     return parts.filter(Boolean).join(' · ');
   }
 
-  function pickCommentRowValue(row, keys) {
+  function pickRowValue(row, keys) {
     for (const k of keys) {
       if (row && row[k] !== undefined) {
         const v = String(row[k] ?? '');
@@ -95,20 +90,17 @@
     const headerRe = /^\s*(\d+)[\.\)]\s+(.+?)\s*$/;
     const summaryRe = /^\s*(итог|summary|резюме)\s*[:\-]?\s*(.*)\s*$/i;
 
-    // Find first numbered header
     let firstHeaderIdx = -1;
     for (let i = 0; i < lines.length; i++) {
       if (headerRe.test(lines[i])) { firstHeaderIdx = i; break; }
     }
 
-    // Title: anything before first numbered header (first non-empty lines)
     let title = '';
     if (firstHeaderIdx > 0) {
       const pre = lines.slice(0, firstHeaderIdx).map(l => l.trim()).filter(Boolean);
       if (pre.length) title = pre.join(' ').trim();
     }
 
-    // Detect summary block index (from full lines list)
     let summaryIdx = -1;
     let summaryInline = '';
     for (let i = 0; i < lines.length; i++) {
@@ -125,7 +117,6 @@
       ? lines.slice(firstHeaderIdx, pointsEnd)
       : lines.slice(0, pointsEnd);
 
-    // Parse numbered sections
     const headers = [];
     for (let i = 0; i < pointsLines.length; i++) {
       const m = pointsLines[i].match(headerRe);
@@ -148,14 +139,10 @@
         });
       }
     } else {
-      // No numbering → single point
       const text = pointsLines.join('\n').trim();
-      if (text) {
-        points.push({ num: 1, label: 'Комментарий', text });
-      }
+      if (text) points.push({ num: 1, label: 'Комментарий', text });
     }
 
-    // Summary text
     let summary = '';
     if (summaryIdx >= 0) {
       const rest = lines.slice(summaryIdx + 1).join('\n').trim();
@@ -190,15 +177,19 @@
       const id = String(r.case_id ?? '').trim();
       if (!id) return;
 
+      // include rows even without images (v1.1 fix)
       const beforeUrl = normalizeUrl(r.before_url || r.before || r.before_thumb || '');
       const afterUrl  = normalizeUrl(r.after_url  || r.after  || r.after_thumb  || r.img_url || '');
-      if (!beforeUrl && !afterUrl) return;
+
+      const label = String(r.label || '').trim();
+      const rawComment = pickRowValue(r, ['comment','comment_text','comment_points','text','notes','case_comment']);
+
+      if (!label && !rawComment && !beforeUrl && !afterUrl) return;
 
       if (!mediaByCase.has(id)) mediaByCase.set(id, []);
       mediaByCase.get(id).push(r);
     });
 
-    // sort each case scenes by numeric sort
     mediaByCase.forEach((arr) => {
       arr.sort((a, b) => num(a.sort) - num(b.sort));
     });
@@ -219,18 +210,21 @@
   let elPlanImg = null;
   let elPlanCaption = null;
 
-  let elSide = null;
   let elCommentTitle = null;
   let elStepper = null;
-  let elPanel = null;
   let elSummary = null;
 
-  let currentCaseId = '';
   let currentScenes = [];
   let currentSceneIndex = 0;
   let currentImgMode = 'after';
   let currentPoints = [];
   let currentPointIndex = 0;
+
+  // NEW (v1.1): keep plan across scenes if a scene has no images
+  let planBeforeUrl = '';
+  let planAfterUrl = '';
+  let planCapBefore = '';
+  let planCapAfter = '';
 
   function ensureModal() {
     if (modalEl) return modalEl;
@@ -305,84 +299,22 @@
     elPlanImg = qs('#casesPlanImg', modalEl);
     elPlanCaption = qs('#casesPlanCaption', modalEl);
 
-    elSide = qs('#casesSide', modalEl);
     elCommentTitle = qs('#casesCommentTitle', modalEl);
     elStepper = qs('#casesStepper', modalEl);
-    elPanel = qs('#casesPanel', modalEl);
     elSummary = qs('#casesSummary', modalEl);
 
-    // Close interactions
     modalEl.addEventListener('click', (e) => {
       const close = e.target.closest('[data-cases-close]') || e.target.closest('.cases-modal__close');
-      if (close) {
-        closeModal();
-        return;
-      }
+      if (close) closeModal();
     });
 
-    // ESC closes
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') return;
       if (!modalEl || modalEl.hidden) return;
       closeModal();
     });
 
-    // Image click -> lightbox (reuse existing if any)
-    elPlanImg.addEventListener('click', () => {
-      const src = elPlanImg.currentSrc || elPlanImg.getAttribute('src');
-      if (!src) return;
-      openLightbox(src, elTitle ? elTitle.textContent : '');
-    });
-
     return modalEl;
-  }
-
-  // Lightbox (compatible with polish.js)
-  function ensureLightbox() {
-    let backdrop = qs('.lb-backdrop');
-    if (backdrop) return backdrop;
-
-    backdrop = document.createElement('div');
-    backdrop.className = 'lb-backdrop';
-    backdrop.innerHTML = `
-      <div class="lb-dialog" role="dialog" aria-modal="true" aria-label="Просмотр изображения">
-        <div class="lb-toolbar">
-          <div class="lb-title"></div>
-          <button class="lb-close" type="button" aria-label="Закрыть">✕</button>
-        </div>
-        <img class="lb-img" alt="">
-      </div>
-    `.trim();
-    document.body.appendChild(backdrop);
-
-    backdrop.addEventListener('click', (e) => {
-      const dialog = e.target.closest('.lb-dialog');
-      const closeBtn = e.target.closest('.lb-close');
-      if (!dialog || closeBtn) closeLightbox();
-      if (!dialog && e.target === backdrop) closeLightbox();
-    });
-
-    return backdrop;
-  }
-
-  function openLightbox(src, title) {
-    const backdrop = ensureLightbox();
-    const img = qs('.lb-img', backdrop);
-    const ttl = qs('.lb-title', backdrop);
-    if (!img || !ttl) return;
-
-    img.src = src;
-    img.alt = title || 'Изображение';
-    ttl.textContent = title || '';
-    backdrop.classList.add('is-open');
-  }
-
-  function closeLightbox() {
-    const backdrop = qs('.lb-backdrop');
-    if (!backdrop) return;
-    backdrop.classList.remove('is-open');
-    const img = qs('.lb-img', backdrop);
-    if (img) img.src = '';
   }
 
   function setActivePills(container, activeIndex) {
@@ -404,15 +336,59 @@
       btn.type = 'button';
       btn.className = 'story-pill' + (idx === currentSceneIndex ? ' is-active' : '');
       btn.textContent = String(scene.label || `Сцена ${idx + 1}`);
-      btn.addEventListener('click', () => {
-        setScene(idx);
-      });
+      btn.addEventListener('click', () => setScene(idx));
       elScenes.appendChild(btn);
     });
   }
 
   function getSceneAt(idx) {
     return (currentScenes && currentScenes[idx]) ? currentScenes[idx] : null;
+  }
+
+  function renderPlan() {
+    elPlanTabs.innerHTML = '';
+
+    const hasBefore = !!planBeforeUrl;
+    const hasAfter = !!planAfterUrl;
+
+    // Decide mode if current missing
+    if (currentImgMode === 'after' && !hasAfter && hasBefore) currentImgMode = 'before';
+    if (currentImgMode === 'before' && !hasBefore && hasAfter) currentImgMode = 'after';
+
+    if (hasBefore && hasAfter) {
+      const btnAfter = document.createElement('button');
+      btnAfter.type = 'button';
+      btnAfter.className = 'story-pill' + (currentImgMode === 'after' ? ' is-active' : '');
+      btnAfter.textContent = 'Стало';
+
+      const btnBefore = document.createElement('button');
+      btnBefore.type = 'button';
+      btnBefore.className = 'story-pill' + (currentImgMode === 'before' ? ' is-active' : '');
+      btnBefore.textContent = 'Было';
+
+      btnAfter.addEventListener('click', () => {
+        currentImgMode = 'after';
+        btnAfter.classList.add('is-active');
+        btnBefore.classList.remove('is-active');
+        applyPlanImage(planAfterUrl, planCapAfter);
+      });
+
+      btnBefore.addEventListener('click', () => {
+        currentImgMode = 'before';
+        btnBefore.classList.add('is-active');
+        btnAfter.classList.remove('is-active');
+        applyPlanImage(planBeforeUrl, planCapBefore);
+      });
+
+      elPlanTabs.appendChild(btnAfter);
+      elPlanTabs.appendChild(btnBefore);
+
+      applyPlanImage(currentImgMode === 'after' ? planAfterUrl : planBeforeUrl, currentImgMode === 'after' ? planCapAfter : planCapBefore);
+    } else {
+      const src = planAfterUrl || planBeforeUrl || '';
+      const cap = planAfterUrl ? planCapAfter : planCapBefore;
+      applyPlanImage(src, cap);
+    }
   }
 
   function updatePlanForScene(scene) {
@@ -422,48 +398,19 @@
     const capBefore = String(scene.before_caption || '').trim();
     const capAfter  = String(scene.after_caption  || '').trim();
 
-    // Decide mode
-    if (afterUrl) currentImgMode = 'after';
-    else currentImgMode = 'before';
+    // NEW: only override plan if this scene has images
+    if (beforeUrl || afterUrl) {
+      planBeforeUrl = beforeUrl;
+      planAfterUrl = afterUrl;
+      planCapBefore = capBefore;
+      planCapAfter = capAfter;
 
-    // Tabs
-    elPlanTabs.innerHTML = '';
-
-    if (beforeUrl && afterUrl) {
-      const btnAfter = document.createElement('button');
-      btnAfter.type = 'button';
-      btnAfter.className = 'story-pill' + (currentImgMode === 'after' ? ' is-active' : '');
-      btnAfter.textContent = 'Стало';
-      btnAfter.addEventListener('click', () => {
-        currentImgMode = 'after';
-        btnAfter.classList.add('is-active');
-        btnBefore.classList.remove('is-active');
-        applyPlanImage(afterUrl, capAfter);
-      });
-
-      const btnBefore = document.createElement('button');
-      btnBefore.type = 'button';
-      btnBefore.className = 'story-pill' + (currentImgMode === 'before' ? ' is-active' : '');
-      btnBefore.textContent = 'Было';
-      btnBefore.addEventListener('click', () => {
-        currentImgMode = 'before';
-        btnBefore.classList.add('is-active');
-        btnAfter.classList.remove('is-active');
-        applyPlanImage(beforeUrl, capBefore);
-      });
-
-      elPlanTabs.appendChild(btnAfter);
-      elPlanTabs.appendChild(btnBefore);
-
-      // default apply
-      applyPlanImage(currentImgMode === 'after' ? afterUrl : beforeUrl, currentImgMode === 'after' ? capAfter : capBefore);
-    } else {
-      // Single image
-      elPlanTabs.innerHTML = '';
-      const src = afterUrl || beforeUrl || '';
-      const cap = afterUrl ? capAfter : capBefore;
-      applyPlanImage(src, cap);
+      // choose default mode
+      if (planAfterUrl) currentImgMode = 'after';
+      else if (planBeforeUrl) currentImgMode = 'before';
     }
+
+    renderPlan();
   }
 
   function applyPlanImage(src, caption) {
@@ -482,27 +429,29 @@
   }
 
   function updateCommentForScene(scene) {
-    // Support several column names to reduce "sheet naming pain"
-    const raw = pickCommentRowValue(scene, [
-      'comment', 'comment_text', 'comment_points', 'text', 'notes', 'case_comment'
-    ]);
+    const raw = pickRowValue(scene, ['comment','comment_text','comment_points','text','notes','case_comment']);
 
-    const explicitTitle = pickCommentRowValue(scene, ['comment_title', 'title']);
-    const explicitSummary = pickCommentRowValue(scene, ['comment_summary', 'summary']);
+    const explicitTitle = pickRowValue(scene, ['comment_title', 'title']);
+    const explicitSummary = pickRowValue(scene, ['comment_summary', 'summary']);
 
     const parsed = parsePoints(raw);
 
     const title = (explicitTitle || parsed.title || '').trim();
-    const points = parsed.points || [];
     const summary = (explicitSummary || parsed.summary || '').trim();
+
+    let points = parsed.points || [];
+
+    // NEW: if only one fallback point, rename it as the scene label
+    if (points.length === 1 && points[0].label === 'Комментарий') {
+      const sceneLabel = String(scene.label || '').trim();
+      if (sceneLabel) points[0].label = sceneLabel;
+    }
 
     currentPoints = points;
     currentPointIndex = 0;
 
     const hasAnyText = Boolean(title || points.length || summary);
-
     if (!hasAnyText) {
-      // No comment -> 1-column layout
       elDialog.classList.add('is-no-comment');
       return;
     }
@@ -520,7 +469,6 @@
     elStepper.innerHTML = '';
     if (!points.length) {
       elStepper.hidden = true;
-      // Panel: show nothing
       qs('#casesPointTitle', modalEl).textContent = '';
       qs('#casesPointText', modalEl).innerHTML = '';
     } else {
@@ -536,10 +484,7 @@
           <span class="story-step__label">${escapeHtml(p.label || `Пункт ${idx + 1}`)}</span>
         `.trim();
 
-        btn.addEventListener('click', () => {
-          setActivePoint(idx);
-        });
-
+        btn.addEventListener('click', () => setActivePoint(idx));
         elStepper.appendChild(btn);
       });
 
@@ -577,7 +522,6 @@
   function setScene(idx) {
     currentSceneIndex = Math.max(0, Math.min(idx, (currentScenes.length || 1) - 1));
 
-    // Update active class on scene pills
     if (!elScenes.hidden) {
       const btns = qsa('button', elScenes);
       btns.forEach((b, i) => b.classList.toggle('is-active', i === currentSceneIndex));
@@ -597,10 +541,10 @@
     ensureModal();
 
     const caseRow = casesById.get(id) || {};
-    currentCaseId = id;
 
     // Scenes for this case
     currentScenes = mediaByCase.get(id) || [];
+    currentSceneIndex = 0;
 
     // Header
     elBadge.textContent = 'Пример работ';
@@ -609,7 +553,6 @@
     const meta = buildMeta(caseRow);
     elMeta.textContent = meta || '';
 
-    // Task / Result
     const problem = String(caseRow.problem || '').trim();
     const result = String(caseRow.result || '').trim();
 
@@ -629,15 +572,37 @@
       qs('span', elResult).textContent = '';
     }
 
+    // NEW: init plan from first scene that has images (or case cover)
+    planBeforeUrl = '';
+    planAfterUrl = '';
+    planCapBefore = '';
+    planCapAfter = '';
+    currentImgMode = 'after';
+
+    for (const s of currentScenes) {
+      const b = normalizeUrl(s.before_url || s.before || s.before_thumb || '');
+      const a = normalizeUrl(s.after_url  || s.after  || s.after_thumb  || s.img_url || '');
+      if (b || a) {
+        planBeforeUrl = b;
+        planAfterUrl = a;
+        planCapBefore = String(s.before_caption || '').trim();
+        planCapAfter  = String(s.after_caption  || '').trim();
+        currentImgMode = planAfterUrl ? 'after' : 'before';
+        break;
+      }
+    }
+
+    if (!planBeforeUrl && !planAfterUrl) {
+      planAfterUrl = normalizeUrl(caseRow.img_url || '');
+      currentImgMode = 'after';
+    }
+
     // Scenes tabs
-    currentSceneIndex = 0;
     renderScenesTabs();
 
     // Fallback if no scenes
     if (!currentScenes.length) {
-      // Show cover image if possible
-      const cover = normalizeUrl(caseRow.img_url || '');
-      applyPlanImage(cover, '');
+      renderPlan();
       elDialog.classList.add('is-no-comment');
     } else {
       setScene(0);
@@ -645,13 +610,10 @@
 
     // Show modal
     modalEl.hidden = false;
-    // force reflow for animation
-    // eslint-disable-next-line no-unused-expressions
     modalEl.offsetHeight;
     modalEl.classList.add('is-open');
     document.body.classList.add('cases-lock');
 
-    // Focus close
     try { elClose.focus(); } catch (e) {}
   }
 
@@ -661,16 +623,13 @@
     modalEl.classList.remove('is-open');
     document.body.classList.remove('cases-lock');
 
-    // Close lightbox if open
-    closeLightbox();
-
     window.setTimeout(() => {
       if (!modalEl) return;
       modalEl.hidden = true;
     }, prefersReducedMotion ? 0 : 180);
   }
 
-  // Attach to existing case cards (rendered by app.js)
+  // Attach to case cards (rendered by app.js)
   let bound = false;
 
   function attachCaseCardHandlers() {
@@ -680,7 +639,6 @@
     const cards = qsa('.case-card', grid);
     if (!cards.length) return false;
 
-    // Map cards to rows by index (same order as app.js slice)
     cards.forEach((card, idx) => {
       if (card.dataset.casesBound === '1') return;
       card.dataset.casesBound = '1';
@@ -689,17 +647,22 @@
       const id = String(row.case_id || '').trim();
       if (id) card.dataset.caseId = id;
 
-      // a11y
       card.setAttribute('role', 'button');
       card.setAttribute('tabindex', '0');
       if (row.title) card.setAttribute('aria-label', `Открыть кейс: ${row.title}`);
 
       const onActivate = (e) => {
-        // Don't hijack link clicks (e.g. "Открыть")
         const a = e.target.closest && e.target.closest('a');
-        if (a) return;
+        if (a) {
+          const href = String(a.getAttribute('href') || '').trim();
+          // if it's a dummy link (#) — open modal instead
+          if (!href || href === '#' || href.startsWith('#')) {
+            e.preventDefault();
+          } else {
+            return; // keep real links working
+          }
+        }
 
-        // Stop existing lightbox-on-image in polish.js
         e.preventDefault();
         e.stopPropagation();
 
@@ -727,30 +690,19 @@
     if (bound) return;
     bound = true;
 
-    // Load data (cases + cases_media) then bind to cards
     loadAllData()
       .then(() => {
-        // Try now
         attachCaseCardHandlers();
 
-        // Observe changes (async rendering)
         const grid = qs('#casesGrid');
         if (!grid) return;
 
-        const mo = new MutationObserver(() => {
-          attachCaseCardHandlers();
-        });
+        const mo = new MutationObserver(() => attachCaseCardHandlers());
         mo.observe(grid, { childList: true, subtree: true });
       })
-      .catch((err) => {
-        console.warn('[cases.js] Failed to load data:', err);
-      });
+      .catch((err) => console.warn('[cases.js] Failed to load data:', err));
   }
 
-  // Start after DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
 })();
