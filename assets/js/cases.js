@@ -1,24 +1,36 @@
 /* ============================================================
-   BYPLAN — cases.js (v1.1)
-   Fixes for "добить v1" (как вы показываете на скрине):
-   1) cases_media rows больше НЕ обязаны иметь before/after в каждой строке.
-      Если у сцены нет картинок — мы сохраняем предыдущую (обычно из 1-й сцены).
-   2) Если comment НЕ размечен нумерацией (1., 2., ...),
-      то вместо "Комментарий" используем label сцены (например "Спальня").
-   3) Клик по ссылке <a href="#">Открыть</a> теперь тоже открывает модалку
-      (а реальные ссылки не перехватываем).
+   BYPLAN — cases.js (v1.2-inline)
+   Purpose: REMOVE the "text card -> click -> modal" flow.
+   Instead, render the "красивый развёрнутый" кейс-вьювер
+   прямо в секции #cases (первый уровень просмотра).
+
+   - Не трогаем app.js.
+   - Берём данные из Google Sheets: tabs "cases" и "cases_media".
+   - #casesGrid (карточки) скрываем, чтобы не было "дурацкого текстового варианта".
+   - UI внутри секции использует уже существующие стили story.css + cases.css
+     (тот же визуал, что в модалке).
+
+   cases_media:
+     - одна строка = одна вкладка/сцена (label)
+     - comment = текст справа (можно простой, можно с 1.,2. для подпунктов)
+     - before_url/after_url можно задать только в первой сцене (общая картинка),
+       остальные сцены могут быть без картинок (картинка сохраняется).
+
    ============================================================ */
 
 (function () {
   'use strict';
 
-  if (window.__byplanCasesV1) return;
-  window.__byplanCasesV1 = true;
+  if (window.__byplanCasesInlineV12) return;
+  window.__byplanCasesInlineV12 = true;
 
   const cfg = window.SITE_CONFIG;
   const Sheets = window.Sheets;
 
-  if (!cfg || !Sheets || !cfg.SHEET_ID) return;
+  if (!cfg || !Sheets || !cfg.SHEET_ID) {
+    console.warn('[cases-inline] SITE_CONFIG / Sheets missing');
+    return;
+  }
 
   const SHEET_ID = cfg.SHEET_ID;
   const TAB_CASES = (cfg.TABS && cfg.TABS.cases) ? cfg.TABS.cases : 'cases';
@@ -152,6 +164,58 @@
     return { title, points, summary };
   }
 
+  // Lightbox (same classes as polish.js, but independent)
+  function ensureLightbox() {
+    let backdrop = qs('.lb-backdrop');
+    if (backdrop) return backdrop;
+
+    backdrop = document.createElement('div');
+    backdrop.className = 'lb-backdrop';
+    backdrop.innerHTML = `
+      <div class="lb-dialog" role="dialog" aria-modal="true" aria-label="Просмотр изображения">
+        <div class="lb-toolbar">
+          <div class="lb-title"></div>
+          <button class="lb-close" type="button" aria-label="Закрыть">✕</button>
+        </div>
+        <img class="lb-img" alt="">
+      </div>
+    `.trim();
+
+    document.body.appendChild(backdrop);
+
+    backdrop.addEventListener('click', (e) => {
+      const dialog = e.target.closest('.lb-dialog');
+      const closeBtn = e.target.closest('.lb-close');
+      if (!dialog || closeBtn || e.target === backdrop) closeLightbox();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
+    });
+
+    return backdrop;
+  }
+
+  function openLightbox(src, title) {
+    const backdrop = ensureLightbox();
+    const img = qs('.lb-img', backdrop);
+    const ttl = qs('.lb-title', backdrop);
+    if (!img || !ttl) return;
+
+    img.src = src;
+    img.alt = title || 'Изображение';
+    ttl.textContent = title || '';
+    backdrop.classList.add('is-open');
+  }
+
+  function closeLightbox() {
+    const backdrop = qs('.lb-backdrop');
+    if (!backdrop) return;
+    backdrop.classList.remove('is-open');
+    const img = qs('.lb-img', backdrop);
+    if (img) img.src = '';
+  }
+
   // Data caches
   let casesRows = [];
   let casesById = new Map();
@@ -177,12 +241,10 @@
       const id = String(r.case_id ?? '').trim();
       if (!id) return;
 
-      // include rows even without images (v1.1 fix)
-      const beforeUrl = normalizeUrl(r.before_url || r.before || r.before_thumb || '');
-      const afterUrl  = normalizeUrl(r.after_url  || r.after  || r.after_thumb  || r.img_url || '');
-
       const label = String(r.label || '').trim();
       const rawComment = pickRowValue(r, ['comment','comment_text','comment_points','text','notes','case_comment']);
+      const beforeUrl = normalizeUrl(r.before_url || r.before || r.before_thumb || '');
+      const afterUrl  = normalizeUrl(r.after_url  || r.after  || r.after_thumb  || r.img_url || '');
 
       if (!label && !rawComment && !beforeUrl && !afterUrl) return;
 
@@ -195,62 +257,82 @@
     });
   }
 
-  // Modal state
-  let modalEl = null;
+  // --------- UI / State ----------
+  let host = null;
   let elDialog = null;
-  let elClose = null;
+
   let elBadge = null;
   let elTitle = null;
   let elMeta = null;
   let elProblem = null;
   let elResult = null;
+
+  let elCaseTabs = null;
   let elScenes = null;
 
   let elPlanTabs = null;
   let elPlanImg = null;
   let elPlanCaption = null;
 
+  let elSide = null;
   let elCommentTitle = null;
   let elStepper = null;
   let elSummary = null;
 
+  let selectedCaseId = '';
   let currentScenes = [];
   let currentSceneIndex = 0;
+
   let currentImgMode = 'after';
   let currentPoints = [];
   let currentPointIndex = 0;
 
-  // NEW (v1.1): keep plan across scenes if a scene has no images
+  // keep plan across scenes if no images in a scene
   let planBeforeUrl = '';
   let planAfterUrl = '';
   let planCapBefore = '';
   let planCapAfter = '';
 
-  function ensureModal() {
-    if (modalEl) return modalEl;
+  function mount() {
+    const section = qs('#cases');
+    if (!section) return false;
 
-    modalEl = document.createElement('div');
-    modalEl.className = 'cases-modal';
-    modalEl.hidden = true;
+    const container = qs('.container', section);
+    if (!container) return false;
 
-    modalEl.innerHTML = `
-      <div class="cases-modal__backdrop" data-cases-close="1"></div>
-      <div class="cases-modal__dialog" role="dialog" aria-modal="true" aria-label="Примеры работ">
+    // Hide the "text variant" cards grid (still stays in DOM for fallback)
+    const grid = qs('#casesGrid');
+    if (grid) grid.style.display = 'none';
+
+    document.body.classList.add('cases-inline-enabled');
+
+    host = qs('#casesInline');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'casesInline';
+      host.className = 'cases-inline';
+      if (grid && grid.parentNode === container) container.insertBefore(host, grid);
+      else container.appendChild(host);
+    }
+
+    host.innerHTML = `
+      <div class="cases-modal__dialog cases-inline__dialog">
         <div class="cases-modal__top">
-          <div class="badge cases-modal__badge" id="casesModalBadge">Пример работ</div>
-          <button class="cases-modal__close" type="button" aria-label="Закрыть">✕</button>
+          <div class="badge cases-modal__badge" id="casesInlineBadge">Пример работ</div>
         </div>
 
         <header class="cases-modal__head">
-          <h2 class="cases-modal__title" id="casesModalTitle"></h2>
+          <h2 class="cases-modal__title" id="casesInlineTitle"></h2>
           <div class="cases-modal__meta">
-            <div class="cases-modal__meta-item muted" id="casesModalMeta"></div>
+            <div class="cases-modal__meta-item muted" id="casesInlineMeta"></div>
           </div>
           <div class="cases-modal__meta">
-            <div class="cases-modal__meta-item" id="casesModalProblem" hidden><strong>Задача:</strong> <span class="muted"></span></div>
-            <div class="cases-modal__meta-item" id="casesModalResult" hidden><strong>Результат:</strong> <span class="muted"></span></div>
+            <div class="cases-modal__meta-item" id="casesInlineProblem" hidden><strong>Задача:</strong> <span class="muted"></span></div>
+            <div class="cases-modal__meta-item" id="casesInlineResult" hidden><strong>Результат:</strong> <span class="muted"></span></div>
           </div>
         </header>
+
+        <nav class="cases-scenes cases-case-tabs" aria-label="Кейсы" id="casesCaseTabs" hidden></nav>
 
         <nav class="cases-scenes" aria-label="Сцены кейса" id="casesScenes"></nav>
 
@@ -259,7 +341,7 @@
             <div class="story-plan">
               <div class="story-plan__tabs" id="casesPlanTabs"></div>
               <div class="story-plan__frame">
-                <img class="story-plan__img" id="casesPlanImg" alt="" loading="eager" decoding="async" />
+                <img class="story-plan__img" id="casesPlanImg" alt="" loading="lazy" decoding="async" />
               </div>
               <div class="story-plan__caption muted" id="casesPlanCaption" hidden></div>
             </div>
@@ -284,51 +366,80 @@
       </div>
     `.trim();
 
-    document.body.appendChild(modalEl);
+    elDialog = qs('.cases-inline__dialog', host);
 
-    elDialog = qs('.cases-modal__dialog', modalEl);
-    elClose = qs('.cases-modal__close', modalEl);
-    elBadge = qs('#casesModalBadge', modalEl);
-    elTitle = qs('#casesModalTitle', modalEl);
-    elMeta = qs('#casesModalMeta', modalEl);
-    elProblem = qs('#casesModalProblem', modalEl);
-    elResult = qs('#casesModalResult', modalEl);
-    elScenes = qs('#casesScenes', modalEl);
+    // inline overrides (avoid modal max-height scroll)
+    if (elDialog) {
+      elDialog.style.maxHeight = 'none';
+      elDialog.style.overflow = 'visible';
+      elDialog.style.transform = 'none';
+    }
 
-    elPlanTabs = qs('#casesPlanTabs', modalEl);
-    elPlanImg = qs('#casesPlanImg', modalEl);
-    elPlanCaption = qs('#casesPlanCaption', modalEl);
+    elBadge = qs('#casesInlineBadge', host);
+    elTitle = qs('#casesInlineTitle', host);
+    elMeta = qs('#casesInlineMeta', host);
+    elProblem = qs('#casesInlineProblem', host);
+    elResult = qs('#casesInlineResult', host);
 
-    elCommentTitle = qs('#casesCommentTitle', modalEl);
-    elStepper = qs('#casesStepper', modalEl);
-    elSummary = qs('#casesSummary', modalEl);
+    elCaseTabs = qs('#casesCaseTabs', host);
+    elScenes = qs('#casesScenes', host);
 
-    modalEl.addEventListener('click', (e) => {
-      const close = e.target.closest('[data-cases-close]') || e.target.closest('.cases-modal__close');
-      if (close) closeModal();
+    elPlanTabs = qs('#casesPlanTabs', host);
+    elPlanImg = qs('#casesPlanImg', host);
+    elPlanCaption = qs('#casesPlanCaption', host);
+
+    elSide = qs('#casesSide', host);
+    elCommentTitle = qs('#casesCommentTitle', host);
+    elStepper = qs('#casesStepper', host);
+    elSummary = qs('#casesSummary', host);
+
+    // image click -> lightbox
+    elPlanImg.addEventListener('click', () => {
+      const src = elPlanImg.currentSrc || elPlanImg.getAttribute('src');
+      if (!src) return;
+      openLightbox(src, elTitle ? elTitle.textContent : '');
     });
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key !== 'Escape') return;
-      if (!modalEl || modalEl.hidden) return;
-      closeModal();
-    });
-
-    return modalEl;
+    return true;
   }
 
-  function setActivePills(container, activeIndex) {
-    const btns = qsa('button', container);
+  function setActiveButtons(container, activeIndex, selector) {
+    const btns = qsa(selector || 'button', container);
     btns.forEach((b, i) => b.classList.toggle('is-active', i === activeIndex));
+  }
+
+  function renderCaseTabs() {
+    if (!elCaseTabs) return;
+
+    if (casesRows.length <= 1) {
+      elCaseTabs.hidden = true;
+      elCaseTabs.innerHTML = '';
+      return;
+    }
+
+    elCaseTabs.hidden = false;
+    elCaseTabs.innerHTML = '';
+
+    casesRows.forEach((r) => {
+      const id = String(r.case_id || '').trim();
+      if (!id) return;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'story-pill' + (id === selectedCaseId ? ' is-active' : '');
+      btn.textContent = String(r.title || id);
+      btn.addEventListener('click', () => setCase(id));
+      elCaseTabs.appendChild(btn);
+    });
   }
 
   function renderScenesTabs() {
     elScenes.innerHTML = '';
 
-    if (!currentScenes || currentScenes.length <= 1) {
+    if (!currentScenes || currentScenes.length === 0) {
       elScenes.hidden = true;
       return;
     }
+
     elScenes.hidden = false;
 
     currentScenes.forEach((scene, idx) => {
@@ -341,21 +452,38 @@
     });
   }
 
-  function getSceneAt(idx) {
-    return (currentScenes && currentScenes[idx]) ? currentScenes[idx] : null;
+  function applyPlanImage(src, caption) {
+    const safeSrc = normalizeUrl(src);
+    elPlanImg.src = safeSrc || '';
+    elPlanImg.alt = '';
+
+    const cap = String(caption || '').trim();
+    if (cap) {
+      elPlanCaption.hidden = false;
+      elPlanCaption.textContent = cap;
+    } else {
+      elPlanCaption.hidden = true;
+      elPlanCaption.textContent = '';
+    }
   }
 
-  function renderPlan() {
+  function renderPlanTabs() {
     elPlanTabs.innerHTML = '';
 
     const hasBefore = !!planBeforeUrl;
     const hasAfter = !!planAfterUrl;
 
-    // Decide mode if current missing
+    if (!hasBefore && !hasAfter) {
+      elPlanImg.src = '';
+      elPlanCaption.hidden = true;
+      elPlanCaption.textContent = '';
+      return;
+    }
+
     if (currentImgMode === 'after' && !hasAfter && hasBefore) currentImgMode = 'before';
     if (currentImgMode === 'before' && !hasBefore && hasAfter) currentImgMode = 'after';
 
-    if (hasBefore && hasAfter) {
+    if (hasAfter && hasBefore) {
       const btnAfter = document.createElement('button');
       btnAfter.type = 'button';
       btnAfter.className = 'story-pill' + (currentImgMode === 'after' ? ' is-active' : '');
@@ -391,44 +519,27 @@
     }
   }
 
-  function updatePlanForScene(scene) {
+  function updatePlanFromScene(scene, forceOverride) {
     const beforeUrl = normalizeUrl(scene.before_url || scene.before || scene.before_thumb || '');
     const afterUrl  = normalizeUrl(scene.after_url  || scene.after  || scene.after_thumb  || scene.img_url || '');
 
     const capBefore = String(scene.before_caption || '').trim();
     const capAfter  = String(scene.after_caption  || '').trim();
 
-    // NEW: only override plan if this scene has images
-    if (beforeUrl || afterUrl) {
+    // only override plan if this scene has images (or if forced on initial load)
+    if (forceOverride || beforeUrl || afterUrl) {
       planBeforeUrl = beforeUrl;
       planAfterUrl = afterUrl;
       planCapBefore = capBefore;
       planCapAfter = capAfter;
 
-      // choose default mode
-      if (planAfterUrl) currentImgMode = 'after';
-      else if (planBeforeUrl) currentImgMode = 'before';
+      currentImgMode = planAfterUrl ? 'after' : 'before';
     }
 
-    renderPlan();
+    renderPlanTabs();
   }
 
-  function applyPlanImage(src, caption) {
-    const safeSrc = normalizeUrl(src);
-    elPlanImg.src = safeSrc || '';
-    elPlanImg.alt = '';
-
-    const cap = String(caption || '').trim();
-    if (cap) {
-      elPlanCaption.hidden = false;
-      elPlanCaption.textContent = cap;
-    } else {
-      elPlanCaption.hidden = true;
-      elPlanCaption.textContent = '';
-    }
-  }
-
-  function updateCommentForScene(scene) {
+  function updateCommentFromScene(scene) {
     const raw = pickRowValue(scene, ['comment','comment_text','comment_points','text','notes','case_comment']);
 
     const explicitTitle = pickRowValue(scene, ['comment_title', 'title']);
@@ -441,7 +552,7 @@
 
     let points = parsed.points || [];
 
-    // NEW: if only one fallback point, rename it as the scene label
+    // If only one fallback point -> rename it as scene label (so it shows "1 Спальня", not "1 Комментарий")
     if (points.length === 1 && points[0].label === 'Комментарий') {
       const sceneLabel = String(scene.label || '').trim();
       if (sceneLabel) points[0].label = sceneLabel;
@@ -469,8 +580,8 @@
     elStepper.innerHTML = '';
     if (!points.length) {
       elStepper.hidden = true;
-      qs('#casesPointTitle', modalEl).textContent = '';
-      qs('#casesPointText', modalEl).innerHTML = '';
+      qs('#casesPointTitle', host).textContent = '';
+      qs('#casesPointText', host).innerHTML = '';
     } else {
       elStepper.hidden = false;
 
@@ -492,7 +603,7 @@
     }
 
     // Summary
-    const sumTextEl = qs('#casesSummaryText', modalEl);
+    const sumTextEl = qs('#casesSummaryText', host);
     if (summary) {
       elSummary.hidden = false;
       sumTextEl.innerHTML = textToHtml(summary);
@@ -506,12 +617,12 @@
     if (!currentPoints || !currentPoints.length) return;
 
     currentPointIndex = Math.max(0, Math.min(idx, currentPoints.length - 1));
-    setActivePills(elStepper, currentPointIndex);
+    setActiveButtons(elStepper, currentPointIndex, '.story-step');
 
     const p = currentPoints[currentPointIndex];
 
-    const titleEl = qs('#casesPointTitle', modalEl);
-    const textEl = qs('#casesPointText', modalEl);
+    const titleEl = qs('#casesPointTitle', host);
+    const textEl = qs('#casesPointText', host);
 
     titleEl.textContent = p.label || `Пункт ${currentPointIndex + 1}`;
 
@@ -521,37 +632,28 @@
 
   function setScene(idx) {
     currentSceneIndex = Math.max(0, Math.min(idx, (currentScenes.length || 1) - 1));
+    setActiveButtons(elScenes, currentSceneIndex, '.story-pill');
 
-    if (!elScenes.hidden) {
-      const btns = qsa('button', elScenes);
-      btns.forEach((b, i) => b.classList.toggle('is-active', i === currentSceneIndex));
-    }
-
-    const scene = getSceneAt(currentSceneIndex);
+    const scene = currentScenes[currentSceneIndex];
     if (!scene) return;
 
-    updatePlanForScene(scene);
-    updateCommentForScene(scene);
+    updatePlanFromScene(scene, false);
+    updateCommentFromScene(scene);
   }
 
-  function openCase(caseId) {
+  function setCase(caseId) {
     const id = String(caseId || '').trim();
     if (!id) return;
 
-    ensureModal();
+    selectedCaseId = id;
 
     const caseRow = casesById.get(id) || {};
-
-    // Scenes for this case
     currentScenes = mediaByCase.get(id) || [];
     currentSceneIndex = 0;
 
-    // Header
     elBadge.textContent = 'Пример работ';
     elTitle.textContent = String(caseRow.title || 'Кейс');
-
-    const meta = buildMeta(caseRow);
-    elMeta.textContent = meta || '';
+    elMeta.textContent = buildMeta(caseRow);
 
     const problem = String(caseRow.problem || '').trim();
     const result = String(caseRow.result || '').trim();
@@ -572,13 +674,14 @@
       qs('span', elResult).textContent = '';
     }
 
-    // NEW: init plan from first scene that has images (or case cover)
+    // init plan from first scene with images (or case cover)
     planBeforeUrl = '';
     planAfterUrl = '';
     planCapBefore = '';
     planCapAfter = '';
     currentImgMode = 'after';
 
+    let found = false;
     for (const s of currentScenes) {
       const b = normalizeUrl(s.before_url || s.before || s.before_thumb || '');
       const a = normalizeUrl(s.after_url  || s.after  || s.after_thumb  || s.img_url || '');
@@ -588,119 +691,44 @@
         planCapBefore = String(s.before_caption || '').trim();
         planCapAfter  = String(s.after_caption  || '').trim();
         currentImgMode = planAfterUrl ? 'after' : 'before';
+        found = true;
         break;
       }
     }
 
-    if (!planBeforeUrl && !planAfterUrl) {
+    if (!found) {
       planAfterUrl = normalizeUrl(caseRow.img_url || '');
       currentImgMode = 'after';
     }
 
-    // Scenes tabs
+    // Render tabs
+    renderCaseTabs();
     renderScenesTabs();
 
-    // Fallback if no scenes
     if (!currentScenes.length) {
-      renderPlan();
+      // no media: show image only, hide side
+      renderPlanTabs();
       elDialog.classList.add('is-no-comment');
+      elSide.style.display = 'none';
     } else {
+      elSide.style.display = '';
+      // force plan apply from first scene if it has images
+      updatePlanFromScene(currentScenes[0], true);
       setScene(0);
     }
-
-    // Show modal
-    modalEl.hidden = false;
-    modalEl.offsetHeight;
-    modalEl.classList.add('is-open');
-    document.body.classList.add('cases-lock');
-
-    try { elClose.focus(); } catch (e) {}
   }
 
-  function closeModal() {
-    if (!modalEl || modalEl.hidden) return;
-
-    modalEl.classList.remove('is-open');
-    document.body.classList.remove('cases-lock');
-
-    window.setTimeout(() => {
-      if (!modalEl) return;
-      modalEl.hidden = true;
-    }, prefersReducedMotion ? 0 : 180);
-  }
-
-  // Attach to case cards (rendered by app.js)
-  let bound = false;
-
-  function attachCaseCardHandlers() {
-    const grid = qs('#casesGrid');
-    if (!grid) return false;
-
-    const cards = qsa('.case-card', grid);
-    if (!cards.length) return false;
-
-    cards.forEach((card, idx) => {
-      if (card.dataset.casesBound === '1') return;
-      card.dataset.casesBound = '1';
-
-      const row = casesRows[idx] || {};
-      const id = String(row.case_id || '').trim();
-      if (id) card.dataset.caseId = id;
-
-      card.setAttribute('role', 'button');
-      card.setAttribute('tabindex', '0');
-      if (row.title) card.setAttribute('aria-label', `Открыть кейс: ${row.title}`);
-
-      const onActivate = (e) => {
-        const a = e.target.closest && e.target.closest('a');
-        if (a) {
-          const href = String(a.getAttribute('href') || '').trim();
-          // if it's a dummy link (#) — open modal instead
-          if (!href || href === '#' || href.startsWith('#')) {
-            e.preventDefault();
-          } else {
-            return; // keep real links working
-          }
-        }
-
-        e.preventDefault();
-        e.stopPropagation();
-
-        const cid = card.dataset.caseId || '';
-        if (!cid) return;
-        openCase(cid);
-      };
-
-      card.addEventListener('click', onActivate);
-
-      card.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          const cid = card.dataset.caseId || '';
-          if (!cid) return;
-          openCase(cid);
-        }
-      });
-    });
-
-    return true;
-  }
-
+  // ---------- init ----------
   function init() {
-    if (bound) return;
-    bound = true;
-
     loadAllData()
       .then(() => {
-        attachCaseCardHandlers();
+        if (!mount()) return;
 
-        const grid = qs('#casesGrid');
-        if (!grid) return;
-
-        const mo = new MutationObserver(() => attachCaseCardHandlers());
-        mo.observe(grid, { childList: true, subtree: true });
+        // Pick default case (first row)
+        const first = casesRows.find(r => String(r.case_id || '').trim());
+        if (first) setCase(String(first.case_id).trim());
       })
-      .catch((err) => console.warn('[cases.js] Failed to load data:', err));
+      .catch((err) => console.warn('[cases-inline] Failed to load:', err));
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
