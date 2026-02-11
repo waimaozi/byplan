@@ -206,6 +206,31 @@
     container.appendChild(dotsWrap);
     container.appendChild(count);
 
+    // --- FIX: allow the LAST review to snap into view (important for odd counts)
+    // Without a trailing spacer, the last card cannot align to the left edge,
+    // so navigation "stops" at the previous one (e.g. 6/7).
+    const tail = document.createElement("div");
+    tail.className = "reviews-carousel__tail";
+    tail.setAttribute("aria-hidden", "true");
+    tail.style.pointerEvents = "none";
+    tail.style.flex = "0 0 0px";
+    track.appendChild(tail);
+
+    function updateTail() {
+      const firstCard = qs(".review-card", track);
+      if (!firstCard) return;
+
+      const cs = getComputedStyle(viewport);
+      const padL = parseFloat(cs.paddingLeft) || 0;
+      const padR = parseFloat(cs.paddingRight) || 0;
+      const trackW = viewport.clientWidth - padL - padR;
+      const cardW = firstCard.getBoundingClientRect().width;
+
+      const extra = Math.max(0, trackW - cardW);
+      tail.style.flex = `0 0 ${Math.ceil(extra)}px`;
+    }
+
+
     // --- поведение ---
     let raf = 0;
 
@@ -263,10 +288,11 @@
 
     window.addEventListener("resize", () => {
       if (raf) cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(updateUI);
+      raf = requestAnimationFrame(() => { updateTail(); updateUI(); });
     });
 
     // initial
+    updateTail();
     updateUI();
   }
 
