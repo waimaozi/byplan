@@ -1,0 +1,50 @@
+/* ============================================================
+   BYPLAN — story-cta-bottom.css
+   Переставляем CTA-кнопки (анкета/кейсы) ПОД текст
+   и фиксируем блок CTA внизу правой карточки (как “дорогая” подача).
+
+   Ничего не переписывает: только CSS-переупорядочивание flex-order.
+   Подключать ПОСЛЕ assets/css/story.css
+   ============================================================ */
+
+/* Desktop: делаем правую карточку колонкой и растягиваем её по высоте ряда */
+@media (min-width: 981px){
+  .section--story .story-grid{
+    align-items: stretch; /* вместо start */
+  }
+
+  .section--story .story-card{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  /* Визуальный порядок: степпер -> панель -> текст(нота) -> CTA */
+  .section--story #storyStepper{ order: 1; }
+  .section--story #storyPanel{ order: 2; }
+  .section--story #storyNote{ order: 3; }
+
+  /* CTA уводим вниз карточки */
+  .section--story .story-actions{
+    order: 4;
+    margin-top: auto !important;   /* прижимаем вниз */
+    padding-top: 16px;             /* отступ от текста */
+  }
+}
+
+/* Mobile: просто соблюдаем порядок (кнопки под текстом), без “прижимания” */
+@media (max-width: 980px){
+  .section--story .story-card{
+    display: flex;
+    flex-direction: column;
+  }
+
+  .section--story #storyStepper{ order: 1; }
+  .section--story #storyPanel{ order: 2; }
+  .section--story #storyNote{ order: 3; }
+  .section--story .story-actions{
+    order: 4;
+    margin-top: 16px !important;
+    padding-top: 0;
+  }
+}
