@@ -339,12 +339,6 @@
             <div class="cases-modal__meta-item" id="casesInlineProblem" hidden><strong>Задача:</strong> <span class="muted"></span></div>
             <div class="cases-modal__meta-item" id="casesInlineResult" hidden><strong>Результат:</strong> <span class="muted"></span></div>
           </div>
-
-          <div class="cases-switch" id="casesCaseSwitch" hidden>
-            <button class="cases-switch__btn" type="button" id="casesPrevCase" aria-label="Предыдущий план">‹</button>
-            <div class="cases-switch__counter muted" id="casesCaseCounter">1 / 1</div>
-            <button class="cases-switch__btn" type="button" id="casesNextCase" aria-label="Следующий план">›</button>
-          </div>
         </header>
 
         <nav class="cases-scenes" aria-label="Сцены кейса" id="casesScenes"></nav>
@@ -355,6 +349,11 @@
               <div class="story-plan__tabs" id="casesPlanTabs"></div>
               <div class="story-plan__frame" id="casesPlanFrame">
                 <img class="story-plan__img" id="casesPlanImg" alt="" loading="lazy" decoding="async" />
+                <div class="cases-switch cases-switch--overlay" id="casesCaseSwitch" hidden>
+                  <button class="cases-switch__btn" type="button" id="casesPrevCase" aria-label="Предыдущий план">‹</button>
+                  <div class="cases-switch__counter muted" id="casesCaseCounter">1 / 1</div>
+                  <button class="cases-switch__btn" type="button" id="casesNextCase" aria-label="Следующий план">›</button>
+                </div>
               </div>
               <div class="story-plan__caption muted" id="casesPlanCaption" hidden></div>
             </div>

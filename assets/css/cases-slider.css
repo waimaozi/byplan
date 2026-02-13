@@ -1,53 +1,20 @@
 /* ============================================================
-   BYPLAN — cases-slider.css (v1)
-   Add-on styles for cases.js v1.3-inline-slider
+   BYPLAN — cases-slider.css (v2)
+   Add-on styles for cases.js v1.3.1 (inline slider + overlay arrows)
 
    Goals:
-   - Replace "tabs for each plan" with a compact prev/next switch
-   - Make plan image fit into a reasonable viewport height
-     and open big on click (lightbox already in JS)
+   - Switch between plans (cases) with prev/next arrows as an overlay
+     on the plan image (left/right, vertically centered)
+   - Keep plan image in a reasonable height (object-fit: contain)
    ============================================================ */
 
-.cases-inline__dialog .cases-switch{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.cases-inline__dialog .cases-switch__btn{
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.18);
-  background: rgba(255,255,255,.08);
-  color: rgba(255,255,255,.88);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  font-size: 26px;
-  line-height: 1;
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  transition: transform .18s ease, background .18s ease, border-color .18s ease, opacity .18s ease;
-}
-
-.cases-inline__dialog .cases-switch__btn:hover{
-  transform: translateY(-1px);
-  background: rgba(255,255,255,.12);
-}
-
-.cases-inline__dialog .cases-switch__counter{
-  font-weight: 700;
-  letter-spacing: -.01em;
-}
-
 /* Keep plan image from becoming too tall.
-   We intentionally use a fixed frame height + object-fit: contain.
-   Clicking still opens the large image in a lightbox. */
+   Fixed frame height + object-fit: contain.
+   Clicking opens the large image in a lightbox. */
 .cases-inline__dialog .story-plan__frame{
+  position: relative;
   height: clamp(260px, 52vh, 560px);
-  touch-action: pan-y; /* allow vertical scroll, keep swipe gestures usable */
+  touch-action: pan-y; /* allow vertical scroll, keep horizontal swipe usable */
 }
 
 .cases-inline__dialog .story-plan__img{
@@ -57,13 +24,70 @@
   cursor: zoom-in;
 }
 
-/* Slightly tighter on narrow phones */
+/* Overlay case switch (prev/next) — centered vertically, left/right */
+.cases-inline__dialog .story-plan__frame .cases-switch{
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(10px, 1.2vw, 16px);
+  pointer-events: none; /* allow swipe on the plan; buttons enable events */
+}
+
+.cases-inline__dialog .story-plan__frame .cases-switch__btn{
+  pointer-events: auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.90);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  line-height: 1;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  transition: transform .18s ease, background .18s ease, border-color .18s ease, opacity .18s ease;
+  box-shadow: 0 10px 40px rgba(0,0,0,.35);
+}
+
+.cases-inline__dialog .story-plan__frame .cases-switch__btn:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.12);
+}
+
+.cases-inline__dialog .story-plan__frame .cases-switch__btn:active{
+  transform: translateY(0);
+}
+
+/* Counter — small pill at bottom center of the plan */
+.cases-inline__dialog .story-plan__frame .cases-switch__counter{
+  position: absolute;
+  left: 50%;
+  bottom: clamp(8px, 1.2vw, 14px);
+  transform: translateX(-50%);
+  pointer-events: none;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(0,0,0,.22);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* Tighter / smaller on phones */
 @media (max-width: 520px){
-  .cases-inline__dialog .cases-switch__btn{
-    width: 42px;
-    height: 42px;
-  }
   .cases-inline__dialog .story-plan__frame{
     height: clamp(240px, 46vh, 520px);
+  }
+  .cases-inline__dialog .story-plan__frame .cases-switch__btn{
+    width: 42px;
+    height: 42px;
+    font-size: 26px;
   }
 }
