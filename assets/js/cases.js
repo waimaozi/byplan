@@ -1,28 +1,27 @@
 /* ============================================================
-   BYPLAN — cases.js (v1.2-inline)
-   Purpose: REMOVE the "text card -> click -> modal" flow.
-   Instead, render the "красивый развёрнутый" кейс-вьювер
-   прямо в секции #cases (первый уровень просмотра).
+   BYPLAN — cases.js (v1.3-inline-slider)
+   Purpose:
+   - Показываем "красивый развёрнутый" кейс-вьювер прямо в секции #cases.
+   - УБИРАЕМ ряд кнопок "План Марина / План Иван / ..." (case tabs).
+   - Вместо этого делаем простой слайдер по кейсам:
+       • свайп по плану (влево/вправо)
+       • стрелки ◀ / ▶ + счётчик 1/ N
 
-   - Не трогаем app.js.
-   - Берём данные из Google Sheets: tabs "cases" и "cases_media".
-   - #casesGrid (карточки) скрываем, чтобы не было "дурацкого текстового варианта".
-   - UI внутри секции использует уже существующие стили story.css + cases.css
-     (тот же визуал, что в модалке).
+   Так мы избегаем "ссылок на все планы внутри первого".
+   При этом сцены внутри одного кейса (cases_media.label) остаются (если их > 1).
 
-   cases_media:
-     - одна строка = одна вкладка/сцена (label)
-     - comment = текст справа (можно простой, можно с 1.,2. для подпунктов)
-     - before_url/after_url можно задать только в первой сцене (общая картинка),
-       остальные сцены могут быть без картинок (картинка сохраняется).
+   Data:
+   - Google Sheets: tabs "cases" и "cases_media"
+   - cases: паспорт кейса (title, meta, problem, result, img_url)
+   - cases_media: сцены/вкладки внутри кейса (label, comment, before/after urls)
 
    ============================================================ */
 
 (function () {
   'use strict';
 
-  if (window.__byplanCasesInlineV12) return;
-  window.__byplanCasesInlineV12 = true;
+  if (window.__byplanCasesInlineV13) return;
+  window.__byplanCasesInlineV13 = true;
 
   const cfg = window.SITE_CONFIG;
   const Sheets = window.Sheets;
@@ -93,6 +92,7 @@
     return '';
   }
 
+  // comment → points (если пользователь вставляет 1.,2.,3.)
   function parsePoints(rawText) {
     const raw = String(rawText ?? '').replace(/\r/g, '').trim();
     if (!raw) return { title: '', points: [], summary: '' };
@@ -133,7 +133,7 @@
     for (let i = 0; i < pointsLines.length; i++) {
       const m = pointsLines[i].match(headerRe);
       if (!m) continue;
-      headers.push({ idx: i, num: Number(m[1] || 0), label: (m[2] || '').trim() });
+      headers.push({ idx: i, label: (m[2] || '').trim() });
     }
 
     const points = [];
@@ -164,7 +164,7 @@
     return { title, points, summary };
   }
 
-  // Lightbox (same classes as polish.js, but independent)
+  // Lightbox (независимый)
   function ensureLightbox() {
     let backdrop = qs('.lb-backdrop');
     if (backdrop) return backdrop;
@@ -218,6 +218,7 @@
 
   // Data caches
   let casesRows = [];
+  let caseIds = [];
   let casesById = new Map();
   let mediaByCase = new Map();
 
@@ -230,9 +231,11 @@
     casesRows = (cases || []).slice(0, CASES_LIMIT);
 
     casesById = new Map();
+    caseIds = [];
     casesRows.forEach((r, idx) => {
       const id = String(r.case_id ?? '').trim();
       if (!id) return;
+      caseIds.push(id);
       casesById.set(id, Object.assign({ __index: idx }, r));
     });
 
@@ -261,16 +264,20 @@
   let host = null;
   let elDialog = null;
 
-  let elBadge = null;
   let elTitle = null;
   let elMeta = null;
   let elProblem = null;
   let elResult = null;
 
-  let elCaseTabs = null;
+  let elCaseSwitch = null;
+  let elPrevCase = null;
+  let elNextCase = null;
+  let elCaseCounter = null;
+
   let elScenes = null;
 
   let elPlanTabs = null;
+  let elPlanFrame = null;
   let elPlanImg = null;
   let elPlanCaption = null;
 
@@ -280,6 +287,8 @@
   let elSummary = null;
 
   let selectedCaseId = '';
+  let selectedCaseIndex = 0;
+
   let currentScenes = [];
   let currentSceneIndex = 0;
 
@@ -316,9 +325,9 @@
     }
 
     host.innerHTML = `
-      <div class="cases-modal__dialog cases-inline__dialog">
+      <div class="cases-modal__dialog cases-inline__dialog" aria-label="Примеры работ">
         <div class="cases-modal__top">
-          <div class="badge cases-modal__badge" id="casesInlineBadge">Пример работ</div>
+          <div class="badge cases-modal__badge">Примеры работ</div>
         </div>
 
         <header class="cases-modal__head">
@@ -330,9 +339,13 @@
             <div class="cases-modal__meta-item" id="casesInlineProblem" hidden><strong>Задача:</strong> <span class="muted"></span></div>
             <div class="cases-modal__meta-item" id="casesInlineResult" hidden><strong>Результат:</strong> <span class="muted"></span></div>
           </div>
-        </header>
 
-        <nav class="cases-scenes cases-case-tabs" aria-label="Кейсы" id="casesCaseTabs" hidden></nav>
+          <div class="cases-switch" id="casesCaseSwitch" hidden>
+            <button class="cases-switch__btn" type="button" id="casesPrevCase" aria-label="Предыдущий план">‹</button>
+            <div class="cases-switch__counter muted" id="casesCaseCounter">1 / 1</div>
+            <button class="cases-switch__btn" type="button" id="casesNextCase" aria-label="Следующий план">›</button>
+          </div>
+        </header>
 
         <nav class="cases-scenes" aria-label="Сцены кейса" id="casesScenes"></nav>
 
@@ -340,7 +353,7 @@
           <div class="story-media">
             <div class="story-plan">
               <div class="story-plan__tabs" id="casesPlanTabs"></div>
-              <div class="story-plan__frame">
+              <div class="story-plan__frame" id="casesPlanFrame">
                 <img class="story-plan__img" id="casesPlanImg" alt="" loading="lazy" decoding="async" />
               </div>
               <div class="story-plan__caption muted" id="casesPlanCaption" hidden></div>
@@ -375,16 +388,20 @@
       elDialog.style.transform = 'none';
     }
 
-    elBadge = qs('#casesInlineBadge', host);
     elTitle = qs('#casesInlineTitle', host);
     elMeta = qs('#casesInlineMeta', host);
     elProblem = qs('#casesInlineProblem', host);
     elResult = qs('#casesInlineResult', host);
 
-    elCaseTabs = qs('#casesCaseTabs', host);
+    elCaseSwitch = qs('#casesCaseSwitch', host);
+    elPrevCase = qs('#casesPrevCase', host);
+    elNextCase = qs('#casesNextCase', host);
+    elCaseCounter = qs('#casesCaseCounter', host);
+
     elScenes = qs('#casesScenes', host);
 
     elPlanTabs = qs('#casesPlanTabs', host);
+    elPlanFrame = qs('#casesPlanFrame', host);
     elPlanImg = qs('#casesPlanImg', host);
     elPlanCaption = qs('#casesPlanCaption', host);
 
@@ -400,6 +417,13 @@
       openLightbox(src, elTitle ? elTitle.textContent : '');
     });
 
+    // prev/next case buttons
+    elPrevCase.addEventListener('click', () => goPrevCase());
+    elNextCase.addEventListener('click', () => goNextCase());
+
+    // swipe gesture (по плану)
+    attachSwipe(elPlanFrame);
+
     return true;
   }
 
@@ -408,34 +432,23 @@
     btns.forEach((b, i) => b.classList.toggle('is-active', i === activeIndex));
   }
 
-  function renderCaseTabs() {
-    if (!elCaseTabs) return;
-
-    if (casesRows.length <= 1) {
-      elCaseTabs.hidden = true;
-      elCaseTabs.innerHTML = '';
+  function updateCaseSwitchUI() {
+    if (!elCaseSwitch) return;
+    if (!caseIds || caseIds.length <= 1) {
+      elCaseSwitch.hidden = true;
       return;
     }
-
-    elCaseTabs.hidden = false;
-    elCaseTabs.innerHTML = '';
-
-    casesRows.forEach((r) => {
-      const id = String(r.case_id || '').trim();
-      if (!id) return;
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'story-pill' + (id === selectedCaseId ? ' is-active' : '');
-      btn.textContent = String(r.title || id);
-      btn.addEventListener('click', () => setCase(id));
-      elCaseTabs.appendChild(btn);
-    });
+    elCaseSwitch.hidden = false;
+    const n = caseIds.length;
+    const i = Math.max(0, Math.min(selectedCaseIndex, n - 1));
+    elCaseCounter.textContent = `${i + 1} / ${n}`;
   }
 
   function renderScenesTabs() {
     elScenes.innerHTML = '';
 
-    if (!currentScenes || currentScenes.length === 0) {
+    // Если сцен 0 или 1 — вкладки не нужны (меньше визуального мусора)
+    if (!currentScenes || currentScenes.length <= 1) {
       elScenes.hidden = true;
       return;
     }
@@ -511,7 +524,10 @@
       elPlanTabs.appendChild(btnAfter);
       elPlanTabs.appendChild(btnBefore);
 
-      applyPlanImage(currentImgMode === 'after' ? planAfterUrl : planBeforeUrl, currentImgMode === 'after' ? planCapAfter : planCapBefore);
+      applyPlanImage(
+        currentImgMode === 'after' ? planAfterUrl : planBeforeUrl,
+        currentImgMode === 'after' ? planCapAfter : planCapBefore
+      );
     } else {
       const src = planAfterUrl || planBeforeUrl || '';
       const cap = planAfterUrl ? planCapAfter : planCapBefore;
@@ -526,7 +542,7 @@
     const capBefore = String(scene.before_caption || '').trim();
     const capAfter  = String(scene.after_caption  || '').trim();
 
-    // only override plan if this scene has images (or if forced on initial load)
+    // override plan only if scene has images (or forced on initial load)
     if (forceOverride || beforeUrl || afterUrl) {
       planBeforeUrl = beforeUrl;
       planAfterUrl = afterUrl;
@@ -646,12 +662,12 @@
     if (!id) return;
 
     selectedCaseId = id;
+    selectedCaseIndex = Math.max(0, caseIds.indexOf(id));
 
     const caseRow = casesById.get(id) || {};
     currentScenes = mediaByCase.get(id) || [];
     currentSceneIndex = 0;
 
-    elBadge.textContent = 'Пример работ';
     elTitle.textContent = String(caseRow.title || 'Кейс');
     elMeta.textContent = buildMeta(caseRow);
 
@@ -673,6 +689,8 @@
       elResult.hidden = true;
       qs('span', elResult).textContent = '';
     }
+
+    updateCaseSwitchUI();
 
     // init plan from first scene with images (or case cover)
     planBeforeUrl = '';
@@ -701,8 +719,6 @@
       currentImgMode = 'after';
     }
 
-    // Render tabs
-    renderCaseTabs();
     renderScenesTabs();
 
     if (!currentScenes.length) {
@@ -718,15 +734,103 @@
     }
   }
 
+  async function animateCaseSwitch(direction, apply) {
+    if (prefersReducedMotion || !elDialog || typeof elDialog.animate !== 'function') {
+      apply();
+      return;
+    }
+
+    const dx = direction === 'next' ? -24 : 24;
+
+    try {
+      await elDialog.animate(
+        [{ opacity: 1, transform: 'translateX(0)' }, { opacity: 0, transform: `translateX(${dx}px)` }],
+        { duration: 160, easing: 'ease' }
+      ).finished;
+    } catch (_) {}
+
+    apply();
+
+    try {
+      await elDialog.animate(
+        [{ opacity: 0, transform: `translateX(${-dx}px)` }, { opacity: 1, transform: 'translateX(0)' }],
+        { duration: 220, easing: 'ease' }
+      ).finished;
+    } catch (_) {}
+  }
+
+  function goToCaseIndex(nextIndex, direction) {
+    const n = caseIds.length;
+    if (!n) return;
+
+    let idx = nextIndex;
+    if (idx < 0) idx = n - 1;
+    if (idx >= n) idx = 0;
+
+    const nextId = caseIds[idx];
+    if (!nextId || nextId === selectedCaseId) return;
+
+    animateCaseSwitch(direction || 'next', () => setCase(nextId));
+  }
+
+  function goPrevCase() {
+    goToCaseIndex(selectedCaseIndex - 1, 'prev');
+  }
+
+  function goNextCase() {
+    goToCaseIndex(selectedCaseIndex + 1, 'next');
+  }
+
+  function attachSwipe(el) {
+    if (!el) return;
+
+    let startX = 0;
+    let startY = 0;
+    let startT = 0;
+    let isDown = false;
+
+    const THRESH = 52; // px
+    const MAX_T = 550; // ms
+
+    el.addEventListener('touchstart', (e) => {
+      if (!e.touches || e.touches.length !== 1) return;
+      const t = e.touches[0];
+      startX = t.clientX;
+      startY = t.clientY;
+      startT = Date.now();
+      isDown = true;
+    }, { passive: true });
+
+    el.addEventListener('touchend', (e) => {
+      if (!isDown) return;
+      isDown = false;
+
+      const dt = Date.now() - startT;
+      if (dt > MAX_T) return;
+
+      const t = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0] : null;
+      if (!t) return;
+
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+
+      if (Math.abs(dx) < THRESH) return;
+      if (Math.abs(dx) < Math.abs(dy) * 1.2) return; // vertical scroll wins
+
+      if (dx < 0) goNextCase();
+      else goPrevCase();
+    }, { passive: true });
+  }
+
   // ---------- init ----------
   function init() {
     loadAllData()
       .then(() => {
         if (!mount()) return;
 
-        // Pick default case (first row)
-        const first = casesRows.find(r => String(r.case_id || '').trim());
-        if (first) setCase(String(first.case_id).trim());
+        // default case: first
+        const firstId = (caseIds || [])[0];
+        if (firstId) setCase(firstId);
       })
       .catch((err) => console.warn('[cases-inline] Failed to load:', err));
   }
