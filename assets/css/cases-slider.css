@@ -1,11 +1,14 @@
 /* ============================================================
-   BYPLAN — cases-slider.css (v2.1)
-   Add-on styles for cases.js v1.3.2 (inline slider + overlay arrows)
+   BYPLAN — cases-slider.css (v2.2)
+   Fix: arrows should sit on the edges of the BIG plan card (story-plan)
+   instead of hugging the inner frame/image.
 
-   Goals:
-   - Switch between plans (cases) with prev/next arrows as an overlay
-     on the plan image (left/right, vertically centered)
-   - Keep plan image in a reasonable height (object-fit: contain)
+   Why it happened:
+   - .story-plan has padding: 14px (story.css)
+   - .cases-switch was adding extra horizontal padding (10–16px),
+     effectively pulling arrows back to the inner frame edge.
+
+   This version removes that extra padding.
    ============================================================ */
 
 /* Keep plan image from becoming too tall.
@@ -24,9 +27,10 @@
   cursor: zoom-in;
 }
 
-/* Switch overlay: we anchor arrows to the LARGE plan box (story-plan),
-   not to the clipped frame. The exact vertical position/height is set
-   by JS (top + height = frame rect). */
+/* Switch overlay: anchored to the BIG plan box (story-plan)
+   Top/height are set inline by JS to match the frame.
+   IMPORTANT: no extra horizontal padding here —
+   so arrows are at the big card edges (inside its border). */
 .cases-inline__dialog .story-plan{ position: relative; }
 
 .cases-inline__dialog .story-plan .cases-switch{
@@ -37,7 +41,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 clamp(10px, 1.2vw, 16px);
+  padding: 0; /* <-- was 0 clamp(10px, 1.2vw, 16px) */
   pointer-events: none; /* allow swipe on the plan; buttons enable events */
   z-index: 5;
 }
