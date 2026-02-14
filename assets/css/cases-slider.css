@@ -1,6 +1,6 @@
 /* ============================================================
-   BYPLAN — cases-slider.css (v2)
-   Add-on styles for cases.js v1.3.1 (inline slider + overlay arrows)
+   BYPLAN — cases-slider.css (v2.1)
+   Add-on styles for cases.js v1.3.2 (inline slider + overlay arrows)
 
    Goals:
    - Switch between plans (cases) with prev/next arrows as an overlay
@@ -24,18 +24,25 @@
   cursor: zoom-in;
 }
 
-/* Overlay case switch (prev/next) — centered vertically, left/right */
-.cases-inline__dialog .story-plan__frame .cases-switch{
+/* Switch overlay: we anchor arrows to the LARGE plan box (story-plan),
+   not to the clipped frame. The exact vertical position/height is set
+   by JS (top + height = frame rect). */
+.cases-inline__dialog .story-plan{ position: relative; }
+
+.cases-inline__dialog .story-plan .cases-switch{
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  /* top + height are set inline in JS */
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 clamp(10px, 1.2vw, 16px);
   pointer-events: none; /* allow swipe on the plan; buttons enable events */
+  z-index: 5;
 }
 
-.cases-inline__dialog .story-plan__frame .cases-switch__btn{
+.cases-inline__dialog .story-plan .cases-switch__btn{
   pointer-events: auto;
   width: 46px;
   height: 46px;
@@ -54,17 +61,17 @@
   box-shadow: 0 10px 40px rgba(0,0,0,.35);
 }
 
-.cases-inline__dialog .story-plan__frame .cases-switch__btn:hover{
+.cases-inline__dialog .story-plan .cases-switch__btn:hover{
   transform: translateY(-1px);
   background: rgba(255,255,255,.12);
 }
 
-.cases-inline__dialog .story-plan__frame .cases-switch__btn:active{
+.cases-inline__dialog .story-plan .cases-switch__btn:active{
   transform: translateY(0);
 }
 
 /* Counter — small pill at bottom center of the plan */
-.cases-inline__dialog .story-plan__frame .cases-switch__counter{
+.cases-inline__dialog .story-plan .cases-switch__counter{
   position: absolute;
   left: 50%;
   bottom: clamp(8px, 1.2vw, 14px);
@@ -85,7 +92,7 @@
   .cases-inline__dialog .story-plan__frame{
     height: clamp(240px, 46vh, 520px);
   }
-  .cases-inline__dialog .story-plan__frame .cases-switch__btn{
+  .cases-inline__dialog .story-plan .cases-switch__btn{
     width: 42px;
     height: 42px;
     font-size: 26px;

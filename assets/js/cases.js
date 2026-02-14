@@ -1,5 +1,5 @@
 /* ============================================================
-   BYPLAN — cases.js (v1.3-inline-slider)
+   BYPLAN — cases.js (v1.3.2-inline-slider)
    Purpose:
    - Показываем "красивый развёрнутый" кейс-вьювер прямо в секции #cases.
    - УБИРАЕМ ряд кнопок "План Марина / План Иван / ..." (case tabs).
@@ -20,8 +20,8 @@
 (function () {
   'use strict';
 
-  if (window.__byplanCasesInlineV13) return;
-  window.__byplanCasesInlineV13 = true;
+  if (window.__byplanCasesInlineV132) return;
+  window.__byplanCasesInlineV132 = true;
 
   const cfg = window.SITE_CONFIG;
   const Sheets = window.Sheets;
@@ -264,6 +264,8 @@
   let host = null;
   let elDialog = null;
 
+  let elPlanWrap = null; // .story-plan (big box)
+
   let elTitle = null;
   let elMeta = null;
   let elProblem = null;
@@ -349,11 +351,11 @@
               <div class="story-plan__tabs" id="casesPlanTabs"></div>
               <div class="story-plan__frame" id="casesPlanFrame">
                 <img class="story-plan__img" id="casesPlanImg" alt="" loading="lazy" decoding="async" />
-                <div class="cases-switch cases-switch--overlay" id="casesCaseSwitch" hidden>
-                  <button class="cases-switch__btn" type="button" id="casesPrevCase" aria-label="Предыдущий план">‹</button>
-                  <div class="cases-switch__counter muted" id="casesCaseCounter">1 / 1</div>
-                  <button class="cases-switch__btn" type="button" id="casesNextCase" aria-label="Следующий план">›</button>
-                </div>
+              </div>
+              <div class="cases-switch cases-switch--overlay" id="casesCaseSwitch" hidden>
+                <button class="cases-switch__btn" type="button" id="casesPrevCase" aria-label="Предыдущий план">‹</button>
+                <div class="cases-switch__counter muted" id="casesCaseCounter">1 / 1</div>
+                <button class="cases-switch__btn" type="button" id="casesNextCase" aria-label="Следующий план">›</button>
               </div>
               <div class="story-plan__caption muted" id="casesPlanCaption" hidden></div>
             </div>
@@ -404,6 +406,8 @@
     elPlanImg = qs('#casesPlanImg', host);
     elPlanCaption = qs('#casesPlanCaption', host);
 
+    elPlanWrap = elPlanFrame ? elPlanFrame.closest('.story-plan') : null;
+
     elSide = qs('#casesSide', host);
     elCommentTitle = qs('#casesCommentTitle', host);
     elStepper = qs('#casesStepper', host);
@@ -423,6 +427,11 @@
     // swipe gesture (по плану)
     attachSwipe(elPlanFrame);
 
+    // Keep arrows aligned with the BIG plan box (story-plan)
+    // but vertically centered to the frame area.
+    positionCaseSwitch();
+    window.addEventListener('resize', () => positionCaseSwitch(), { passive: true });
+
     return true;
   }
 
@@ -441,6 +450,27 @@
     const n = caseIds.length;
     const i = Math.max(0, Math.min(selectedCaseIndex, n - 1));
     elCaseCounter.textContent = `${i + 1} / ${n}`;
+
+    positionCaseSwitch();
+  }
+
+  // Position the overlay switch relative to the big plan box (.story-plan)
+  // while keeping its vertical span equal to the frame.
+  function positionCaseSwitch() {
+    if (!elCaseSwitch || !elPlanFrame) return;
+    if (!elPlanWrap) elPlanWrap = elPlanFrame.closest('.story-plan');
+    if (!elPlanWrap) return;
+
+    // Ensure positioning context (CSS should do it, but keep a safe fallback)
+    const pos = window.getComputedStyle(elPlanWrap).position;
+    if (pos === 'static') elPlanWrap.style.position = 'relative';
+
+    const top = elPlanFrame.offsetTop;
+    const height = elPlanFrame.offsetHeight;
+
+    // We set only what we need. Left/right are controlled by CSS.
+    elCaseSwitch.style.top = `${top}px`;
+    elCaseSwitch.style.height = `${height}px`;
   }
 
   function renderScenesTabs() {
