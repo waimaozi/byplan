@@ -1,14 +1,12 @@
 /* ============================================================
-   BYPLAN — cases-slider.css (v2.2)
-   Fix: arrows should sit on the edges of the BIG plan card (story-plan)
-   instead of hugging the inner frame/image.
+   BYPLAN — cases-slider.css (v2.3)
+   Fix: arrows must be anchored to the BIG plan box edges
+        (not to the inner image/frame).
 
-   Why it happened:
-   - .story-plan has padding: 14px (story.css)
-   - .cases-switch was adding extra horizontal padding (10–16px),
-     effectively pulling arrows back to the inner frame edge.
-
-   This version removes that extra padding.
+   Changes vs v2.1:
+   - remove inset padding on .cases-switch
+   - shift buttons outward (±50%) so they sit on the box edge
+     and почти не перекрывают картинку
    ============================================================ */
 
 /* Keep plan image from becoming too tall.
@@ -27,10 +25,10 @@
   cursor: zoom-in;
 }
 
-/* Switch overlay: anchored to the BIG plan box (story-plan)
-   Top/height are set inline by JS to match the frame.
-   IMPORTANT: no extra horizontal padding here —
-   so arrows are at the big card edges (inside its border). */
+/* Switch overlay:
+   - container spans the BIG plan box (.story-plan)
+   - JS sets only vertical placement: top + height = frame rect
+*/
 .cases-inline__dialog .story-plan{ position: relative; }
 
 .cases-inline__dialog .story-plan .cases-switch{
@@ -41,7 +39,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0; /* <-- was 0 clamp(10px, 1.2vw, 16px) */
+
+  /* IMPORTANT: no inset padding, otherwise arrows sit on frame edge */
+  padding: 0;
+
   pointer-events: none; /* allow swipe on the plan; buttons enable events */
   z-index: 5;
 }
@@ -61,17 +62,27 @@
   line-height: 1;
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  transition: transform .18s ease, background .18s ease, border-color .18s ease, opacity .18s ease;
   box-shadow: 0 10px 40px rgba(0,0,0,.35);
+
+  /* Base shift is controlled via CSS variables per-button */
+  --dx: 0px;
+  --dy: 0px;
+  transform: translate(var(--dx), var(--dy));
+
+  transition: transform .18s ease, background .18s ease, border-color .18s ease, opacity .18s ease;
 }
 
+/* Put arrows on the BIG box edge (half-outside), so they don't cover the image */
+.cases-inline__dialog #casesPrevCase{ --dx: -50%; }
+.cases-inline__dialog #casesNextCase{ --dx:  50%; }
+
 .cases-inline__dialog .story-plan .cases-switch__btn:hover{
-  transform: translateY(-1px);
+  --dy: -1px;
   background: rgba(255,255,255,.12);
 }
 
 .cases-inline__dialog .story-plan .cases-switch__btn:active{
-  transform: translateY(0);
+  --dy: 0px;
 }
 
 /* Counter — small pill at bottom center of the plan */
@@ -101,4 +112,8 @@
     height: 42px;
     font-size: 26px;
   }
+
+  /* keep arrows more "inside" so they don't go out of viewport */
+  .cases-inline__dialog #casesPrevCase{ --dx: -35%; }
+  .cases-inline__dialog #casesNextCase{ --dx:  35%; }
 }
