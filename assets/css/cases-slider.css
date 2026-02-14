@@ -117,3 +117,14 @@
   .cases-inline__dialog #casesPrevCase{ --dx: -35%; }
   .cases-inline__dialog #casesNextCase{ --dx:  35%; }
 }
+/* FIX: стрелки по краям БОЛЬШОГО бокса (.story-plan), а не по краям фрейма */
+.cases-inline__dialog .story-plan .cases-switch{
+  left: 0 !important;
+  right: 0 !important;
+  padding: 0 !important; /* <-- ключевая строка */
+}
+
+/* На всякий случай прибиваем любые прошлые смещения кнопок */
+.cases-inline__dialog .story-plan .cases-switch__btn{
+  transform: none !important;
+}
