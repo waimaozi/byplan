@@ -1,5 +1,5 @@
 /* ============================================================
-   BYPLAN — cases.js (v1.3.2-inline-slider)
+   BYPLAN — cases.js (v1.3.3-inline-global-arrows)
    Purpose:
    - Показываем "красивый развёрнутый" кейс-вьювер прямо в секции #cases.
    - УБИРАЕМ ряд кнопок "План Марина / План Иван / ..." (case tabs).
@@ -352,11 +352,7 @@
               <div class="story-plan__frame" id="casesPlanFrame">
                 <img class="story-plan__img" id="casesPlanImg" alt="" loading="lazy" decoding="async" />
               </div>
-              <div class="cases-switch cases-switch--overlay" id="casesCaseSwitch" hidden>
-                <button class="cases-switch__btn" type="button" id="casesPrevCase" aria-label="Предыдущий план">‹</button>
-                <div class="cases-switch__counter muted" id="casesCaseCounter">1 / 1</div>
-                <button class="cases-switch__btn" type="button" id="casesNextCase" aria-label="Следующий план">›</button>
-              </div>
+
               <div class="story-plan__caption muted" id="casesPlanCaption" hidden></div>
             </div>
           </div>
@@ -376,6 +372,12 @@
               <p class="cases-summary__text" id="casesSummaryText"></p>
             </div>
           </aside>
+        </div>
+
+        <div class="cases-switch cases-switch--global" id="casesCaseSwitch" hidden>
+          <button class="cases-switch__btn" type="button" id="casesPrevCase" aria-label="Предыдущий план">‹</button>
+          <div class="cases-switch__counter muted" id="casesCaseCounter">1 / 1</div>
+          <button class="cases-switch__btn" type="button" id="casesNextCase" aria-label="Следующий план">›</button>
         </div>
       </div>
     `.trim();
@@ -457,21 +459,26 @@
   // Position the overlay switch relative to the big plan box (.story-plan)
   // while keeping its vertical span equal to the frame.
   function positionCaseSwitch() {
-    if (!elCaseSwitch || !elPlanFrame) return;
-    if (!elPlanWrap) elPlanWrap = elPlanFrame.closest('.story-plan');
-    if (!elPlanWrap) return;
+  if (!elCaseSwitch || !elPlanFrame || !elDialog) return;
 
-    // Ensure positioning context (CSS should do it, but keep a safe fallback)
-    const pos = window.getComputedStyle(elPlanWrap).position;
-    if (pos === 'static') elPlanWrap.style.position = 'relative';
+  // The switch is positioned relative to the WHOLE dialog (big rounded box),
+  // while keeping its vertical span equal to the plan frame.
+  const dialogPos = window.getComputedStyle(elDialog).position;
+  if (dialogPos === 'static') elDialog.style.position = 'relative';
 
-    const top = elPlanFrame.offsetTop;
-    const height = elPlanFrame.offsetHeight;
+  const dialogRect = elDialog.getBoundingClientRect();
+  const frameRect = elPlanFrame.getBoundingClientRect();
 
-    // We set only what we need. Left/right are controlled by CSS.
-    elCaseSwitch.style.top = `${top}px`;
-    elCaseSwitch.style.height = `${height}px`;
-  }
+  const top = frameRect.top - dialogRect.top;
+  const height = frameRect.height;
+
+  // Counter should stay centered относительно плановой рамки (а не всего диалога)
+  const counterLeft = (frameRect.left - dialogRect.left) + (frameRect.width / 2);
+
+  elCaseSwitch.style.top = `${top}px`;
+  elCaseSwitch.style.height = `${height}px`;
+  elCaseSwitch.style.setProperty('--counter-left', `${counterLeft}px`);
+}
 
   function renderScenesTabs() {
     elScenes.innerHTML = '';

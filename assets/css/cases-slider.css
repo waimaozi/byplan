@@ -1,14 +1,19 @@
 /* ============================================================
-   BYPLAN — cases-slider.css (v2.5)
-   Fix: arrows must be on the edges of the BIG common box
-        (the whole case dialog), not inside the plan image/card.
+   BYPLAN — cases-slider.css (v2.6)
+   Fix: стрелки переключения кейсов должны стоять на КРАЯХ
+        большого общего бокса (cases-inline__dialog),
+        а не по краям карточки плана.
 
-   Works with: cases.js (v1.3.3-inline-global-arrows)
+   Важно:
+   - Работает с cases.js (v1.3.3-inline-global-arrows)
+   - Этот файл — ДОПОЛНЕНИЕ к cases.css / story.css
    ============================================================ */
 
-/* Ensure the dialog is a positioning context for the global switch */
+/* Dialog is positioning context for the global switch */
 .cases-inline__dialog{
   position: relative;
+  /* must match cases.css dialog padding (currently 22px) */
+  --cases-dialog-pad-x: 22px;
 }
 
 /* Keep plan image from becoming too tall.
@@ -32,13 +37,16 @@
    JS sets: top + height (equal to plan frame) + --counter-left (center of plan). */
 .cases-inline__dialog .cases-switch{
   position: absolute;
-  left: 0;
-  right: 0;
+  /* stretch to OUTER edges of the dialog, compensating inner padding */
+  left: calc(-1 * var(--cases-dialog-pad-x, 22px));
+  right: calc(-1 * var(--cases-dialog-pad-x, 22px));
+
   /* top + height are set inline in JS */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0; /* no inset — we want real dialog edges */
+
+  padding: 0; /* no inset — real edges */
   pointer-events: none; /* allow swipe/scroll; buttons enable events */
   z-index: 50;
 }
@@ -98,6 +106,10 @@
 
 /* Tighter / smaller on phones */
 @media (max-width: 520px){
+  .cases-inline__dialog{
+    --cases-dialog-pad-x: 16px; /* if you later reduce dialog padding on mobile */
+  }
+
   .cases-inline__dialog .story-plan__frame{
     height: clamp(240px, 46vh, 520px);
   }
@@ -106,6 +118,7 @@
     height: 42px;
     font-size: 26px;
   }
+
   /* On very small screens don't push the buttons too far outside */
   .cases-inline__dialog #casesPrevCase{ --dx: -35%; }
   .cases-inline__dialog #casesNextCase{ --dx:  35%; }
