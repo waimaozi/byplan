@@ -1,12 +1,16 @@
 /* ============================================================
-   BYPLAN — cases-slider.css (v2.3)
-   Fix: arrows must be anchored to the BIG plan box edges
-        (not to the inner image/frame).
+   BYPLAN — cases-slider.css (v2.4)
+   FIX (final): arrows are anchored to the BIG plan box edges (.story-plan)
+   and centered vertically to the FRAME area.
 
-   Changes vs v2.1:
-   - remove inset padding on .cases-switch
-   - shift buttons outward (±50%) so they sit on the box edge
-     and почти не перекрывают картинку
+   What was wrong before:
+   - extra rules reset transform to `none !important` (killed the edge shift)
+   - result: arrows looked like they were stuck to the inner image.
+
+   This version:
+   - container spans the whole .story-plan (left:0; right:0; padding:0)
+   - buttons are ABSOLUTE inside the container and are shifted half-outside
+     so their CENTER sits on the card edge.
    ============================================================ */
 
 /* Keep plan image from becoming too tall.
@@ -25,30 +29,30 @@
   cursor: zoom-in;
 }
 
-/* Switch overlay:
-   - container spans the BIG plan box (.story-plan)
-   - JS sets only vertical placement: top + height = frame rect
-*/
+/* Ensure we have a positioning context */
 .cases-inline__dialog .story-plan{ position: relative; }
 
+/* Switch overlay:
+   - spans the BIG plan box (.story-plan)
+   - JS sets only vertical placement: top + height = frame rect
+*/
 .cases-inline__dialog .story-plan .cases-switch{
   position: absolute;
   left: 0;
   right: 0;
   /* top + height are set inline in JS */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 
-  /* IMPORTANT: no inset padding, otherwise arrows sit on frame edge */
-  padding: 0;
-
+  padding: 0; /* IMPORTANT: no inset padding */
   pointer-events: none; /* allow swipe on the plan; buttons enable events */
-  z-index: 5;
+  z-index: 6;
 }
 
+/* Buttons: pinned to BIG box edges (not to inner image) */
 .cases-inline__dialog .story-plan .cases-switch__btn{
   pointer-events: auto;
+  position: absolute;
+  top: 50%;
+
   width: 46px;
   height: 46px;
   border-radius: 999px;
@@ -64,25 +68,25 @@
   backdrop-filter: blur(12px);
   box-shadow: 0 10px 40px rgba(0,0,0,.35);
 
-  /* Base shift is controlled via CSS variables per-button */
-  --dx: 0px;
-  --dy: 0px;
-  transform: translate(var(--dx), var(--dy));
+  /* shift controls */
+  --shiftX: 0%;
+  --lift: 0px;
+  transform: translate(calc(var(--shiftX)), calc(-50% + var(--lift)));
 
-  transition: transform .18s ease, background .18s ease, border-color .18s ease, opacity .18s ease;
+  transition: background .18s ease, border-color .18s ease, opacity .18s ease, transform .18s ease;
 }
 
-/* Put arrows on the BIG box edge (half-outside), so they don't cover the image */
-.cases-inline__dialog #casesPrevCase{ --dx: -50%; }
-.cases-inline__dialog #casesNextCase{ --dx:  50%; }
+/* Left / right edge anchoring */
+.cases-inline__dialog #casesPrevCase{ left: 0;  --shiftX: -50%; }
+.cases-inline__dialog #casesNextCase{ right: 0; --shiftX:  50%; }
 
 .cases-inline__dialog .story-plan .cases-switch__btn:hover{
-  --dy: -1px;
+  --lift: -1px;
   background: rgba(255,255,255,.12);
 }
 
 .cases-inline__dialog .story-plan .cases-switch__btn:active{
-  --dy: 0px;
+  --lift: 0px;
 }
 
 /* Counter — small pill at bottom center of the plan */
@@ -102,7 +106,7 @@
   backdrop-filter: blur(10px);
 }
 
-/* Tighter / smaller on phones */
+/* Tighter / safer on phones (don’t let arrows go out of viewport) */
 @media (max-width: 520px){
   .cases-inline__dialog .story-plan__frame{
     height: clamp(240px, 46vh, 520px);
@@ -113,18 +117,7 @@
     font-size: 26px;
   }
 
-  /* keep arrows more "inside" so they don't go out of viewport */
-  .cases-inline__dialog #casesPrevCase{ --dx: -35%; }
-  .cases-inline__dialog #casesNextCase{ --dx:  35%; }
-}
-/* FIX: стрелки по краям БОЛЬШОГО бокса (.story-plan), а не по краям фрейма */
-.cases-inline__dialog .story-plan .cases-switch{
-  left: 0 !important;
-  right: 0 !important;
-  padding: 0 !important; /* <-- ключевая строка */
-}
-
-/* На всякий случай прибиваем любые прошлые смещения кнопок */
-.cases-inline__dialog .story-plan .cases-switch__btn{
-  transform: none !important;
+  /* reduce outward shift */
+  .cases-inline__dialog #casesPrevCase{ --shiftX: -35%; }
+  .cases-inline__dialog #casesNextCase{ --shiftX:  35%; }
 }
