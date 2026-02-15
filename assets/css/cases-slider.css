@@ -1,17 +1,15 @@
 /* ============================================================
-   BYPLAN — cases-slider.css (v2.4)
-   FIX (final): arrows are anchored to the BIG plan box edges (.story-plan)
-   and centered vertically to the FRAME area.
+   BYPLAN — cases-slider.css (v2.5)
+   Fix: arrows must be on the edges of the BIG common box
+        (the whole case dialog), not inside the plan image/card.
 
-   What was wrong before:
-   - extra rules reset transform to `none !important` (killed the edge shift)
-   - result: arrows looked like they were stuck to the inner image.
-
-   This version:
-   - container spans the whole .story-plan (left:0; right:0; padding:0)
-   - buttons are ABSOLUTE inside the container and are shifted half-outside
-     so their CENTER sits on the card edge.
+   Works with: cases.js (v1.3.3-inline-global-arrows)
    ============================================================ */
+
+/* Ensure the dialog is a positioning context for the global switch */
+.cases-inline__dialog{
+  position: relative;
+}
 
 /* Keep plan image from becoming too tall.
    Fixed frame height + object-fit: contain.
@@ -29,30 +27,25 @@
   cursor: zoom-in;
 }
 
-/* Ensure we have a positioning context */
-.cases-inline__dialog .story-plan{ position: relative; }
-
-/* Switch overlay:
-   - spans the BIG plan box (.story-plan)
-   - JS sets only vertical placement: top + height = frame rect
-*/
-.cases-inline__dialog .story-plan .cases-switch{
+/* === GLOBAL CASE SWITCH (prev/next) ===
+   This overlay spans the whole dialog width (big rounded box).
+   JS sets: top + height (equal to plan frame) + --counter-left (center of plan). */
+.cases-inline__dialog .cases-switch{
   position: absolute;
   left: 0;
   right: 0;
   /* top + height are set inline in JS */
-
-  padding: 0; /* IMPORTANT: no inset padding */
-  pointer-events: none; /* allow swipe on the plan; buttons enable events */
-  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0; /* no inset — we want real dialog edges */
+  pointer-events: none; /* allow swipe/scroll; buttons enable events */
+  z-index: 50;
 }
 
-/* Buttons: pinned to BIG box edges (not to inner image) */
-.cases-inline__dialog .story-plan .cases-switch__btn{
+/* Buttons */
+.cases-inline__dialog .cases-switch__btn{
   pointer-events: auto;
-  position: absolute;
-  top: 50%;
-
   width: 46px;
   height: 46px;
   border-radius: 999px;
@@ -66,33 +59,30 @@
   line-height: 1;
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
+  transition: transform .18s ease, background .18s ease, border-color .18s ease, opacity .18s ease;
   box-shadow: 0 10px 40px rgba(0,0,0,.35);
 
-  /* shift controls */
-  --shiftX: 0%;
-  --lift: 0px;
-  transform: translate(calc(var(--shiftX)), calc(-50% + var(--lift)));
-
-  transition: background .18s ease, border-color .18s ease, opacity .18s ease, transform .18s ease;
+  /* default: no vertical lift, but we keep a horizontal offset per button */
+  transform: translate(var(--dx, 0), 0);
 }
 
-/* Left / right edge anchoring */
-.cases-inline__dialog #casesPrevCase{ left: 0;  --shiftX: -50%; }
-.cases-inline__dialog #casesNextCase{ right: 0; --shiftX:  50%; }
+/* Sit half-outside the big dialog border (center on the edge) */
+.cases-inline__dialog #casesPrevCase{ --dx: -50%; }
+.cases-inline__dialog #casesNextCase{ --dx:  50%; }
 
-.cases-inline__dialog .story-plan .cases-switch__btn:hover{
-  --lift: -1px;
+.cases-inline__dialog .cases-switch__btn:hover{
+  transform: translate(var(--dx, 0), -1px);
   background: rgba(255,255,255,.12);
 }
 
-.cases-inline__dialog .story-plan .cases-switch__btn:active{
-  --lift: 0px;
+.cases-inline__dialog .cases-switch__btn:active{
+  transform: translate(var(--dx, 0), 0);
 }
 
-/* Counter — small pill at bottom center of the plan */
-.cases-inline__dialog .story-plan .cases-switch__counter{
+/* Counter — small pill at bottom center of the PLAN frame (not the whole dialog) */
+.cases-inline__dialog .cases-switch__counter{
   position: absolute;
-  left: 50%;
+  left: var(--counter-left, 50%);
   bottom: clamp(8px, 1.2vw, 14px);
   transform: translateX(-50%);
   pointer-events: none;
@@ -106,18 +96,17 @@
   backdrop-filter: blur(10px);
 }
 
-/* Tighter / safer on phones (don’t let arrows go out of viewport) */
+/* Tighter / smaller on phones */
 @media (max-width: 520px){
   .cases-inline__dialog .story-plan__frame{
     height: clamp(240px, 46vh, 520px);
   }
-  .cases-inline__dialog .story-plan .cases-switch__btn{
+  .cases-inline__dialog .cases-switch__btn{
     width: 42px;
     height: 42px;
     font-size: 26px;
   }
-
-  /* reduce outward shift */
-  .cases-inline__dialog #casesPrevCase{ --shiftX: -35%; }
-  .cases-inline__dialog #casesNextCase{ --shiftX:  35%; }
+  /* On very small screens don't push the buttons too far outside */
+  .cases-inline__dialog #casesPrevCase{ --dx: -35%; }
+  .cases-inline__dialog #casesNextCase{ --dx:  35%; }
 }
