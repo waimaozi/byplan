@@ -1,0 +1,323 @@
+/* reviews-plan.css
+ * Premium styling for the <dialog id="reviewDialog"> from reviews-more-modal.js
+ * + the plan button on review cards
+ * + a simple lightbox for plan zoom
+ */
+
+/* ----- Review card: add a second action ("План был/стал") */
+.review-card__more-row--with-plan{
+  display:flex;
+  gap:14px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.review-card__plan{
+  appearance:none;
+  border:1px solid rgba(0,0,0,.14);
+  background:rgba(0,0,0,.04);
+  border-radius:999px;
+  padding:8px 12px;
+  font:inherit;
+  font-size:14px;
+  line-height:1;
+  cursor:pointer;
+  transition:transform .12s ease, background .12s ease, border-color .12s ease;
+}
+
+.review-card__plan:hover{
+  background:rgba(0,0,0,.07);
+  border-color:rgba(0,0,0,.18);
+  transform:translateY(-1px);
+}
+
+.review-card__plan:active{
+  transform:translateY(0);
+}
+
+/* ----- Review dialog (browser <dialog>) */
+.review-dialog{
+  width:min(1160px, calc(100vw - 32px));
+  max-height: min(88vh, 920px);
+  border:none;
+  padding:0;
+  background:transparent;
+}
+
+.review-dialog::backdrop{
+  background:rgba(0,0,0,.55);
+  backdrop-filter: blur(10px);
+}
+
+.review-dialog__panel{
+  position:relative;
+  display:grid;
+  grid-template-rows:auto 1fr;
+  gap:16px;
+
+  padding:22px;
+  border-radius:34px;
+  max-height: min(88vh, 920px);
+
+  color:#fff;
+  background: linear-gradient(160deg, rgba(25,25,25,.92), rgba(15,15,15,.82));
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow: 0 40px 120px rgba(0,0,0,.55);
+  overflow:auto;
+}
+
+/* keep scrollbars unobtrusive */
+.review-dialog__panel::-webkit-scrollbar{ width:10px; }
+.review-dialog__panel::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.18); border-radius:999px; }
+.review-dialog__panel::-webkit-scrollbar-track{ background:transparent; }
+
+.review-dialog__close{
+  position:absolute;
+  top:16px;
+  right:16px;
+
+  width:44px;
+  height:44px;
+  border-radius:999px;
+
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.08);
+  color:#fff;
+
+  font-size:26px;
+  line-height:1;
+  cursor:pointer;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  transition:transform .12s ease, background .12s ease;
+}
+
+.review-dialog__close:hover{
+  background:rgba(255,255,255,.12);
+  transform:scale(1.03);
+}
+
+.review-dialog__meta{
+  padding-right:60px; /* leave room for close */
+}
+
+.review-dialog__name{
+  margin:0;
+  font-size:40px;
+  line-height:1.1;
+  letter-spacing:-.02em;
+}
+
+.review-dialog__role{
+  margin-top:10px;
+  opacity:.86;
+  font-size:18px;
+}
+
+.review-dialog__body{
+  display:grid;
+  gap:18px;
+  align-items:start;
+}
+
+.review-dialog__body--split{
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
+  grid-template-areas: "case text";
+}
+
+.review-dialog__text{
+  grid-area:text;
+  font-size:18px;
+  line-height:1.55;
+  opacity:.92;
+  white-space:pre-wrap;
+}
+
+.review-dialog__case{
+  grid-area:case;
+
+  padding:18px;
+  border-radius:28px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+}
+
+.review-dialog__caseHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:14px;
+}
+
+.review-dialog__caseTitle{
+  font-weight:600;
+  font-size:16px;
+  opacity:.92;
+}
+
+.review-dialog__caseTabs{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+.review-dialog__tab{
+  appearance:none;
+  border:1px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.06);
+  color:#fff;
+  border-radius:999px;
+  padding:10px 14px;
+  font:inherit;
+  font-size:14px;
+  cursor:pointer;
+  transition:background .12s ease, transform .12s ease;
+}
+
+.review-dialog__tab:hover{
+  background:rgba(255,255,255,.09);
+  transform:translateY(-1px);
+}
+
+.review-dialog__tab[aria-selected="true"]{
+  background:#fff;
+  color:#111;
+  border-color:#fff;
+}
+
+.review-dialog__caseMedia{
+  width:100%;
+  border-radius:22px;
+  overflow:hidden;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);
+}
+
+.review-dialog__caseImage{
+  width:100%;
+  height: min(54vh, 520px);
+  object-fit: contain;
+  display:block;
+  background: #f2f2f2; /* plans are often white - give them a neutral base */
+}
+
+.review-dialog__caseComment{
+  margin-top:12px;
+  font-size:14px;
+  line-height:1.45;
+  opacity:.78;
+}
+
+/* single-image case: hide tabs */
+.review-dialog--single .review-dialog__caseTabs{
+  display:none;
+}
+
+/* Mobile: stack */
+@media (max-width: 900px){
+  .review-dialog{
+    width: calc(100vw - 20px);
+    max-height: 92vh;
+  }
+
+  .review-dialog__panel{
+    padding:18px;
+    border-radius:28px;
+    max-height: 92vh;
+  }
+
+  .review-dialog__name{
+    font-size:30px;
+  }
+
+  .review-dialog__body--split{
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "case"
+      "text";
+  }
+
+  .review-dialog__caseImage{
+    height: min(44vh, 420px);
+  }
+}
+
+/* ----- Lightbox (plan zoom) */
+.review-plan-lb{
+  position:fixed;
+  inset:0;
+  display:none;
+  z-index:9999;
+}
+
+.review-plan-lb.is-open{
+  display:block;
+}
+
+.review-plan-lb__backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.75);
+  backdrop-filter: blur(10px);
+}
+
+.review-plan-lb__panel{
+  position:absolute;
+  inset: 24px;
+  border-radius:26px;
+  background: rgba(10,10,10,.78);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow: 0 40px 120px rgba(0,0,0,.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:auto;
+}
+
+/* keep scrollbars unobtrusive */
+.review-dialog__panel::-webkit-scrollbar{ width:10px; }
+.review-dialog__panel::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.18); border-radius:999px; }
+.review-dialog__panel::-webkit-scrollbar-track{ background:transparent; }
+
+.review-plan-lb__img{
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  background:#f2f2f2;
+}
+
+.review-plan-lb__close{
+  position:absolute;
+  top:16px;
+  right:16px;
+
+  width:44px;
+  height:44px;
+  border-radius:999px;
+
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.08);
+  color:#fff;
+
+  font-size:26px;
+  line-height:1;
+  cursor:pointer;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* prevent background scroll when lightbox open */
+.review-plan-lb-open{
+  overflow:auto;
+}
+
+/* keep scrollbars unobtrusive */
+.review-dialog__panel::-webkit-scrollbar{ width:10px; }
+.review-dialog__panel::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.18); border-radius:999px; }
+.review-dialog__panel::-webkit-scrollbar-track{ background:transparent; }
