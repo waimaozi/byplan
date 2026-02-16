@@ -11,10 +11,17 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-behavior: 
 
 body{
   margin: 0;
-  font-family: var(--font);
+  font-family: "Manrope", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   line-height: 1.55;
-  color: var(--text);
+  color: #1C1B1B;
   background: var(--bg);
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6, p, li, a, button, input, textarea, select {
+  font-family: inherit;
 }
 
 img{ max-width: 100%; height: auto; display: block; }
