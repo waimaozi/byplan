@@ -358,25 +358,27 @@
     return true;
   }
 
-  async function loadSheetsData() {
-    const [reviewsRes, casesRes, mediaRes] = await Promise.all([
-      Sheets.fetchTab(TAB_REVIEWS),
-      Sheets.fetchTab(TAB_CASES),
-      Sheets.fetchTab(TAB_MEDIA),
+    async function loadSheetsData() {
+    const sheetId = (SITE_CONFIG && SITE_CONFIG.SHEET_ID) ? String(SITE_CONFIG.SHEET_ID).trim() : "";
+    if (!sheetId) {
+      throw new Error("[reviews-plan] SITE_CONFIG.SHEET_ID is missing");
+    }
+
+    // In this project, Sheets.fetchTab(sheetId, tabName) returns an ARRAY of row objects.
+    const [reviews, cases, media] = await Promise.all([
+      Sheets.fetchTab(sheetId, TAB_REVIEWS).catch(() => []),
+      Sheets.fetchTab(sheetId, TAB_CASES).catch(() => []),
+      Sheets.fetchTab(sheetId, TAB_MEDIA).catch(() => []),
     ]);
 
-    const reviews = (reviewsRes && reviewsRes.rows) ? reviewsRes.rows : [];
-    const cases = (casesRes && casesRes.rows) ? casesRes.rows : [];
-    const media = (mediaRes && mediaRes.rows) ? mediaRes.rows : [];
-
     const casesById = new Map();
-    for (const r of cases) {
+    for (const r of (cases || [])) {
       const id = normStr(pick(r, ["case_id", "id", "caseId"]));
       if (id) casesById.set(id, r);
     }
 
     const mediaByCase = new Map();
-    for (const r of media) {
+    for (const r of (media || [])) {
       const cid = normStr(pick(r, ["case_id", "caseId", "case"]));
       if (!cid) continue;
       if (!mediaByCase.has(cid)) mediaByCase.set(cid, []);
@@ -389,7 +391,7 @@
       mediaByCase.set(cid, list);
     }
 
-    return { reviews, casesById, mediaByCase };
+    return { reviews: (reviews || []), casesById, mediaByCase };
   }
 
   // ---------- dialog enhancements (layout + single-image + lightbox)
