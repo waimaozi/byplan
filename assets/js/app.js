@@ -22,6 +22,31 @@
       .filter(Boolean);
   }
 
+  function sanitizeUrl(url, options = {}) {
+    const raw = String(url ?? "").trim();
+    if (!raw) return "";
+
+    const allowRelative = options.allowRelative !== false;
+    const allowedProtocols = options.allowedProtocols || ["http:", "https:", "mailto:", "tel:"];
+
+    if (raw.startsWith("#")) {
+      return raw;
+    }
+
+    try {
+      const parsed = new URL(raw, document.baseURI);
+      const isRelativeInput = !/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(raw);
+      if (isRelativeInput && !allowRelative) return "";
+      if (!allowedProtocols.includes(parsed.protocol)) return "";
+      if (isRelativeInput) {
+        return raw.replace(/^\/+/, "");
+      }
+      return parsed.href;
+    } catch {
+      return "";
+    }
+  }
+
   function applyKV(kv) {
     // Text content from KV.
     // IMPORTANT: if the key exists but the value is empty, we intentionally hide the element.
@@ -40,13 +65,19 @@
       const key = node.getAttribute("data-kv-link");
       if (!key || kv[key] === undefined) return;
       const href = String(kv[key] ?? "").trim();
+      const safeHref = sanitizeUrl(href, { allowRelative: true });
       if (!href) {
         node.removeAttribute("href");
         node.hidden = true;
         return;
       }
+      if (!safeHref) {
+        node.removeAttribute("href");
+        node.hidden = true;
+        return;
+      }
       node.hidden = false;
-      node.setAttribute("href", href);
+      node.setAttribute("href", safeHref);
     });
 
     // Designer photo
@@ -82,9 +113,15 @@
     // Optional: embed form
     const embedUrl = kv.lead_form_embed_url;
     const embedWrap = el("formEmbed");
-    if (embedUrl && embedWrap) {
+    const safeEmbedUrl = sanitizeUrl(embedUrl, { allowRelative: false, allowedProtocols: ["https:"] });
+    if (safeEmbedUrl && embedWrap) {
       embedWrap.hidden = false;
-      embedWrap.innerHTML = `<iframe src="${embedUrl}" loading="lazy" title="Форма"></iframe>`;
+      embedWrap.innerHTML = "";
+      const frame = document.createElement("iframe");
+      frame.src = safeEmbedUrl;
+      frame.loading = "lazy";
+      frame.title = "Форма";
+      embedWrap.appendChild(frame);
     }
   }
 
@@ -183,6 +220,8 @@
 
       const badge = (r.badge || "").trim();
       const features = splitList(r.features);
+      const ctaHref = sanitizeUrl(r.cta_url || "#contact", { allowRelative: true }) || "#contact";
+      const ctaIsExternal = isExternal(ctaHref);
 
       card.innerHTML = `
         <div class="price-card__top">
@@ -192,7 +231,7 @@
         <p class="price-card__price">${escapeHtml(r.price || "")}</p>
         ${r.price_note ? `<p class="price-card__note">${escapeHtml(r.price_note)}</p>` : ""}
         <ul class="price-card__features">${features.map(f => `<li>${escapeHtml(f)}</li>`).join("")}</ul>
-        ${(r.cta_url || r.cta_label) ? `<a class="btn btn--primary" href="${escapeAttr(r.cta_url || "#contact")}" ${isExternal(r.cta_url) ? 'target="_blank" rel="noopener"' : ""}>${escapeHtml(r.cta_label || "Запросить")}</a>` : ""}
+        ${(r.cta_url || r.cta_label) ? `<a class="btn btn--primary" href="${escapeAttr(ctaHref)}" ${ctaIsExternal ? 'target="_blank" rel="noopener"' : ""}>${escapeHtml(r.cta_label || "Запросить")}</a>` : ""}
       `;
       root.appendChild(card);
     });
@@ -208,6 +247,8 @@
       card.className = "case-card";
 
       const img = (r.img_url || "").trim();
+      const caseUrl = sanitizeUrl(r.url || "", { allowRelative: true });
+      const caseIsExternal = isExternal(caseUrl);
       const metaParts = [];
       if (r.area_m2) metaParts.push(`${r.area_m2} м²`);
       if (r.type) metaParts.push(r.type);
@@ -222,7 +263,7 @@
           <div class="case-card__meta">${escapeHtml(metaParts.join(" · "))}</div>
           ${r.problem ? `<div><strong>Задача:</strong> <span class="muted">${escapeHtml(r.problem)}</span></div>` : ""}
           ${r.result ? `<div><strong>Результат:</strong> <span class="muted">${escapeHtml(r.result)}</span></div>` : ""}
-          ${r.url ? `<a class="btn btn--ghost" href="${escapeAttr(r.url)}" target="_blank" rel="noopener">Открыть</a>` : ""}
+          ${caseUrl ? `<a class="btn btn--ghost" href="${escapeAttr(caseUrl)}" ${caseIsExternal ? 'target="_blank" rel="noopener"' : ""}>Открыть</a>` : ""}
         </div>
       `;
       root.appendChild(card);
@@ -440,7 +481,7 @@ function escapeAttr(str) {
       rows.forEach(r => {
         const card = document.createElement("div");
         card.className = "contact-card";
-        const url = (r.url || "").trim();
+        const url = sanitizeUrl(r.url || "", { allowRelative: true });
         const title = (r.title || "").trim();
         const text = (r.text || "").trim();
         const label = (r.label || "").trim() || "Открыть";
@@ -463,10 +504,12 @@ function escapeAttr(str) {
     fallback.forEach(r => {
       const card = document.createElement("div");
       card.className = "contact-card";
+      const safeUrl = sanitizeUrl(r.url || "", { allowRelative: true });
+      const safeUrlExternal = isExternal(safeUrl);
       card.innerHTML = `
         <div class="contact-card__title">${escapeHtml(r.title)}</div>
         <div class="contact-card__text">${escapeHtml(r.text)}</div>
-        <div style="margin-top:10px"><a class="btn btn--ghost" href="${escapeAttr(r.url)}">${escapeHtml(r.label)}</a></div>
+        ${safeUrl ? `<div style="margin-top:10px"><a class="btn btn--ghost" href="${escapeAttr(safeUrl)}" ${safeUrlExternal ? 'target="_blank" rel="noopener"' : ""}>${escapeHtml(r.label)}</a></div>` : ""}
       `;
       root.appendChild(card);
     });
@@ -474,8 +517,13 @@ function escapeAttr(str) {
 
 
   function isExternal(url) {
-    if (!url) return false;
-    return /^https?:\/\//i.test(url);
+    const u = String(url ?? "").trim();
+    if (!u || u.startsWith("#") || u.startsWith("mailto:") || u.startsWith("tel:")) return false;
+    try {
+      return new URL(u, document.baseURI).origin !== window.location.origin;
+    } catch {
+      return false;
+    }
   }
 
 

@@ -159,13 +159,15 @@
   opacity:.92;
 }
 
-.review-dialog__caseTabs{
+.review-dialog__caseTabs,
+.review-dialog__case-tabs{
   display:flex;
   gap:10px;
   align-items:center;
 }
 
-.review-dialog__tab{
+.review-dialog__tab,
+.review-dialog__case-tab{
   appearance:none;
   border:1px solid rgba(255,255,255,.22);
   background:rgba(255,255,255,.06);
@@ -178,18 +180,21 @@
   transition:background .12s ease, transform .12s ease;
 }
 
-.review-dialog__tab:hover{
+.review-dialog__tab:hover,
+.review-dialog__case-tab:hover{
   background:rgba(255,255,255,.09);
   transform:translateY(-1px);
 }
 
-.review-dialog__tab[aria-selected="true"]{
+.review-dialog__tab[aria-selected="true"],
+.review-dialog__case-tab[aria-selected="true"]{
   background:#fff;
   color:#111;
   border-color:#fff;
 }
 
-.review-dialog__caseMedia{
+.review-dialog__caseMedia,
+.review-dialog__case-frame{
   width:100%;
   border-radius:22px;
   overflow:hidden;
@@ -197,7 +202,8 @@
   border:1px solid rgba(255,255,255,.12);
 }
 
-.review-dialog__caseImage{
+.review-dialog__caseImage,
+.review-dialog__case-img{
   width:100%;
   height: min(54vh, 520px);
   object-fit: contain;
@@ -205,7 +211,8 @@
   background: #f2f2f2; /* plans are often white - give them a neutral base */
 }
 
-.review-dialog__caseComment{
+.review-dialog__caseComment,
+.review-dialog__case-note{
   margin-top:12px;
   font-size:14px;
   line-height:1.45;
@@ -213,7 +220,8 @@
 }
 
 /* single-image case: hide tabs */
-.review-dialog--single .review-dialog__caseTabs{
+.review-dialog--single .review-dialog__caseTabs,
+.review-dialog--single .review-dialog__case-tabs{
   display:none;
 }
 
@@ -241,7 +249,8 @@
       "text";
   }
 
-  .review-dialog__caseImage{
+  .review-dialog__caseImage,
+  .review-dialog__case-img{
     height: min(44vh, 420px);
   }
 }

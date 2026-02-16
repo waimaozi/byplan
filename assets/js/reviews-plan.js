@@ -400,9 +400,9 @@
 
     const body = dialog.querySelector(".review-dialog__body");
     const caseEl = dialog.querySelector("#reviewDialogCase");
-    const tabBefore = dialog.querySelector("#reviewDialogTabBefore");
-    const tabAfter = dialog.querySelector("#reviewDialogTabAfter");
-    const img = dialog.querySelector("#reviewDialogCaseImage");
+    const tabBefore = dialog.querySelector("#reviewDialogTabBefore") || dialog.querySelector('[data-review-case-tab="before"]');
+    const tabAfter = dialog.querySelector("#reviewDialogTabAfter") || dialog.querySelector('[data-review-case-tab="after"]');
+    const img = dialog.querySelector("#reviewDialogCaseImage") || dialog.querySelector("#reviewDialogCaseImg");
 
     function sync() {
       const hasCase = !!(caseEl && !caseEl.hasAttribute("hidden"));

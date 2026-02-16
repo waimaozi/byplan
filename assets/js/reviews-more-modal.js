@@ -64,18 +64,20 @@
             <div id="reviewDialogRole" class="review-dialog__role"></div>
           </div>
 
-          <div id="reviewDialogCase" class="review-dialog__case" hidden>
-            <div class="review-dialog__case-tabs" role="tablist" aria-label="Планы было/стало">
-              <button type="button" class="review-dialog__case-tab is-active" role="tab" aria-selected="true" data-review-case-tab="before">Было</button>
-              <button type="button" class="review-dialog__case-tab" role="tab" aria-selected="false" data-review-case-tab="after">Стало</button>
+          <div class="review-dialog__body">
+            <div id="reviewDialogCase" class="review-dialog__case" hidden>
+              <div class="review-dialog__case-tabs" role="tablist" aria-label="Планы было/стало">
+                <button type="button" class="review-dialog__case-tab is-active" role="tab" aria-selected="true" data-review-case-tab="before">Было</button>
+                <button type="button" class="review-dialog__case-tab" role="tab" aria-selected="false" data-review-case-tab="after">Стало</button>
+              </div>
+              <div class="review-dialog__case-frame">
+                <img id="reviewDialogCaseImg" class="review-dialog__case-img" alt="" loading="lazy" />
+              </div>
+              <div id="reviewDialogCaseNote" class="review-dialog__case-note"></div>
             </div>
-            <div class="review-dialog__case-frame">
-              <img id="reviewDialogCaseImg" class="review-dialog__case-img" alt="" loading="lazy" />
-            </div>
-            <div id="reviewDialogCaseNote" class="review-dialog__case-note"></div>
-          </div>
 
-          <div id="reviewDialogText" class="review-dialog__text"></div>
+            <div id="reviewDialogText" class="review-dialog__text"></div>
+          </div>
         </div>
       `;
 
@@ -208,9 +210,13 @@
       afterTab.classList.remove('is-active');
       beforeTab.setAttribute('aria-selected', 'false');
       afterTab.setAttribute('aria-selected', 'false');
+      const body = root.querySelector('.review-dialog__body');
+      if (body) body.classList.remove('review-dialog__body--split');
       return;
     }
 
+    const body = root.querySelector('.review-dialog__body');
+    if (body) body.classList.add('review-dialog__body--split');
     setCaseTab(initialTab === 'after' ? 'after' : 'before');
   }
 
