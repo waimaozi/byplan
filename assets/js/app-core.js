@@ -192,27 +192,60 @@
     }
     root.hidden = false;
 
-    rowsToRender.forEach(it => {
+    const briefUrl = kv?.brief_url ? sanitizeUrl(kv.brief_url, { allowRelative: true }) : "";
+    const normalizeUrl = (url) => {
+      const safe = sanitizeUrl(url, { allowRelative: true });
+      if (!safe) return "";
+      try {
+        return new URL(safe, document.baseURI).href;
+      } catch {
+        return safe;
+      }
+    };
+    const briefAbs = briefUrl ? normalizeUrl(briefUrl) : "";
+
+    const filtered = rowsToRender.filter((it) => {
+      if (!briefAbs) return true;
+      const title = (it.title || "").toLowerCase();
+      const urlAbs = it.url ? normalizeUrl(it.url) : "";
+      if (urlAbs && urlAbs === briefAbs) return false;
+      if (title.includes("анкета")) return false;
+      return true;
+    });
+
+    if (!filtered.length) {
+      root.hidden = true;
+      return;
+    }
+
+    filtered.forEach(it => {
       const card = document.createElement("div");
       card.className = "contact-card";
+
+      const body = document.createElement("div");
+      body.className = "contact-card__body";
 
       if (it.title) {
         const h = document.createElement("div");
         h.className = "contact-card__title";
         h.textContent = it.title;
-        card.appendChild(h);
+        body.appendChild(h);
       }
 
       if (it.text) {
         const p = document.createElement("div");
         p.className = "contact-card__text";
         p.textContent = it.text;
-        card.appendChild(p);
+        body.appendChild(p);
       }
+
+      card.appendChild(body);
 
       if (it.url) {
         const safeUrl = sanitizeUrl(it.url, { allowRelative: true });
         if (safeUrl) {
+          const actions = document.createElement("div");
+          actions.className = "contact-card__actions";
           const a = document.createElement("a");
           a.className = "btn btn--ghost contact-card__cta";
           a.href = safeUrl;
@@ -221,7 +254,8 @@
             a.rel = "noopener";
           }
           a.textContent = it.cta || "Открыть";
-          card.appendChild(a);
+          actions.appendChild(a);
+          card.appendChild(actions);
         }
       }
 
