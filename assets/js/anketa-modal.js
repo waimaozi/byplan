@@ -1,5 +1,5 @@
 /* ============================================================
-   BYPLAN — anketa-modal.js (v1)
+   BYPLAN — anketa-modal.js (v2)
    Module: Анкета (модальное окно + пошаговая форма)
    Интеграция:
    - Положите файл в assets/js/anketa-modal.js
@@ -11,8 +11,8 @@
   "use strict";
 
   const OPEN_HASH = "#anketa";
-  const STORAGE_KEY = "byplan_anketa_draft_v1";
-  const FORM_VERSION = "byplan-anketa-v1";
+  const STORAGE_KEY = "byplan_anketa_draft_v2";
+  const FORM_VERSION = "byplan-anketa-v2";
 
   // ---- Текст из документа (формулировки старался не менять) ----
   // fileciteturn0file0
@@ -278,7 +278,7 @@
             <div class="anketa-modal__meta">
               <div class="anketa-progress" aria-live="polite">
                 <div class="anketa-progress__bar" aria-hidden="true"><span id="anketaProgressBar"></span></div>
-                <div id="anketaProgressLabel">Шаг 1 из 7</div>
+                <div id="anketaProgressLabel">Шаг 1 из 3</div>
               </div>
             </div>
           </div>
@@ -306,17 +306,11 @@
   }
 
   function buildSteps() {
-    // Внимание: формулировки секций берём из документа.
     return `
       <!-- STEP 1 -->
       <section class="anketa-step is-active" data-step="0" aria-labelledby="anketaStep0">
-        <h3 id="anketaStep0">${DOC_GOAL_TITLE}</h3>
-        <p class="anketa-text">${DOC_GOAL_TEXT}</p>
-
-        <div class="anketa-divider"></div>
-
-        <h3>Контактные данные</h3>
-        <p class="anketa-hint">Поля со <strong>*</strong> обязательны.</p>
+        <h3 id="anketaStep0">Контакты и семья</h3>
+        <p class="anketa-hint">Коротко, в свободной форме.</p>
 
         <div class="anketa-grid">
           <label class="anketa-field">
@@ -325,108 +319,66 @@
           </label>
 
           <label class="anketa-field">
-            <span class="anketa-label">E-mail<span class="anketa-req">*</span></span>
-            <input class="anketa-input" type="email" name="contact_email" autocomplete="email" required>
-          </label>
-
-          <label class="anketa-field">
-            <span class="anketa-label">Телефон</span>
-            <input class="anketa-input" type="tel" name="contact_phone" autocomplete="tel">
-          </label>
-
-          <label class="anketa-field">
-            <span class="anketa-label">Telegram</span>
-            <input class="anketa-input" type="text" name="contact_telegram" placeholder="@username" autocomplete="off">
+            <span class="anketa-label">Контакт (телефон или Telegram)<span class="anketa-req">*</span></span>
+            <input class="anketa-input" type="text" name="contact_value" placeholder="+7… или @username" required>
           </label>
         </div>
+
+        <label class="anketa-field">
+          <span class="anketa-label">Состав семьи (кто живёт постоянно / временно)</span>
+          <textarea class="anketa-textarea" name="family_composition" placeholder="Например: 2 взрослых, 1 ребёнок, иногда бабушка."></textarea>
+        </label>
       </section>
 
       <!-- STEP 2 -->
       <section class="anketa-step" data-step="1" aria-labelledby="anketaStep1">
-        <h3 id="anketaStep1">${OBJECT_TITLE}</h3>
+        <h3 id="anketaStep1">Кухня и спальни</h3>
+        <p class="anketa-hint">Можно кратко, тезисами.</p>
 
-        <div class="anketa-grid">
-          <label class="anketa-field">
-            <span class="anketa-label">Назначение помещения:</span>
-            <input class="anketa-input" type="text" name="object_purpose">
-          </label>
+        <div class="anketa-block">
+          <div class="anketa-block__title">Кухня</div>
+          <textarea class="anketa-textarea" name="kitchen_requirements" placeholder="Что обязательно / чего нельзя, газ или электричество, готовите ли, хранение."></textarea>
+        </div>
 
-          <label class="anketa-field">
-            <span class="anketa-label">Адрес:</span>
-            <input class="anketa-input" type="text" name="object_address">
-          </label>
+        <div class="anketa-block">
+          <div class="anketa-block__title">Спальня</div>
+          <textarea class="anketa-textarea" name="bedroom_requirements" placeholder="Размер спального места, тумбочки, макияжный столик, рабочее место."></textarea>
+        </div>
 
-          <label class="anketa-field">
-            <span class="anketa-label">Общая площадь помещений, подлежащей проработке:</span>
-            <input class="anketa-input" type="number" inputmode="decimal" name="object_area_total" placeholder="">
-          </label>
-
-          <label class="anketa-field">
-            <span class="anketa-label">Количество проживающих:</span>
-            <input class="anketa-input" type="number" inputmode="numeric" name="object_residents_count" placeholder="">
-          </label>
+        <div class="anketa-block">
+          <div class="anketa-block__title">Детские</div>
+          <textarea class="anketa-textarea" name="children_requirements" placeholder="Размеры кровати, увлечения, спорт/балет, хранение экипировки."></textarea>
         </div>
       </section>
 
       <!-- STEP 3 -->
       <section class="anketa-step" data-step="2" aria-labelledby="anketaStep2">
-        <h3 id="anketaStep2">${ROOMS_TITLE}</h3>
-        <p class="anketa-hint">Можно писать тезисами. Если пока не знаете — оставьте пустым.</p>
+        <h3 id="anketaStep2">Гостиная, санузлы, прихожая</h3>
+        <p class="anketa-hint">Укажите только то, что важно.</p>
+
+        <div class="anketa-block">
+          <div class="anketa-block__title">Гостиная</div>
+          <textarea class="anketa-textarea" name="living_requirements" placeholder="TV или проектор, настольные игры, библиотека."></textarea>
+        </div>
+
+        <div class="anketa-block">
+          <div class="anketa-block__title">Санузлы</div>
+          <textarea class="anketa-textarea" name="bathroom_requirements" placeholder="Душ или ванна, 1 или 2 санузла, хранение, стиралка."></textarea>
+        </div>
+
+        <div class="anketa-block">
+          <div class="anketa-block__title">Хранение и уборка</div>
+          <textarea class="anketa-textarea" name="storage_requirements" placeholder="Шкаф для уборки, место для стиралки/сушки, кладовая."></textarea>
+        </div>
+
+        <div class="anketa-block">
+          <div class="anketa-block__title">Прихожая</div>
+          <textarea class="anketa-textarea" name="hallway_requirements" placeholder="Обувь, верхняя одежда, сумки и аксессуары."></textarea>
+        </div>
 
         <label class="anketa-field">
-          <span class="anketa-label">${ROOMS_TITLE}</span>
-          <textarea class="anketa-textarea" name="rooms_requirements_text"></textarea>
-        </label>
-      </section>
-
-      <!-- STEP 4 -->
-      <section class="anketa-step" data-step="3" aria-labelledby="anketaStep3">
-        <h3 id="anketaStep3">${INTERIOR_TITLE}</h3>
-        <p class="anketa-hint">Если по зоне нет пожеланий — можно не заполнять.</p>
-
-        ${buildZones()}
-      </section>
-
-      <!-- STEP 5 -->
-      <section class="anketa-step" data-step="4" aria-labelledby="anketaStep4">
-        <h3 id="anketaStep4">Техническое оснащение</h3>
-
-        <div class="anketa-block">
-          <div class="anketa-block__title">${KITCHEN_TITLE}</div>
-          ${renderCheckboxGroup("kitchen_zone", KITCHEN_OPTIONS, "kitchen_zone_other_text")}
-        </div>
-
-        <div class="anketa-block">
-          <div class="anketa-block__title">${BATH_TITLE}</div>
-          ${renderCheckboxGroup("bath_functions", BATH_OPTIONS)}
-        </div>
-
-        <div class="anketa-block">
-          <div class="anketa-block__title">${HEAT_TITLE}</div>
-          ${renderCheckboxGroup("floor_heating", HEAT_OPTIONS)}
-        </div>
-
-        <div class="anketa-block">
-          <div class="anketa-block__title">${AC_TITLE}</div>
-          ${renderCheckboxGroup("conditioning", AC_OPTIONS)}
-        </div>
-      </section>
-
-      <!-- STEP 6 -->
-      <section class="anketa-step" data-step="5" aria-labelledby="anketaStep5">
-        <h3 id="anketaStep5">${QUESTIONS_TITLE}</h3>
-        <p class="anketa-text"><strong>${QUESTIONS_SUBTITLE}</strong></p>
-
-        ${buildQuestionPoints()}
-      </section>
-
-      <!-- STEP 7 -->
-      <section class="anketa-step" data-step="6" aria-labelledby="anketaStep6">
-        <h3 id="anketaStep6">${FINAL_TITLE}</h3>
-
-        <label class="anketa-field">
-          <span class="anketa-label">${FINAL_TITLE}</span>
-          <textarea class="anketa-textarea" name="final_requirements_text"></textarea>
+          <span class="anketa-label">Дополнительные комментарии</span>
+          <textarea class="anketa-textarea" name="additional_comments" placeholder="Любые важные привычки и пожелания."></textarea>
         </label>
 
         <div class="anketa-divider"></div>
@@ -437,10 +389,6 @@
             Я согласен(на) с <a href="#" id="anketaPrivacyLink" target="_blank" rel="noopener">Политикой конфиденциальности</a>
           </span>
         </label>
-
-        <p class="anketa-hint" style="margin-top:10px;">
-          После отправки анкеты мы свяжемся с вами для уточнения деталей.
-        </p>
       </section>
 
       <!-- STEP SUCCESS (internal) -->
@@ -464,7 +412,7 @@
   const state = {
     isOpen: false,
     activeStep: 0,
-    totalSteps: 7,
+    totalSteps: 3,
     kv: {},
     submitUrl: "",
     lastPayload: null,
@@ -547,17 +495,11 @@
     // Auto-save draft
     const scheduleSave = debounce(() => {
       saveDraft(getFormValues(form), state.activeStep);
-      updateKitchenOtherVisibility(modal);
     }, 250);
 
     form.addEventListener("input", scheduleSave);
     form.addEventListener("change", scheduleSave);
 
-    // Kitchen "Другое" visibility
-    body.addEventListener("change", (e) => {
-      const t = e.target;
-      if (t && t.name === "kitchen_zone") updateKitchenOtherVisibility(modal);
-    });
   }
 
   function togglePoints(modal) {
@@ -636,7 +578,6 @@
     // restore draft if exists
     restoreDraft(modal);
 
-    updateKitchenOtherVisibility(modal);
     setStep(state.activeStep, modal);
 
     // focus first field
@@ -876,94 +817,43 @@
     if (resetForm) {
       form.reset();
       state.activeStep = 0;
-      updateKitchenOtherVisibility(modal);
       setStep(0, modal);
     }
   }
 
   // ---- Submission ----
   function buildPayload(formValues) {
-    const pointsCodes = Array.isArray(formValues.anketa_points) ? formValues.anketa_points : [];
-    const pointsText = pointsCodes
-      .map(code => {
-        const idx = Number(String(code).replace(/^p/i, "")) - 1;
-        return QUESTION_POINTS[idx] || null;
-      })
-      .filter(Boolean);
-
-    const kitchenSelected = Array.isArray(formValues.kitchen_zone) ? formValues.kitchen_zone : [];
-    const bathSelected = Array.isArray(formValues.bath_functions) ? formValues.bath_functions : [];
-    const heatSelected = Array.isArray(formValues.floor_heating) ? formValues.floor_heating : [];
-    const acSelected = Array.isArray(formValues.conditioning) ? formValues.conditioning : [];
-
-    const kitchen = {};
-    KITCHEN_OPTIONS.forEach(o => { kitchen[o.code] = kitchenSelected.includes(o.code); });
-    if (kitchen.other) kitchen.other_text = String(formValues.kitchen_zone_other_text ?? "").trim();
-
-    const bath = {};
-    BATH_OPTIONS.forEach(o => { bath[o.code] = bathSelected.includes(o.code); });
-
-    const heating = {};
-    HEAT_OPTIONS.forEach(o => { heating[o.code] = heatSelected.includes(o.code); });
-
-    const conditioning = {};
-    AC_OPTIONS.forEach(o => { conditioning[o.code] = acSelected.includes(o.code); });
-
-    const interiorZones = {};
-    ZONES.forEach(z => {
-      const zone = {
-        color_preferences: String(formValues[`interior_${z.id}_color`] ?? "").trim(),
-        furniture: String(formValues[`interior_${z.id}_furniture`] ?? "").trim(),
-        windows: String(formValues[`interior_${z.id}_windows`] ?? "").trim(),
-        av_tech: String(formValues[`interior_${z.id}_av`] ?? "").trim(),
-        lighting: String(formValues[`interior_${z.id}_light`] ?? "").trim()
-      };
-
-      // Keep zone if anything filled
-      const hasAny = Object.values(zone).some(v => String(v).trim() !== "");
-      if (hasAny) interiorZones[z.id] = zone;
-    });
-
     return {
       form_version: FORM_VERSION,
       submitted_at: nowIso(),
 
       contact: {
         name: String(formValues.contact_name ?? "").trim(),
-        email: String(formValues.contact_email ?? "").trim(),
-        phone: String(formValues.contact_phone ?? "").trim(),
-        telegram: String(formValues.contact_telegram ?? "").trim()
+        contact: String(formValues.contact_value ?? "").trim()
       },
 
-      object: {
-        purpose: String(formValues.object_purpose ?? "").trim(),
-        address: String(formValues.object_address ?? "").trim(),
-        area_total: toNumber(formValues.object_area_total),
-        residents_count: toNumber(formValues.object_residents_count)
+      family: {
+        composition: String(formValues.family_composition ?? "").trim()
       },
 
       rooms: {
-        rooms_requirements_text: String(formValues.rooms_requirements_text ?? "").trim()
+        kitchen: String(formValues.kitchen_requirements ?? "").trim(),
+        bedroom: String(formValues.bedroom_requirements ?? "").trim(),
+        children: String(formValues.children_requirements ?? "").trim(),
+        living: String(formValues.living_requirements ?? "").trim(),
+        hallway: String(formValues.hallway_requirements ?? "").trim()
       },
 
-      interior: {
-        zones: interiorZones
+      bathrooms: {
+        requirements: String(formValues.bathroom_requirements ?? "").trim()
       },
 
-      technical: {
-        kitchen_zone: kitchen,
-        bath_functions: bath,
-        floor_heating: heating,
-        conditioning: conditioning
+      storage: {
+        requirements: String(formValues.storage_requirements ?? "").trim()
       },
 
-      questions: {
-        selected_codes: pointsCodes,
-        selected_text: pointsText
-      },
-
-      final: {
-        final_requirements_text: String(formValues.final_requirements_text ?? "").trim()
+      comments: {
+        additional: String(formValues.additional_comments ?? "").trim()
       },
 
       consent: {
