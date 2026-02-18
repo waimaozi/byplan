@@ -275,6 +275,12 @@
       const dot = smallprint.querySelector(".dot");
       if (dot) dot.hidden = links.length < 2;
     }
+
+    const next = document.querySelector(".contact-next");
+    if (next) {
+      const items = Array.from(next.querySelectorAll("li")).filter(li => !li.hidden && li.textContent.trim());
+      next.hidden = items.length === 0;
+    }
   }
 
   function renderPills(container, items) {

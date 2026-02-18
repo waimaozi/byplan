@@ -204,6 +204,36 @@
     };
     const briefAbs = briefUrl ? normalizeUrl(briefUrl) : "";
 
+    const iconTypeFor = (it) => {
+      const title = (it.title || "").toLowerCase();
+      const url = (it.url || "").toLowerCase();
+
+      if (url.startsWith("mailto:") || title.includes("email") || title.includes("почта")) return "email";
+      if (url.startsWith("tel:") || title.includes("телефон") || title.includes("phone")) return "phone";
+      if (url.includes("t.me") || url.includes("telegram") || title.includes("telegram") || title.includes("телеграм")) return "telegram";
+      if (url.includes("wa.me") || url.includes("whatsapp") || title.includes("whatsapp") || title.includes("ватсап")) return "whatsapp";
+      if (title.includes("анкета") || title.includes("бриф") || url.includes("docs.google.com/forms")) return "form";
+      return "chat";
+    };
+
+    const iconSvg = (type) => {
+      switch (type) {
+        case "email":
+          return '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect><polyline points="3 7 12 13 21 7"></polyline></svg>';
+        case "phone":
+          return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.8 12.8 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8 9a16 16 0 0 0 6 6l.36-.36a2 2 0 0 1 2.11-.45 12.8 12.8 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>';
+        case "telegram":
+          return '<svg viewBox="0 0 24 24" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
+        case "whatsapp":
+          return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.5a8.5 8.5 0 1 1-4.4-7.4"></path><path d="M7.5 18.5l1.5-.5a8.5 8.5 0 0 0 8.5-8.5"></path></svg>';
+        case "form":
+          return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><line x1="8" y1="11" x2="16" y2="11"></line><line x1="8" y1="15" x2="16" y2="15"></line></svg>';
+        case "chat":
+        default:
+          return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-9 8.5 8.38 8.38 0 0 1-4-1L3 21l1.5-4A8.38 8.38 0 0 1 3.5 12 8.38 8.38 0 0 1 12 3.5a8.38 8.38 0 0 1 9 8z"></path></svg>';
+      }
+    };
+
     const filtered = rowsToRender.filter((it) => {
       if (!briefAbs) return true;
       const title = (it.title || "").toLowerCase();
@@ -222,6 +252,11 @@
       const card = document.createElement("div");
       card.className = "contact-card";
 
+      const icon = document.createElement("div");
+      icon.className = "contact-card__icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.innerHTML = iconSvg(iconTypeFor(it));
+
       const body = document.createElement("div");
       body.className = "contact-card__body";
 
@@ -239,6 +274,7 @@
         body.appendChild(p);
       }
 
+      card.appendChild(icon);
       card.appendChild(body);
 
       if (it.url) {

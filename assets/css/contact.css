@@ -18,14 +18,36 @@
 
 #contact .contact-card{
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 14px;
   align-items: center;
+  grid-template-areas: "icon body actions";
   padding: 14px 16px;
   border: 1px solid rgba(0,0,0,.08);
   border-radius: 18px;
   background: rgba(255,255,255,.72);
   box-shadow: var(--shadow-soft);
+}
+
+#contact .contact-card__icon{
+  grid-area: icon;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,.04);
+  border: 1px solid rgba(0,0,0,.08);
+}
+
+#contact .contact-card__icon svg{
+  width: 22px;
+  height: 22px;
+  stroke: rgba(28,27,27,.82);
+  stroke-width: 1.7;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 #contact .contact-card__title{
@@ -40,8 +62,13 @@
 }
 
 #contact .contact-card__actions{
+  grid-area: actions;
   display: flex;
   justify-content: flex-end;
+}
+
+#contact .contact-card__body{
+  grid-area: body;
 }
 
 #contact .contact-form-card{
@@ -68,6 +95,29 @@
   margin-top: 8px;
 }
 
+#contact .contact-next{
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px dashed rgba(0,0,0,.12);
+  background: rgba(0,0,0,.02);
+}
+
+#contact .contact-next__title{
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+#contact .contact-next__list{
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+
+#contact .contact-next__list li{
+  margin: 0 0 6px 0;
+}
+
 #contact .smallprint{
   margin-top: 16px;
   font-size: 0.85rem;
@@ -86,7 +136,14 @@
 
 @media (max-width: 720px){
   #contact .contact-card{
-    grid-template-columns: 1fr;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "icon body"
+      "actions actions";
+  }
+  #contact .contact-card__icon{
+    width: 40px;
+    height: 40px;
   }
   #contact .contact-card__actions{
     justify-content: flex-start;
