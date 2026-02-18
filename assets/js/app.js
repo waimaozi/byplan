@@ -2,6 +2,31 @@
   const cfg = window.SITE_CONFIG;
 
   const el = (id) => document.getElementById(id);
+  const escapeHtml = window.escapeHtml || ((str) =>
+    String(str ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;")
+  );
+  const isExternal = window.isExternal || ((url) => {
+    const u = String(url ?? "").trim();
+    if (!u || u.startsWith("#") || u.startsWith("mailto:") || u.startsWith("tel:")) return false;
+    try {
+      return new URL(u, document.baseURI).origin !== window.location.origin;
+    } catch {
+      return false;
+    }
+  });
+  const renderFAQ = (typeof window.renderFAQ === "function") ? window.renderFAQ : () => {};
+  const renderContacts = (typeof window.renderContacts === "function") ? window.renderContacts : () => {};
+
+  const toggleSection = (selectorOrEl, show) => {
+    const node = (typeof selectorOrEl === "string") ? document.querySelector(selectorOrEl) : selectorOrEl;
+    if (!node) return;
+    node.hidden = !show;
+  };
 
   function setText(selectorOrEl, text) {
     const node = (typeof selectorOrEl === "string") ? document.querySelector(selectorOrEl) : selectorOrEl;
@@ -47,7 +72,35 @@
     }
   }
 
+  function toAbsUrl(url) {
+    const safe = sanitizeUrl(url, { allowRelative: true });
+    if (!safe) return "";
+    try {
+      return new URL(safe, document.baseURI).href;
+    } catch {
+      return safe;
+    }
+  }
+
+  function showSheetError(message) {
+    const banner = el("sheetError");
+    if (!banner) return;
+    if (!message) {
+      banner.hidden = true;
+      return;
+    }
+    banner.textContent = message;
+    banner.hidden = false;
+  }
+
   function applyKV(kv) {
+    const setMeta = (selector, value) => {
+      const node = document.querySelector(selector);
+      if (!node || value === undefined || value === null) return;
+      const v = String(value);
+      node.setAttribute("content", v);
+    };
+
     // Text content from KV.
     // IMPORTANT: if the key exists but the value is empty, we intentionally hide the element.
     // This lets you "delete" default fallback text by clearing the cell in Google Sheets.
@@ -85,9 +138,20 @@
     if (kv.hero_image_url) {
       const img = el("heroImage");
       if (img) {
-        img.src = kv.hero_image_url;
+        const heroUrl = sanitizeUrl(kv.hero_image_url, { allowRelative: true });
+        if (heroUrl) img.src = heroUrl;
         if (kv.hero_image_alt) img.alt = kv.hero_image_alt;
       }
+    }
+    if (kv.hero_image_url_avif) {
+      const src = toAbsUrl(kv.hero_image_url_avif);
+      const source = document.getElementById("heroImageAvif");
+      if (source && src) source.setAttribute("srcset", src);
+    }
+    if (kv.hero_image_url_webp) {
+      const src = toAbsUrl(kv.hero_image_url_webp);
+      const source = document.getElementById("heroImageWebp");
+      if (source && src) source.setAttribute("srcset", src);
     }
     const heroCap = document.querySelector('[data-kv="hero_image_caption"]');
     if (heroCap && (!kv.hero_image_caption || String(kv.hero_image_caption).trim()==="")) {
@@ -96,7 +160,20 @@
 
     if (kv.designer_photo_url) {
       const img = el("designerPhoto");
-      if (img) img.src = kv.designer_photo_url;
+      if (img) {
+        const photoUrl = sanitizeUrl(kv.designer_photo_url, { allowRelative: true });
+        if (photoUrl) img.src = photoUrl;
+      }
+    }
+    if (kv.designer_photo_url_avif) {
+      const src = toAbsUrl(kv.designer_photo_url_avif);
+      const source = document.getElementById("designerPhotoAvif");
+      if (source && src) source.setAttribute("srcset", src);
+    }
+    if (kv.designer_photo_url_webp) {
+      const src = toAbsUrl(kv.designer_photo_url_webp);
+      const source = document.getElementById("designerPhotoWebp");
+      if (source && src) source.setAttribute("srcset", src);
     }
 
     // Meta tags (allow clearing)
@@ -105,9 +182,77 @@
       const meta = document.querySelector('meta[name="description"]');
       if (meta) meta.setAttribute("content", String(kv.meta_description ?? ""));
     }
-    if (kv.og_image) {
-      const og = document.querySelector('meta[property="og:image"]');
-      if (og) og.setAttribute("content", kv.og_image);
+    const ogMeta = document.querySelector('meta[property="og:image"]');
+    if (kv.og_image && ogMeta) {
+      ogMeta.setAttribute("content", toAbsUrl(kv.og_image));
+    } else if (ogMeta) {
+      const current = ogMeta.getAttribute("content");
+      if (current) ogMeta.setAttribute("content", toAbsUrl(current));
+    }
+
+    const ogTitle = kv.og_title ?? kv.site_title;
+    const ogDesc = kv.og_description ?? kv.meta_description;
+    if (ogTitle !== undefined) setMeta('meta[property="og:title"]', ogTitle);
+    if (ogDesc !== undefined) setMeta('meta[property="og:description"]', ogDesc);
+
+    const twTitle = kv.twitter_title ?? ogTitle;
+    const twDesc = kv.twitter_description ?? ogDesc;
+    if (twTitle !== undefined) setMeta('meta[name="twitter:title"]', twTitle);
+    if (twDesc !== undefined) setMeta('meta[name="twitter:description"]', twDesc);
+    const twImage = document.querySelector('meta[name="twitter:image"]');
+    if (kv.og_image && twImage) {
+      twImage.setAttribute("content", toAbsUrl(kv.og_image));
+    } else if (twImage) {
+      const current = twImage.getAttribute("content");
+      if (current) twImage.setAttribute("content", toAbsUrl(current));
+    }
+
+    const canonical = document.querySelector('link[rel="canonical"]');
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    const rawUrl = kv.site_url || (location.protocol.startsWith("http") ? `${location.origin}${location.pathname}` : "");
+    const absUrl = rawUrl ? toAbsUrl(rawUrl) : "";
+    if (canonical && absUrl) canonical.setAttribute("href", absUrl);
+    if (ogUrl && absUrl) ogUrl.setAttribute("content", absUrl);
+
+    const ld = document.getElementById("ldJson");
+    if (ld) {
+      const sameAs = [];
+      if (kv.instagram_url) {
+        const insta = toAbsUrl(kv.instagram_url);
+        if (insta) sameAs.push(insta);
+      }
+      if (kv.telegram_url) {
+        const tg = toAbsUrl(kv.telegram_url);
+        if (tg) sameAs.push(tg);
+      }
+
+      const contactPoint = [];
+      if (kv.contact_phone) {
+        contactPoint.push({
+          "@type": "ContactPoint",
+          telephone: String(kv.contact_phone),
+          contactType: "customer service"
+        });
+      }
+      if (kv.contact_email) {
+        contactPoint.push({
+          "@type": "ContactPoint",
+          email: String(kv.contact_email),
+          contactType: "customer service"
+        });
+      }
+
+      const payload = {
+        "@context": "https://schema.org",
+        "@type": "ProfessionalService",
+        "name": kv.brand_name || kv.site_title || "Byplan",
+        "url": absUrl || undefined,
+        "description": ogDesc || undefined,
+        "image": kv.og_image ? toAbsUrl(kv.og_image) : undefined,
+        "sameAs": sameAs.length ? sameAs : undefined,
+        "contactPoint": contactPoint.length ? contactPoint : undefined
+      };
+      ld.textContent = JSON.stringify(payload);
     }
 
     // Optional: embed form
@@ -122,6 +267,13 @@
       frame.loading = "lazy";
       frame.title = "Форма";
       embedWrap.appendChild(frame);
+    }
+
+    const smallprint = document.querySelector(".smallprint");
+    if (smallprint) {
+      const links = Array.from(smallprint.querySelectorAll("a")).filter(a => !a.hidden && a.getAttribute("href"));
+      const dot = smallprint.querySelector(".dot");
+      if (dot) dot.hidden = links.length < 2;
     }
   }
 
@@ -256,7 +408,7 @@
 
       card.innerHTML = `
         <div class="case-card__img">
-          ${img ? `<img src="${escapeAttr(img)}" alt="" loading="lazy" />` : ""}
+          ${img ? `<img src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async" />` : ""}
         </div>
         <div class="case-card__body">
           <p class="case-card__title">${escapeHtml(r.title || "")}</p>
@@ -315,11 +467,11 @@
         <div class="review__casePreview" aria-hidden="true">
           <div class="review__caseThumb">
             <span class="review__caseLabel">Было</span>
-            <img src="${escapeAttr(caseBefore)}" alt="" loading="lazy" />
+            <img src="${escapeAttr(caseBefore)}" alt="" loading="lazy" decoding="async" />
           </div>
           <div class="review__caseThumb">
             <span class="review__caseLabel">Стало</span>
-            <img src="${escapeAttr(caseAfter)}" alt="" loading="lazy" />
+            <img src="${escapeAttr(caseAfter)}" alt="" loading="lazy" decoding="async" />
           </div>
         </div>`
       : "";
@@ -360,198 +512,31 @@ function escapeAttr(str) {
     return escapeHtml(str).replaceAll("`", "&#096;");
   }
 
-  function setupNavToggle() {
-    const toggle = document.querySelector(".nav__toggle");
-    const menu = document.querySelector(".nav__menu");
-    if (!toggle || !menu) return;
-    toggle.addEventListener("click", () => {
-      const isOpen = menu.classList.toggle("is-open");
-      toggle.setAttribute("aria-expanded", String(isOpen));
-    });
-
-    // close on click
-    menu.querySelectorAll("a").forEach(a => {
-      a.addEventListener("click", () => {
-        menu.classList.remove("is-open");
-        toggle.setAttribute("aria-expanded", "false");
-      });
-    });
-  }
-
-
-  function renderFAQ(rows) {
-  const root = el("faqList");
-  if (!root) return;
-  root.innerHTML = "";
-  root.dataset.skeleton = "0";
-
-  // Defensive getter: supports different column names in Google Sheets
-  const pick = (r, keys) => {
-    for (const k of keys) {
-      if (!r) continue;
-      if (Object.prototype.hasOwnProperty.call(r, k)) {
-        const v = r[k];
-        if (v !== null && v !== undefined) {
-          const s = String(v).trim();
-          if (s) return s;
-        }
-      }
-    }
-    return "";
-  };
-
-  const enabledRows = (rows || []).filter((r) => {
-    const raw = (r && r.is_enabled !== undefined && r.is_enabled !== null) ? String(r.is_enabled) : "1";
-    return raw.trim() !== "0";
-  });
-
-  enabledRows.forEach((r, i) => {
-    // Support both object rows and array rows (in case the sheet parser changes)
-    let qText = "";
-    let aText = "";
-    if (Array.isArray(r)) {
-      qText = String(r[0] ?? "").trim();
-      aText = String(r[1] ?? "").trim();
-    } else {
-      const qKeys = ["q", "question", "Q", "вопрос", "Вопрос", "title", "h", "header", "name"];
-      const aKeys = ["a", "answer", "A", "ответ", "Ответ", "answer_text", "answer_md", "answer_html", "text", "body", "details", "desc", "description", "content"];
-      qText = pick(r, qKeys) || "";
-      aText = pick(r, aKeys) || "";
-      if (!aText) {
-        const qLower = new Set(qKeys.map((k) => String(k).toLowerCase()));
-        const metaLower = new Set(["id", "is_enabled", "enabled", "show", "display", "order", "sort", "priority"]);
-        for (const [k, v] of Object.entries(r)) {
-          const key = String(k).toLowerCase();
-          if (qLower.has(key)) continue;
-          if (metaLower.has(key)) continue;
-          const val = String(v ?? "").trim();
-          if (!val) continue;
-          if (val === String(qText).trim()) continue;
-          aText = val;
-          break;
-        }
-      }
-    }
-
-    // Skip completely empty rows (common in Sheets)
-    if (!qText && !aText) return;
-
-    const item = document.createElement("div");
-    item.className = "faq-item reveal";
-    item.setAttribute("data-reveal", "");
-
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "faq-q";
-    btn.setAttribute("aria-expanded", "false");
-    btn.setAttribute("aria-controls", `faq-${i}`);
-
-    const label = document.createElement("span");
-    label.className = "faq-q__label";
-    label.textContent = qText || "";
-
-    const icon = document.createElement("span");
-    icon.className = "faq-icon";
-    icon.setAttribute("aria-hidden", "true");
-    icon.textContent = "+";
-
-    btn.append(label, icon);
-
-    const ans = document.createElement("div");
-    ans.className = "faq-a";
-    ans.id = `faq-${i}`;
-    ans.textContent = aText || "";
-    ans.style.whiteSpace = "pre-line"; // preserve line breaks from Sheets
-    ans.hidden = true;
-
-    item.append(btn, ans);
-    root.appendChild(item);
-  });
-  if (typeof observeReveals === "function") observeReveals();
-}
-
-
-  function renderContacts(containerId, rows, kv) {
-    const root = el(containerId);
-    if (!root) return;
-    root.innerHTML = "";
-
-    // If 'contacts' tab exists, render it.
-    if (rows.length) {
-      rows.forEach(r => {
-        const card = document.createElement("div");
-        card.className = "contact-card";
-        const url = sanitizeUrl(r.url || "", { allowRelative: true });
-        const title = (r.title || "").trim();
-        const text = (r.text || "").trim();
-        const label = (r.label || "").trim() || "Открыть";
-        card.innerHTML = `
-          <div class="contact-card__title">${escapeHtml(title)}</div>
-          <div class="contact-card__text">${escapeHtml(text)}</div>
-          ${url ? `<div style="margin-top:10px"><a class="btn btn--ghost" href="${escapeAttr(url)}" ${isExternal(url) ? 'target="_blank" rel="noopener"' : ""}>${escapeHtml(label)}</a></div>` : ""}
-        `;
-        root.appendChild(card);
-      });
-      return;
-    }
-
-    // Otherwise render basic contacts from KV
-    const fallback = [];
-    if (kv.telegram_url) fallback.push({ title: "Telegram", text: kv.telegram_handle ? `@${kv.telegram_handle}` : "Написать в Telegram", url: kv.telegram_url, label: "Написать" });
-    if (kv.contact_email) fallback.push({ title: "Email", text: kv.contact_email, url: `mailto:${kv.contact_email}`, label: "Написать" });
-    if (kv.contact_phone) fallback.push({ title: "Телефон", text: kv.contact_phone, url: `tel:${kv.contact_phone.replace(/\s+/g,"")}`, label: "Позвонить" });
-
-    fallback.forEach(r => {
-      const card = document.createElement("div");
-      card.className = "contact-card";
-      const safeUrl = sanitizeUrl(r.url || "", { allowRelative: true });
-      const safeUrlExternal = isExternal(safeUrl);
-      card.innerHTML = `
-        <div class="contact-card__title">${escapeHtml(r.title)}</div>
-        <div class="contact-card__text">${escapeHtml(r.text)}</div>
-        ${safeUrl ? `<div style="margin-top:10px"><a class="btn btn--ghost" href="${escapeAttr(safeUrl)}" ${safeUrlExternal ? 'target="_blank" rel="noopener"' : ""}>${escapeHtml(r.label)}</a></div>` : ""}
-      `;
-      root.appendChild(card);
-    });
-  }
-
-
-  function isExternal(url) {
-    const u = String(url ?? "").trim();
-    if (!u || u.startsWith("#") || u.startsWith("mailto:") || u.startsWith("tel:")) return false;
-    try {
-      return new URL(u, document.baseURI).origin !== window.location.origin;
-    } catch {
-      return false;
-    }
-  }
-
-
-  function escapeHtml(str) {
-    return String(str ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
-
 
   async function main() {
     setText("#year", String(new Date().getFullYear()));
-    setupNavToggle();
 
     if (!cfg || !cfg.SHEET_ID || cfg.SHEET_ID.includes("PASTE_")) {
       console.warn("SHEET_ID is not set. Please edit assets/js/config.js");
+      showSheetError("Не удалось загрузить данные из Google Sheets. Проверьте ID таблицы в config.js.");
       return;
     }
 
     const sheetId = cfg.SHEET_ID;
     const tabs = cfg.TABS;
     const limits = cfg.LIMITS || {};
+    const sheetErrors = [];
+    const fetchTabSafe = async (tabName) => {
+      try {
+        return await Sheets.fetchTab(sheetId, tabName);
+      } catch (err) {
+        sheetErrors.push(tabName);
+        return [];
+      }
+    };
 
     // 1) Site KV
-    const siteRows = await Sheets.fetchTab(sheetId, tabs.site).catch(() => []);
+    const siteRows = await fetchTabSafe(tabs.site);
     const kv = {};
     siteRows.forEach(r => {
       const k = String(r.key || "").trim();
@@ -562,43 +547,54 @@ function escapeAttr(str) {
 
     // 2) Small proof pills on hero
     const trustMini = (kv.trust_mini || "").split("|").map(s => s.trim()).filter(Boolean);
-    if (trustMini.length) renderPills("trustMini", trustMini);
+    if (trustMini.length) {
+      renderPills("trustMini", trustMini);
+      toggleSection("#trustMini", true);
+    } else {
+      toggleSection("#trustMini", false);
+    }
 
     // 3) Pains
-    const pains = (await Sheets.fetchTab(sheetId, tabs.pains).catch(() => [])).slice(0, limits.pains || 999);
+    const pains = (await fetchTabSafe(tabs.pains)).slice(0, limits.pains || 999);
     if (pains.length) renderCards("painsGrid", pains);
+    toggleSection("#for", pains.length > 0);
 
     // 4) Deliverables
-    const deliverables = (await Sheets.fetchTab(sheetId, tabs.deliverables).catch(() => [])).slice(0, limits.deliverables || 999);
+    const deliverables = (await fetchTabSafe(tabs.deliverables)).slice(0, limits.deliverables || 999);
     if (deliverables.length) {
       renderChecklist("deliverablesList", deliverables);
       renderChecklist("deliverablesMini", deliverables.slice(0, 4));
     }
+    toggleSection("#deliverables", deliverables.length > 0);
 
     // 5) Steps
-    const steps = (await Sheets.fetchTab(sheetId, tabs.steps).catch(() => [])).slice(0, limits.steps || 999);
+    const steps = (await fetchTabSafe(tabs.steps)).slice(0, limits.steps || 999);
     if (steps.length) renderSteps("stepsList", steps);
+    toggleSection("#process", steps.length > 0);
 
     // 6) Trust bullets + stats
-    const trust = (await Sheets.fetchTab(sheetId, tabs.trust).catch(() => [])).slice(0, limits.trust || 999);
+    const trust = (await fetchTabSafe(tabs.trust)).slice(0, limits.trust || 999);
     if (trust.length) renderBullets("trustBullets", trust);
+    toggleSection("#trustBullets", trust.length > 0);
 
-    const stats = (await Sheets.fetchTab(sheetId, tabs.stats).catch(() => [])).slice(0, limits.stats || 999);
+    const stats = (await fetchTabSafe(tabs.stats)).slice(0, limits.stats || 999);
     if (stats.length) renderStats("statsGrid", stats);
+    toggleSection("#statsGrid", stats.length > 0);
 
     // 7) Pricing
-    const pricing = (await Sheets.fetchTab(sheetId, tabs.pricing).catch(() => [])).slice(0, limits.pricing || 999);
+    const pricing = (await fetchTabSafe(tabs.pricing)).slice(0, limits.pricing || 999);
     if (pricing.length) renderPricing("pricingGrid", pricing);
+    toggleSection("#pricing", pricing.length > 0);
 
     // 8) Principles
-    const doList = (await Sheets.fetchTab(sheetId, tabs.principles_do).catch(() => [])).slice(0, limits.principles_do || 999);
+    const doList = (await fetchTabSafe(tabs.principles_do)).slice(0, limits.principles_do || 999);
     if (doList.length) renderBullets("doList", doList);
 
-    const dontList = (await Sheets.fetchTab(sheetId, tabs.principles_dont).catch(() => [])).slice(0, limits.principles_dont || 999);
+    const dontList = (await fetchTabSafe(tabs.principles_dont)).slice(0, limits.principles_dont || 999);
     if (dontList.length) renderBullets("dontList", dontList);
 
     // 9) Mistakes (optional)
-    const mistakes = (await Sheets.fetchTab(sheetId, tabs.mistakes).catch(() => [])).slice(0, limits.mistakes || 999);
+    const mistakes = (await fetchTabSafe(tabs.mistakes)).slice(0, limits.mistakes || 999);
     if (mistakes.length) {
       renderCards("mistakesGrid", mistakes);
       const sec = el("mistakesSection");
@@ -607,23 +603,34 @@ function escapeAttr(str) {
       const sec = el("mistakesSection");
       if (sec) sec.hidden = true;
     }
+    toggleSection("#principles", doList.length > 0 || dontList.length > 0 || mistakes.length > 0);
 
     // 10) Cases
-    const cases = (await Sheets.fetchTab(sheetId, tabs.cases).catch(() => [])).slice(0, limits.cases || 999);
+    const cases = (await fetchTabSafe(tabs.cases)).slice(0, limits.cases || 999);
     if (cases.length) renderCases("casesGrid", cases);
+    toggleSection("#cases", cases.length > 0);
 
     // 11) Reviews
-    const reviews = (await Sheets.fetchTab(sheetId, tabs.reviews).catch(() => [])).slice(0, limits.reviews || 999);
+    const reviews = (await fetchTabSafe(tabs.reviews)).slice(0, limits.reviews || 999);
     if (reviews.length) renderReviews("reviewsGrid", reviews);
     initReviewCases();
+    toggleSection("#reviews", reviews.length > 0);
 
     // 12) FAQ
-    const faq = (await Sheets.fetchTab(sheetId, tabs.faq).catch(() => [])).slice(0, limits.faq || 999);
-    if (faq.length) renderFAQ(faq);
+    const faq = (await fetchTabSafe(tabs.faq)).slice(0, limits.faq || 999);
+    if (faq.length) renderFAQ("faqList", faq);
+    toggleSection("#faq", faq.length > 0);
 
     // 13) Contacts
-    const contacts = (await Sheets.fetchTab(sheetId, tabs.contacts).catch(() => [])).slice(0, limits.contacts || 999);
+    const contacts = (await fetchTabSafe(tabs.contacts)).slice(0, limits.contacts || 999);
     renderContacts("contactCards", contacts, kv);
+
+    if (sheetErrors.length) {
+      console.warn("Sheets tabs failed:", sheetErrors);
+      showSheetError("Не удалось загрузить данные из Google Sheets. Проверьте доступ к таблице и названия вкладок.");
+    } else {
+      showSheetError("");
+    }
   }
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -634,6 +641,34 @@ function escapeAttr(str) {
 // ---------------------------
 // Review case modal (Before/After)
 // ---------------------------
+let lastFocusedEl = null;
+
+const getFocusable = (root) => {
+  if (!root) return [];
+  const nodes = Array.from(root.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  ));
+  return nodes.filter((el) => !el.hasAttribute("hidden") && !el.getAttribute("aria-hidden"));
+};
+
+const trapFocus = (e, root) => {
+  if (e.key !== "Tab") return;
+  const focusables = getFocusable(root);
+  if (!focusables.length) {
+    e.preventDefault();
+    return;
+  }
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+};
+
 function ensureReviewCaseModal() {
   let modal = document.getElementById("reviewCaseModal");
   if (modal) return modal;
@@ -642,6 +677,7 @@ function ensureReviewCaseModal() {
   modal.id = "reviewCaseModal";
   modal.className = "case-modal";
   modal.hidden = true;
+  modal.setAttribute("aria-hidden", "true");
 
   modal.innerHTML = `
     <div class="case-modal__backdrop" data-action="case-close"></div>
@@ -656,7 +692,7 @@ function ensureReviewCaseModal() {
         <figure class="case-figure case-figure--before">
           <figcaption class="case-figure__cap">Было</figcaption>
           <a class="case-figure__link" target="_blank" rel="noopener">
-            <img class="case-figure__img" alt="План до" loading="lazy" />
+            <img class="case-figure__img" alt="План до" loading="lazy" decoding="async" />
           </a>
           <div class="case-figure__note" data-part="beforeNote"></div>
         </figure>
@@ -664,7 +700,7 @@ function ensureReviewCaseModal() {
         <figure class="case-figure case-figure--after">
           <figcaption class="case-figure__cap">Стало</figcaption>
           <a class="case-figure__link" target="_blank" rel="noopener">
-            <img class="case-figure__img" alt="План после" loading="lazy" />
+            <img class="case-figure__img" alt="План после" loading="lazy" decoding="async" />
           </a>
           <div class="case-figure__note" data-part="afterNote"></div>
         </figure>
@@ -685,6 +721,10 @@ function ensureReviewCaseModal() {
     if (close) closeReviewCaseModal();
   });
 
+  modal.addEventListener("keydown", (e) => {
+    trapFocus(e, modal);
+  });
+
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeReviewCaseModal();
   });
@@ -694,6 +734,7 @@ function ensureReviewCaseModal() {
 
 function openReviewCaseModalFromCard(card) {
   const modal = ensureReviewCaseModal();
+  lastFocusedEl = (document.activeElement instanceof HTMLElement) ? document.activeElement : null;
 
   const beforeUrl = normalizeAssetUrl(card.getAttribute("data-case-before") || "");
   const afterUrl  = normalizeAssetUrl(card.getAttribute("data-case-after") || "");
@@ -745,6 +786,7 @@ function openReviewCaseModalFromCard(card) {
   }
 
   modal.hidden = false;
+  modal.setAttribute("aria-hidden", "false");
   document.body.classList.add("case-modal-open");
 
   // Focus close for accessibility
@@ -756,7 +798,12 @@ function closeReviewCaseModal() {
   const modal = document.getElementById("reviewCaseModal");
   if (!modal || modal.hidden) return;
   modal.hidden = true;
+  modal.setAttribute("aria-hidden", "true");
   document.body.classList.remove("case-modal-open");
+  if (lastFocusedEl && document.contains(lastFocusedEl)) {
+    lastFocusedEl.focus();
+  }
+  lastFocusedEl = null;
 }
 
 function initReviewCases() {

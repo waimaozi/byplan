@@ -29,6 +29,27 @@
     return /^https?:\/\//i.test(u);
   }
 
+  function sanitizeUrl(url, options = {}) {
+    const raw = String(url ?? "").trim();
+    if (!raw) return "";
+
+    const allowRelative = options.allowRelative !== false;
+    const allowedProtocols = options.allowedProtocols || ["http:", "https:", "mailto:", "tel:"];
+
+    if (raw.startsWith("#")) return raw;
+
+    try {
+      const parsed = new URL(raw, document.baseURI);
+      const isRelativeInput = !/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(raw);
+      if (isRelativeInput && !allowRelative) return "";
+      if (!allowedProtocols.includes(parsed.protocol)) return "";
+      if (isRelativeInput) return raw.replace(/^\/+/, "");
+      return parsed.href;
+    } catch {
+      return "";
+    }
+  }
+
   function safeBool(v, fallback = true) {
     if (typeof v === "boolean") return v;
     const s = norm(v).toLowerCase();
@@ -44,57 +65,105 @@
 
   // ---- Render: FAQ ----
   function renderFAQ(targetIdOrEl, rows) {
+    if (Array.isArray(targetIdOrEl) && rows === undefined) {
+      rows = targetIdOrEl;
+      targetIdOrEl = "faqList";
+    }
     const root = getEl(targetIdOrEl);
     if (!root) return;
-
-    const items = (rows || [])
-      .filter(r => safeBool(r.is_enabled ?? r.enabled, true))
-      .map(r => ({
-        q: norm(r.question ?? r.q ?? r.title ?? r.name),
-        a: norm(r.answer ?? r.a ?? r.text ?? r.body),
-      }))
-      .filter(x => x.q || x.a);
-
     root.innerHTML = "";
+    root.dataset.skeleton = "0";
 
-    items.forEach((it, idx) => {
-      const wrap = document.createElement("div");
-      wrap.className = "faq-item";
+    // Defensive getter: supports different column names in Google Sheets
+    const pick = (r, keys) => {
+      for (const k of keys) {
+        if (!r) continue;
+        if (Object.prototype.hasOwnProperty.call(r, k)) {
+          const v = r[k];
+          if (v !== null && v !== undefined) {
+            const s = String(v).trim();
+            if (s) return s;
+          }
+        }
+      }
+      return "";
+    };
+
+    const enabledRows = (rows || []).filter((r) => {
+      const raw = (r && r.is_enabled !== undefined && r.is_enabled !== null) ? String(r.is_enabled) : "1";
+      return raw.trim() !== "0";
+    });
+
+    enabledRows.forEach((r, i) => {
+      // Support both object rows and array rows (in case the sheet parser changes)
+      let qText = "";
+      let aText = "";
+      if (Array.isArray(r)) {
+        qText = String(r[0] ?? "").trim();
+        aText = String(r[1] ?? "").trim();
+      } else {
+        const qKeys = ["q", "question", "Q", "вопрос", "Вопрос", "title", "h", "header", "name"];
+        const aKeys = ["a", "answer", "A", "ответ", "Ответ", "answer_text", "answer_md", "answer_html", "text", "body", "details", "desc", "description", "content"];
+        qText = pick(r, qKeys) || "";
+        aText = pick(r, aKeys) || "";
+        if (!aText) {
+          const qLower = new Set(qKeys.map((k) => String(k).toLowerCase()));
+          const metaLower = new Set(["id", "is_enabled", "enabled", "show", "display", "order", "sort", "priority"]);
+          for (const [k, v] of Object.entries(r)) {
+            const key = String(k).toLowerCase();
+            if (qLower.has(key)) continue;
+            if (metaLower.has(key)) continue;
+            const val = String(v ?? "").trim();
+            if (!val) continue;
+            if (val === String(qText).trim()) continue;
+            aText = val;
+            break;
+          }
+        }
+      }
+
+      // Skip completely empty rows (common in Sheets)
+      if (!qText && !aText) return;
+
+      const item = document.createElement("div");
+      item.className = "faq-item reveal";
+      item.setAttribute("data-reveal", "");
 
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "faq-q";
       btn.setAttribute("aria-expanded", "false");
+      btn.setAttribute("aria-controls", `faq-${i}`);
 
       const label = document.createElement("span");
-      label.textContent = it.q || `Вопрос ${idx + 1}`;
+      label.className = "faq-q__label";
+      label.textContent = qText || "";
 
       const icon = document.createElement("span");
       icon.className = "faq-icon";
+      icon.setAttribute("aria-hidden", "true");
       icon.textContent = "+";
 
       btn.append(label, icon);
 
-      const panel = document.createElement("div");
-      panel.className = "faq-a";
-      panel.hidden = true;
-      panel.textContent = it.a;
+      const ans = document.createElement("div");
+      ans.className = "faq-a";
+      ans.id = `faq-${i}`;
+      ans.textContent = aText || "";
+      ans.style.whiteSpace = "pre-line"; // preserve line breaks from Sheets
+      ans.hidden = true;
 
-      btn.addEventListener("click", () => {
-        const expanded = btn.getAttribute("aria-expanded") === "true";
-        btn.setAttribute("aria-expanded", expanded ? "false" : "true");
-        panel.hidden = expanded;
-      });
-
-      wrap.append(btn, panel);
-      root.append(wrap);
+      item.append(btn, ans);
+      root.appendChild(item);
     });
+    if (typeof observeReveals === "function") observeReveals();
   }
 
   // ---- Render: Contacts cards ----
   function renderContacts(targetIdOrEl, rows, kv = {}) {
     const root = getEl(targetIdOrEl);
     if (!root) return;
+    root.innerHTML = "";
 
     const items = (rows || [])
       .filter(r => safeBool(r.is_enabled ?? r.enabled, true))
@@ -106,9 +175,24 @@
       }))
       .filter(x => x.title || x.text || x.url);
 
-    root.innerHTML = "";
+    const fallback = [];
+    if (!items.length) {
+      if (kv.telegram_url) fallback.push({ title: "Telegram", text: kv.telegram_handle ? `@${kv.telegram_handle}` : "Написать в Telegram", url: kv.telegram_url, cta: "Написать" });
+      if (kv.contact_email) fallback.push({ title: "Email", text: kv.contact_email, url: `mailto:${kv.contact_email}`, cta: "Написать" });
+      if (kv.contact_phone) {
+        const phone = String(kv.contact_phone).replace(/[^\d+]/g, "");
+        fallback.push({ title: "Телефон", text: kv.contact_phone, url: `tel:${phone}`, cta: "Позвонить" });
+      }
+    }
 
-    items.forEach(it => {
+    const rowsToRender = items.length ? items : fallback;
+    if (!rowsToRender.length) {
+      root.hidden = true;
+      return;
+    }
+    root.hidden = false;
+
+    rowsToRender.forEach(it => {
       const card = document.createElement("div");
       card.className = "contact-card";
 
@@ -116,29 +200,32 @@
         const h = document.createElement("div");
         h.className = "contact-card__title";
         h.textContent = it.title;
-        card.append(h);
+        card.appendChild(h);
       }
 
       if (it.text) {
         const p = document.createElement("div");
         p.className = "contact-card__text";
         p.textContent = it.text;
-        card.append(p);
+        card.appendChild(p);
       }
 
       if (it.url) {
-        const a = document.createElement("a");
-        a.className = "btn btn--ghost contact-card__cta";
-        a.href = it.url;
-        if (isExternal(it.url)) {
-          a.target = "_blank";
-          a.rel = "noopener";
+        const safeUrl = sanitizeUrl(it.url, { allowRelative: true });
+        if (safeUrl) {
+          const a = document.createElement("a");
+          a.className = "btn btn--ghost contact-card__cta";
+          a.href = safeUrl;
+          if (isExternal(safeUrl)) {
+            a.target = "_blank";
+            a.rel = "noopener";
+          }
+          a.textContent = it.cta || "Открыть";
+          card.appendChild(a);
         }
-        a.textContent = it.cta || "Открыть";
-        card.append(a);
       }
 
-      root.append(card);
+      root.appendChild(card);
     });
   }
 
@@ -148,5 +235,5 @@
   if (!window.renderFAQ) window.renderFAQ = renderFAQ;
   if (!window.renderContacts) window.renderContacts = renderContacts;
 
-  window.__BYPLAN_CORE__ = { version: "1.0.0" };
+  window.__BYPLAN_CORE__ = { version: "1.1.0" };
 })();

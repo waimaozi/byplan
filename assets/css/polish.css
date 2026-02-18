@@ -504,3 +504,77 @@ html.js #for .card.reveal:nth-child(6){ transition-delay: 300ms; }
   line-height: 1.6;
 }
 
+/* Sheet error banner */
+.sheet-error{
+  margin: 16px auto 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px dashed rgba(0,0,0,.18);
+  background: rgba(255,255,255,.65);
+  color: rgba(0,0,0,.72);
+  font-size: 0.95rem;
+}
+.hero-media__picture,
+.about-photo picture{
+  display: block;
+}
+
+/* Case cards */
+.case-card{
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: var(--radius);
+  background: rgba(255,255,255,.60);
+  padding: 14px;
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  gap: 10px;
+}
+.case-card__img{
+  aspect-ratio: 4 / 3;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(0,0,0,.04);
+}
+.case-card__img img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Review case preview thumbnails */
+.review__casePreview{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.review__caseThumb{
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0,0,0,.04);
+}
+.review__caseThumb img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.review__caseLabel{
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(255,255,255,.88);
+  color: rgba(0,0,0,.78);
+  border: 1px solid rgba(0,0,0,.08);
+}
+
+body.case-modal-open{
+  overflow: hidden;
+}

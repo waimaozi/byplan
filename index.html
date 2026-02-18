@@ -22,6 +22,15 @@
   <meta property="og:title" content="Планировка квартиры за 3 дня" />
   <meta property="og:description" content="2 концепции + финальный вариант. Комплект чертежей для ремонта." />
   <meta property="og:image" content="assets/img/og-placeholder.png" />
+  <meta property="og:url" content="" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Планировка квартиры за 3 дня" />
+  <meta name="twitter:description" content="2 концепции + финальный вариант. Комплект чертежей для ремонта." />
+  <meta name="twitter:image" content="assets/img/og-placeholder.png" />
+  <link rel="canonical" href="" />
+  <link rel="preload" as="image" href="assets/img/hero/hero-bg.webp" type="image/webp" />
+  <link rel="preload" as="image" href="assets/img/hero/hero-bg.jpg" type="image/jpeg" />
+  <script type="application/ld+json" id="ldJson">{}</script>
   <link rel="stylesheet" href="assets/css/hero.css?v=3">
   <link rel="stylesheet" href="assets/css/polish.css?v=1">
   <link rel="stylesheet" href="assets/css/story.css?v=1">
@@ -65,10 +74,13 @@
   </header>
 
   <main id="main">
+    <div class="container sheet-error" id="sheetError" role="status" hidden>
+      Не удалось загрузить данные из Google Sheets. Проверьте доступ к таблице и названия вкладок.
+    </div>
     <!-- HERO -->
     <div class="hero-stage">
     <section class="section hero" id="top">
-      <img class="hero-logo" src="assets/img/logo/byplan.svg" alt="byplan">
+      <img class="hero-logo" src="assets/img/logo/byplan.svg" alt="byplan" width="420" height="140" decoding="async">
       <div class="container hero-grid">
         <div>
           <div class="badge" data-kv="hero_badge">Планировка квартиры онлайн</div>
@@ -86,7 +98,11 @@
         </div>
 
         <figure class="hero-media">
-          <img id="heroImage" src="assets/img/plan-placeholder.svg" alt="Пример планировки" loading="eager" />
+          <picture class="hero-media__picture">
+            <source id="heroImageAvif" type="image/avif" />
+            <source id="heroImageWebp" type="image/webp" />
+            <img id="heroImage" src="assets/img/plan-placeholder.svg" alt="Пример планировки" loading="eager" decoding="async" fetchpriority="high" width="1200" height="900" />
+          </picture>
           <figcaption class="hero-media__caption" data-kv="hero_image_caption">Пример: студия 30 м² → спальня + хранение</figcaption>
         </figure>
       </div>
@@ -128,6 +144,9 @@
               src=""
               alt="Планировка — пример"
               loading="lazy"
+              decoding="async"
+              width="1200"
+              height="900"
               hidden
             />
           </div>
@@ -185,7 +204,11 @@
       <div class="container two-col">
         <div class="about-card">
           <div class="about-photo">
-            <img id="designerPhoto" src="assets/img/natasha/natasha_square.webp" alt="Фото дизайнера" loading="lazy" />
+            <picture>
+              <source id="designerPhotoAvif" type="image/avif" />
+              <source id="designerPhotoWebp" type="image/webp" />
+              <img id="designerPhoto" src="assets/img/natasha/natasha_square.webp" alt="Фото дизайнера" loading="lazy" decoding="async" width="600" height="600" />
+            </picture>
           </div>
           <div>
             <div class="about-name" data-kv="designer_name">Наталья</div>
