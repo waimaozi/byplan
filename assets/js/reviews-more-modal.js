@@ -74,6 +74,9 @@
                 <img id="reviewDialogCaseImg" class="review-dialog__case-img" alt="" loading="lazy" />
               </div>
               <div id="reviewDialogCaseNote" class="review-dialog__case-note"></div>
+              <div id="reviewDialogCaseActions" class="review-dialog__case-actions" hidden>
+                <button type="button" class="review-dialog__case-link" data-open-case="1">Открыть кейс в планах</button>
+              </div>
             </div>
 
             <div id="reviewDialogText" class="review-dialog__text"></div>
@@ -109,6 +112,18 @@
       dialogEl.addEventListener('cancel', (e) => {
         e.preventDefault();
         closeDialog();
+      });
+    }
+
+    // Open case (scroll to plans)
+    if (!dialogEl.__openCaseBound) {
+      dialogEl.__openCaseBound = true;
+      dialogEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-open-case]');
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        openCaseFromDialog();
       });
     }
 
@@ -180,13 +195,14 @@
     });
   }
 
-  function setCaseData(beforeUrl, afterUrl, note, initialTab) {
+  function setCaseData(beforeUrl, afterUrl, note, initialTab, caseId) {
     const root = ensureDialog();
     const wrap = root.querySelector('#reviewDialogCase');
     const img = root.querySelector('#reviewDialogCaseImg');
     const noteEl = root.querySelector('#reviewDialogCaseNote');
     const beforeTab = root.querySelector('[data-review-case-tab="before"]');
     const afterTab = root.querySelector('[data-review-case-tab="after"]');
+    const actionsEl = root.querySelector('#reviewDialogCaseActions');
 
     if (!wrap || !img || !beforeTab || !afterTab) return;
 
@@ -197,10 +213,15 @@
     wrap.hidden = !hasCase;
     wrap.dataset.before = before;
     wrap.dataset.after = after;
+    wrap.dataset.caseId = (caseId || '').trim();
 
     if (noteEl) {
       noteEl.textContent = (note || '').trim();
       noteEl.style.display = noteEl.textContent ? 'block' : 'none';
+    }
+
+    if (actionsEl) {
+      actionsEl.hidden = !(hasCase && caseId);
     }
 
     if (!hasCase) {
@@ -253,7 +274,7 @@
     }
 
     setMeta(data.name, data.role);
-    setCaseData(data.caseBeforeUrl, data.caseAfterUrl, data.caseNote, data.initialCaseTab);
+    setCaseData(data.caseBeforeUrl, data.caseAfterUrl, data.caseNote, data.initialCaseTab, data.caseId);
     setText(data.text);
 
     document.documentElement.classList.add('modal-open');
@@ -292,6 +313,30 @@
     }
   }
 
+  function openCaseFromDialog() {
+    const root = ensureDialog();
+    const wrap = root.querySelector('#reviewDialogCase');
+    const caseId = (wrap && wrap.dataset && wrap.dataset.caseId) ? String(wrap.dataset.caseId).trim() : '';
+    if (!caseId) return;
+
+    closeDialog();
+
+    const section = document.getElementById('cases');
+    if (section && typeof section.scrollIntoView === 'function') {
+      try {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (_) {
+        section.scrollIntoView();
+      }
+    }
+
+    if (typeof window.ByplanCasesOpen === 'function') {
+      window.ByplanCasesOpen(caseId);
+    } else {
+      window.__byplanPendingCaseId = caseId;
+    }
+  }
+
   function pickInitialCaseTab(clickedEl, reviewEl) {
     const img = clickedEl && clickedEl.closest('.review__case-img, .review-card__case-img');
     if (!img) return null;
@@ -306,6 +351,7 @@
     const name = (reviewEl.querySelector('.review__name, .review-card__name')?.textContent || '').trim();
     const role = (reviewEl.querySelector('.review__role, .review-card__role')?.textContent || '').trim();
     const text = (reviewEl.querySelector('.review__text, .review-card__text')?.textContent || '').trim();
+    const caseId = (reviewEl.dataset.caseId || '').trim();
 
     let caseBeforeUrl = (reviewEl.dataset.caseBefore || '').trim();
     let caseAfterUrl = (reviewEl.dataset.caseAfter || '').trim();
@@ -326,7 +372,7 @@
 
     const initialCaseTab = pickInitialCaseTab(clickedEl, reviewEl);
 
-    return { name, role, text, caseBeforeUrl, caseAfterUrl, caseNote, initialCaseTab };
+    return { name, role, text, caseBeforeUrl, caseAfterUrl, caseNote, initialCaseTab, caseId };
   }
 
   function ensureMoreButtons(root) {
