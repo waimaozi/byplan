@@ -221,6 +221,18 @@
   let caseIds = [];
   let casesById = new Map();
   let mediaByCase = new Map();
+  let pendingCaseId = (window.__byplanPendingCaseId || '').trim();
+
+  function openCasePublic(caseId) {
+    const id = String(caseId || '').trim();
+    if (!id) return;
+    pendingCaseId = id;
+    if (casesById && casesById.has(id)) {
+      setCase(id);
+    }
+  }
+
+  window.ByplanCasesOpen = openCasePublic;
 
   async function loadAllData() {
     const [cases, media] = await Promise.all([
@@ -867,6 +879,10 @@
         // default case: first
         const firstId = (caseIds || [])[0];
         if (firstId) setCase(firstId);
+
+        if (pendingCaseId && casesById && casesById.has(pendingCaseId)) {
+          setCase(pendingCaseId);
+        }
       })
       .catch((err) => console.warn('[cases-inline] Failed to load:', err));
   }
