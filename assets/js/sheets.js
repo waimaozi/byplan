@@ -16,73 +16,6 @@
   const storagePrefix = "byplan_sheet_cache:";
   const maxAgeMs = 1000 * 60 * 60 * 24 * 7; // 7 days
 
-  function isEmptyValue(v) {
-    return v === null || v === undefined || (typeof v === "string" && v.trim() === "");
-  }
-
-  function mergeRow(base, extra) {
-    const out = Object.assign({}, base);
-    for (const [k, v] of Object.entries(extra || {})) {
-      if (!isEmptyValue(v)) out[k] = v;
-    }
-    return out;
-  }
-
-  function keyFor(tabName, row) {
-    const r = row || {};
-    if (tabName === "cases") {
-      return String(r.case_id || r.id || "").trim();
-    }
-    if (tabName === "reviews") {
-      const id = String(r.id || "").trim();
-      if (id) return id;
-      const name = String(r.name || r.client || r.author || "").trim();
-      const role = String(r.role || r.meta || r.city || "").trim();
-      return (name || role) ? `${name}|${role}` : "";
-    }
-    if (tabName === "cases_media") {
-      const cid = String(r.case_id || r.caseId || r.case || "").trim();
-      if (!cid) return "";
-      const label = String(r.label || r.title || r.scene || "").trim();
-      const sort = String(r.sort || r.order || r.idx || r.position || "").trim();
-      return label ? `${cid}|${label}` : `${cid}|${sort}`;
-    }
-    return "";
-  }
-
-  function applyExtra(tabName, rows) {
-    const extra = (window.SHEETS_EXTRA && window.SHEETS_EXTRA[tabName]) || [];
-    if (!Array.isArray(extra) || extra.length === 0) return rows;
-
-    const out = Array.isArray(rows) ? rows.slice() : [];
-    const index = new Map();
-
-    for (const r of out) {
-      const key = keyFor(tabName, r);
-      if (key) index.set(key, r);
-    }
-
-    for (const er of extra) {
-      const key = keyFor(tabName, er);
-      if (!key) {
-        out.push(er);
-        continue;
-      }
-      const base = index.get(key);
-      if (base) {
-        const merged = mergeRow(base, er);
-        const i = out.indexOf(base);
-        if (i >= 0) out[i] = merged;
-        index.set(key, merged);
-      } else {
-        out.push(er);
-        index.set(key, er);
-      }
-    }
-
-    return out;
-  }
-
   function stripGvizWrapper(text) {
     // Typical response: "/*O_o*/\ngoogle.visualization.Query.setResponse({...});"
     const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\);\s*$/s);
@@ -148,16 +81,15 @@
       const payload = JSON.parse(jsonStr);
 
       if (!payload.table) return [];
-      const objects = applyExtra(tabName, tableToObjects(payload.table));
+      const objects = tableToObjects(payload.table);
 
       cache.set(key, objects);
       writeStorage(storageKey, objects);
       return objects;
     } catch (err) {
       if (stored) {
-        const merged = applyExtra(tabName, stored);
-        cache.set(key, merged);
-        return merged;
+        cache.set(key, stored);
+        return stored;
       }
       throw err;
     }
