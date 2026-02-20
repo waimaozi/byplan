@@ -434,7 +434,8 @@
 
   const html = (rows || []).map((r, idx) => {
     const name = escapeHtml(r.name || "");
-    const role = escapeHtml(r.role || "");
+    const roleParts = [r.role, r.company_or_city].map(v => String(v || "").trim()).filter(Boolean);
+    const role = escapeHtml(roleParts.join(" · "));
     const textRaw = String(r.text || "");
     const textHtml = escapeHtml(textRaw).replace(/\n/g, "<br>");
 

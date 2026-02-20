@@ -42,8 +42,8 @@ window.SITE_CONFIG = {
     principles_do: 12,
     principles_dont: 12,
     mistakes: 12,
-    cases: 12,
-    reviews: 12,
+    cases: 20,
+    reviews: 20,
     faq: 20,
     contacts: 10
   }

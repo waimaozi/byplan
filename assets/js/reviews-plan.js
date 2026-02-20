@@ -201,7 +201,9 @@
     const map = new Map();
     for (const r of reviewRows) {
       const name = normKey(pick(r, ["name", "client", "author"]));
-      const role = normKey(pick(r, ["role", "meta", "city"]));
+      const roleRaw = normStr(pick(r, ["role", "meta", "city"]));
+      const companyRaw = normStr(pick(r, ["company_or_city", "company", "org", "place"]));
+      const role = normKey([roleRaw, companyRaw].filter(Boolean).join(" · "));
       const key = name + "|" + role;
       if (!map.has(key)) map.set(key, []);
       map.get(key).push(r);
