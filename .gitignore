@@ -3,6 +3,7 @@ node_modules/
 
 # IDE
 .idea/
+hotel-ai-landing/
 
 # OS
 .DS_Store
