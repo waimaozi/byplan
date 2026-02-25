@@ -672,8 +672,9 @@ body.case-modal-open{
   font-size: clamp(1.55rem, 2.6vw, 2.25rem);
   font-variant-numeric: tabular-nums;
   text-wrap: balance;
-  word-break: break-word;
-  hyphens: auto;
+  overflow-wrap: anywhere;
+  hyphens: none;
+  white-space: pre-line;
 }
 
 #why .why-stats .stat__label{
