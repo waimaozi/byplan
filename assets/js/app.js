@@ -541,6 +541,14 @@ function escapeAttr(str) {
         return [];
       }
     };
+    const fetchTabOptional = async (tabName) => {
+      if (!tabName) return [];
+      try {
+        return await Sheets.fetchTab(sheetId, tabName);
+      } catch {
+        return [];
+      }
+    };
 
     // 1) Site KV
     const siteRows = await fetchTabSafe(tabs.site);
@@ -579,7 +587,17 @@ function escapeAttr(str) {
     if (steps.length) renderSteps("stepsList", steps);
     toggleSection("#process", steps.length > 0);
 
-    // 6) Trust bullets + stats
+    // 6) Why us (optional)
+    const whyStats = (await fetchTabOptional(tabs.why_stats)).slice(0, limits.why_stats || 999);
+    if (whyStats.length) renderStats("whyStatsGrid", whyStats);
+    toggleSection("#whyStatsGrid", whyStats.length > 0);
+
+    const whyTrust = (await fetchTabOptional(tabs.why_trust)).slice(0, limits.why_trust || 999);
+    if (whyTrust.length) renderBullets("whyTrustList", whyTrust);
+    toggleSection("#whyTrustList", whyTrust.length > 0);
+    toggleSection("#why", whyStats.length > 0 || whyTrust.length > 0);
+
+    // 7) Trust bullets + stats
     const trust = (await fetchTabSafe(tabs.trust)).slice(0, limits.trust || 999);
     if (trust.length) renderBullets("trustBullets", trust);
     toggleSection("#trustBullets", trust.length > 0);
@@ -588,7 +606,7 @@ function escapeAttr(str) {
     if (stats.length) renderStats("statsGrid", stats);
     toggleSection("#statsGrid", stats.length > 0);
 
-    // 7) Pricing
+    // 8) Pricing
     const pricing = (await fetchTabSafe(tabs.pricing)).slice(0, limits.pricing || 999);
     if (pricing.length) renderPricing("pricingGrid", pricing);
     toggleSection("#pricing", pricing.length > 0);

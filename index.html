@@ -175,31 +175,18 @@
 </section>
 
     <!-- WHY US -->
-    <section class="section section--alt" id="why">
+    <section class="section section--alt" id="why" hidden>
       <div class="container">
-        <h2>Почему мы</h2>
-        <p class="muted">Цифры, которые важны, и что они дают вам на практике.</p>
+        <h2 data-kv="why_title">Почему мы</h2>
+        <p class="muted" data-kv="why_subtitle">Цифры, которые важны, и что они дают вам на практике.</p>
 
-        <div class="why-stats">
-          <div class="why-stat">
-            <div class="why-stat__num">20+</div>
-            <div class="why-stat__label">лет на рынке</div>
-          </div>
-          <div class="why-stat">
-            <div class="why-stat__num">3 дня</div>
-            <div class="why-stat__label">сроки</div>
-          </div>
-          <div class="why-stat">
-            <div class="why-stat__num">Без посредника</div>
-            <div class="why-stat__label">работаете напрямую</div>
-          </div>
+        <div class="grid stats why-stats" id="whyStatsGrid">
+          <!-- stats from sheet: why_stats -->
         </div>
 
-        <div class="why-cards">
-          <div class="why-card">Работаете напрямую с командой профессионалов, которые делают планы всю жизнь.</div>
-          <div class="why-card">Поэтому без переплат — нет посредника в виде архбюро.</div>
-          <div class="why-card">Поэтому отличные цены за очень хорошую работу.</div>
-        </div>
+        <ul class="why-cards" id="whyTrustList">
+          <!-- bullets from sheet: why_trust -->
+        </ul>
       </div>
     </section>
 
