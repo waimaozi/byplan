@@ -614,8 +614,11 @@ body.case-modal-open{
   display:grid;
   gap:12px;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  list-style:none;
+  padding:0;
 }
 
+#why .why-cards li,
 #why .why-card{
   padding:14px 16px;
   border-radius:18px;
