@@ -583,9 +583,9 @@ body.case-modal-open{
 #why{
   position: relative;
   overflow: hidden;
-  --why-accent: #c86a2f;
-  --why-accent-strong: #a4511f;
-  --why-accent-soft: rgba(200,106,47,.20);
+  --why-accent: var(--brand, #6E4C3D);
+  --why-accent-strong: #4f352b;
+  --why-accent-soft: rgba(110,76,61,.18);
 }
 
 #why::before{
@@ -594,7 +594,7 @@ body.case-modal-open{
   inset:-22% -8% auto auto;
   width: 520px;
   height: 520px;
-  background: radial-gradient(circle at 35% 30%, rgba(255,209,155,.55), rgba(255,209,155,0));
+  background: radial-gradient(circle at 35% 30%, rgba(235,220,210,.75), rgba(235,220,210,0));
   filter: blur(6px);
   pointer-events: none;
 }
@@ -605,7 +605,7 @@ body.case-modal-open{
   inset:auto auto -25% -10%;
   width: 520px;
   height: 520px;
-  background: radial-gradient(circle at 40% 40%, rgba(201,106,47,.20), rgba(201,106,47,0));
+  background: radial-gradient(circle at 40% 40%, rgba(110,76,61,.20), rgba(110,76,61,0));
   filter: blur(10px);
   pointer-events: none;
 }
@@ -629,7 +629,7 @@ body.case-modal-open{
   width: 54px;
   height: 4px;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--why-accent), rgba(200,106,47,.12));
+  background: linear-gradient(90deg, var(--why-accent), rgba(110,76,61,.12));
 }
 
 #why .muted{
@@ -638,7 +638,7 @@ body.case-modal-open{
 
 #why .why-stats{
   display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap:16px;
   margin-top:24px;
 }
@@ -648,7 +648,7 @@ body.case-modal-open{
   padding:20px 18px 18px 20px;
   border-radius:24px;
   border:1px solid rgba(0,0,0,.08);
-  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.78));
+  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.80));
   box-shadow: var(--elev-1);
   overflow:hidden;
   min-height: 120px;
@@ -667,10 +667,13 @@ body.case-modal-open{
 
 #why .why-stats .stat__num{
   font-weight:900;
-  letter-spacing:-.03em;
-  line-height:1.02;
-  font-size: clamp(1.75rem, 3.2vw, 2.6rem);
+  letter-spacing:-.02em;
+  line-height:1.08;
+  font-size: clamp(1.55rem, 2.6vw, 2.25rem);
   font-variant-numeric: tabular-nums;
+  text-wrap: balance;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 #why .why-stats .stat__label{
@@ -682,9 +685,9 @@ body.case-modal-open{
 
 /* highlight top 3 metrics */
 #why .why-stats .stat:nth-child(-n+3){
-  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,235,214,.92));
-  border-color: rgba(200,106,47,.36);
-  box-shadow: 0 18px 40px rgba(200,106,47,.22);
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(238,231,226,.92));
+  border-color: rgba(110,76,61,.32);
+  box-shadow: 0 18px 40px rgba(110,76,61,.18);
 }
 
 #why .why-stats .stat:nth-child(-n+3)::after{
@@ -695,22 +698,18 @@ body.case-modal-open{
   width:44px;
   height:44px;
   border-radius:16px;
-  background: radial-gradient(circle at 30% 30%, rgba(201,106,47,.8), rgba(201,106,47,0));
-  opacity:.8;
+  background: radial-gradient(circle at 30% 30%, rgba(110,76,61,.55), rgba(110,76,61,0));
+  opacity:.75;
 }
 
 #why .why-stats .stat:nth-child(-n+3)::before{
   width:6px;
-  background: linear-gradient(180deg, rgba(200,106,47,.95), rgba(200,106,47,.2));
+  background: linear-gradient(180deg, rgba(110,76,61,.9), rgba(110,76,61,.2));
   opacity:.9;
 }
 
 #why .why-stats .stat:nth-child(-n+3) .stat__num{
-  color: transparent;
-  background: linear-gradient(120deg, var(--why-accent-strong), #de8b4d 70%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--why-accent-strong);
 }
 
 #why .why-stats .stat:nth-child(-n+3) .stat__label{
@@ -744,7 +743,7 @@ body.case-modal-open{
   bottom:14px;
   width:4px;
   border-radius:999px;
-  background: linear-gradient(180deg, rgba(200,106,47,.9), rgba(200,106,47,.18));
+  background: linear-gradient(180deg, rgba(110,76,61,.85), rgba(110,76,61,.18));
 }
 
 @media (max-width: 720px){
