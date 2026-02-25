@@ -351,6 +351,24 @@
     });
   }
 
+  function formatStatLabel(label) {
+    const raw = (label ?? "").toString().trim();
+    if (!raw) return "";
+
+    if (raw.includes("|") || /\r?\n/.test(raw)) {
+      return escapeHtml(raw)
+        .replace(/\s*\|\s*/g, "<br>")
+        .replace(/\r?\n/g, "<br>");
+    }
+
+    const match = raw.match(/^(\S+)\s+(.+)$/);
+    if (match && /^без\s+посредников$/i.test(raw)) {
+      return `${escapeHtml(match[1])}<br>${escapeHtml(match[2])}`;
+    }
+
+    return escapeHtml(raw);
+  }
+
   function renderStats(containerId, rows) {
     const root = el(containerId);
     if (!root) return;
@@ -360,7 +378,7 @@
       div.className = "stat";
       div.innerHTML = `
         <p class="stat__num">${escapeHtml(r.num ?? "")}</p>
-        <p class="stat__label">${escapeHtml(r.label ?? "")}</p>
+        <p class="stat__label">${formatStatLabel(r.label ?? "")}</p>
       `;
       root.appendChild(div);
     });

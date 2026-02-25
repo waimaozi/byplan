@@ -681,6 +681,8 @@ body.case-modal-open{
   color: var(--muted, rgba(28,27,27,.72));
   font-size:0.98rem;
   line-height:1.35;
+  text-wrap: balance;
+  white-space: pre-line;
 }
 
 /* highlight top 3 metrics */
