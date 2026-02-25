@@ -351,8 +351,8 @@
     });
   }
 
-  function formatStatLabel(label) {
-    const raw = (label ?? "").toString().trim();
+  function formatStatText(value) {
+    const raw = (value ?? "").toString().trim();
     if (!raw) return "";
 
     if (raw.includes("|") || /\r?\n/.test(raw)) {
@@ -361,9 +361,9 @@
         .replace(/\r?\n/g, "<br>");
     }
 
-    const match = raw.match(/^(\S+)\s+(.+)$/);
-    if (match && /^без\s+посредников$/i.test(raw)) {
-      return `${escapeHtml(match[1])}<br>${escapeHtml(match[2])}`;
+    if (/^без\s+посредников$/i.test(raw)) {
+      const parts = raw.split(/\s+/);
+      return `${escapeHtml(parts[0])}<br>${escapeHtml(parts.slice(1).join(" "))}`;
     }
 
     return escapeHtml(raw);
@@ -377,8 +377,8 @@
       const div = document.createElement("div");
       div.className = "stat";
       div.innerHTML = `
-        <p class="stat__num">${escapeHtml(r.num ?? "")}</p>
-        <p class="stat__label">${formatStatLabel(r.label ?? "")}</p>
+        <p class="stat__num">${formatStatText(r.num ?? "")}</p>
+        <p class="stat__label">${formatStatText(r.label ?? "")}</p>
       `;
       root.appendChild(div);
     });
