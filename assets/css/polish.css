@@ -578,3 +578,48 @@ html.js #for .card.reveal:nth-child(6){ transition-delay: 300ms; }
 body.case-modal-open{
   overflow: hidden;
 }
+
+/* ---- WHY US (after story) ---- */
+#why .why-stats{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap:12px;
+  margin-top:18px;
+}
+
+#why .why-stat{
+  padding:16px 16px 14px;
+  border-radius:20px;
+  border:1px solid rgba(0,0,0,.08);
+  background:rgba(255,255,255,.7);
+  box-shadow: var(--elev-1);
+}
+
+#why .why-stat__num{
+  font-weight:850;
+  letter-spacing:-.02em;
+  line-height:1.05;
+  font-size: clamp(1.5rem, 2.6vw, 2.2rem);
+}
+
+#why .why-stat__label{
+  margin-top:8px;
+  color: var(--muted, rgba(28,27,27,.72));
+  font-size:0.98rem;
+  line-height:1.35;
+}
+
+#why .why-cards{
+  margin-top:16px;
+  display:grid;
+  gap:12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+#why .why-card{
+  padding:14px 16px;
+  border-radius:18px;
+  border:1px solid rgba(0,0,0,.08);
+  background:rgba(255,255,255,.75);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+}
