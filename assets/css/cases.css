@@ -236,6 +236,26 @@ body.cases-inline-enabled #casesGrid{
   transform: none;
 }
 
+/* Fullscreen button on plan */
+.cases-inline .plan-fullscreen{
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 2;
+  border: 1px solid rgba(0,0,0,.20);
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgba(255,255,255,.94);
+  background: rgba(0,0,0,.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.cases-inline .plan-fullscreen:hover{
+  background: rgba(0,0,0,.55);
+}
+
 @media (max-width: 720px){
   .cases-inline{
     margin-top: 12px;
