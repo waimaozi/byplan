@@ -363,6 +363,7 @@
               <div class="story-plan__tabs" id="casesPlanTabs"></div>
               <div class="story-plan__frame" id="casesPlanFrame">
                 <img class="story-plan__img" id="casesPlanImg" alt="" loading="lazy" decoding="async" />
+                <button class="plan-fullscreen" id="casesFullscreenBtn" type="button" aria-label="На весь экран">На весь экран</button>
               </div>
 
               <div class="story-plan__caption muted" id="casesPlanCaption" hidden></div>
@@ -419,6 +420,7 @@
     elPlanFrame = qs('#casesPlanFrame', host);
     elPlanImg = qs('#casesPlanImg', host);
     elPlanCaption = qs('#casesPlanCaption', host);
+    const fullscreenBtn = qs('#casesFullscreenBtn', host);
 
     elPlanWrap = elPlanFrame ? elPlanFrame.closest('.story-plan') : null;
 
@@ -433,6 +435,15 @@
       if (!src) return;
       openLightbox(src, elTitle ? elTitle.textContent : '');
     });
+
+    // fullscreen button -> lightbox
+    if (fullscreenBtn) {
+      fullscreenBtn.addEventListener('click', () => {
+        const src = elPlanImg.currentSrc || elPlanImg.getAttribute('src');
+        if (!src) return;
+        openLightbox(src, elTitle ? elTitle.textContent : '');
+      });
+    }
 
     // prev/next case buttons
     elPrevCase.addEventListener('click', () => goPrevCase());

@@ -106,13 +106,16 @@
 
 @media (max-width: 720px){
   .cases-inline__dialog .story-plan__frame{
-    height: clamp(200px, 52vh, 360px);
+    height: min(60vh, 360px);
+    height: min(60svh, 360px);
   }
 
   .cases-inline__dialog .cases-switch{
+    position: absolute;
     left: 8px;
     right: 8px;
     padding: 0;
+    pointer-events: none;
   }
 
   .cases-inline__dialog .cases-switch__btn{
@@ -125,10 +128,15 @@
   .cases-inline__dialog #casesNextCase{ --dx: 0; }
 
   .cases-inline__dialog .cases-switch__counter{
+    position: absolute;
     left: 50% !important;
     bottom: 6px;
+    transform: translateX(-50%);
     font-size: 0.85rem;
   }
+
+  .cases-inline__dialog #casesPrevCase{ --dx: 0; }
+  .cases-inline__dialog #casesNextCase{ --dx: 0; }
 }
 
 /* Extra-tight on very small phones */
@@ -138,7 +146,8 @@
   }
 
   .cases-inline__dialog .story-plan__frame{
-    height: clamp(190px, 48vh, 320px);
+    height: min(56vh, 320px);
+    height: min(56svh, 320px);
   }
 
   .cases-inline__dialog .cases-switch__btn{
