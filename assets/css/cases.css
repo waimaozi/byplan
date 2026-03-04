@@ -262,7 +262,7 @@ body.cases-inline-enabled #casesGrid{
   }
 
   .cases-inline .cases-modal__dialog{
-    padding: 16px 14px 14px;
+    padding: 14px 12px 12px;
     border-radius: calc(var(--radius) + 4px);
   }
 
@@ -288,7 +288,7 @@ body.cases-inline-enabled #casesGrid{
   }
 
   .cases-inline .story-plan{
-    padding: 10px;
+    padding: 8px;
   }
 
   .cases-inline .story-plan__tabs{

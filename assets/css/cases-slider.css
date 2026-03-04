@@ -106,8 +106,10 @@
 
 @media (max-width: 720px){
   .cases-inline__dialog .story-plan__frame{
-    height: min(60vh, 360px);
-    height: min(60svh, 360px);
+    height: min(46vh, 300px);
+    height: min(46svh, 300px);
+    max-height: min(46svh, 300px);
+    aspect-ratio: auto;
   }
 
   .cases-inline__dialog .cases-switch{
@@ -146,8 +148,9 @@
   }
 
   .cases-inline__dialog .story-plan__frame{
-    height: min(56vh, 320px);
-    height: min(56svh, 320px);
+    height: min(42vh, 260px);
+    height: min(42svh, 260px);
+    max-height: min(42svh, 260px);
   }
 
   .cases-inline__dialog .cases-switch__btn{
