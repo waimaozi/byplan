@@ -539,6 +539,12 @@ function escapeAttr(str) {
 
   async function main() {
     setText("#year", String(new Date().getFullYear()));
+    if (cfg && cfg.VERSION) {
+      setText("#siteVersion", String(cfg.VERSION));
+      toggleSection("#footerVersion", true);
+    } else {
+      toggleSection("#footerVersion", false);
+    }
 
     if (!cfg || !cfg.SHEET_ID || cfg.SHEET_ID.includes("PASTE_")) {
       console.warn("SHEET_ID is not set. Please edit assets/js/config.js");
