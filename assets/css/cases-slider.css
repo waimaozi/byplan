@@ -104,22 +104,41 @@
   backdrop-filter: blur(10px);
 }
 
-/* Tighter / smaller on phones */
+@media (max-width: 720px){
+  .cases-inline__dialog .story-plan__frame{
+    height: clamp(220px, 56vh, 560px);
+  }
+
+  .cases-inline__dialog .cases-switch{
+    left: 0;
+    right: 0;
+    padding: 0 6px;
+  }
+
+  .cases-inline__dialog .cases-switch__btn{
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+  }
+
+  .cases-inline__dialog #casesPrevCase{ --dx: 0; }
+  .cases-inline__dialog #casesNextCase{ --dx: 0; }
+}
+
+/* Extra-tight on very small phones */
 @media (max-width: 520px){
   .cases-inline__dialog{
-    --cases-dialog-pad-x: 16px; /* if you later reduce dialog padding on mobile */
+    --cases-dialog-pad-x: 16px; /* smaller inner padding */
   }
 
-  .cases-inline__dialog .story-plan__frame{
-    height: clamp(240px, 46vh, 520px);
-  }
   .cases-inline__dialog .cases-switch__btn{
-    width: 42px;
-    height: 42px;
-    font-size: 26px;
+    width: 36px;
+    height: 36px;
+    font-size: 22px;
   }
 
-  /* On very small screens don't push the buttons too far outside */
-  .cases-inline__dialog #casesPrevCase{ --dx: -35%; }
-  .cases-inline__dialog #casesNextCase{ --dx:  35%; }
+  .cases-inline__dialog .cases-switch__counter{
+    padding: 6px 10px;
+    font-size: 0.9rem;
+  }
 }
