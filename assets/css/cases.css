@@ -262,6 +262,9 @@ body.cases-inline-enabled #casesGrid{
   .cases-scenes{
     margin: 10px 0 4px;
     gap: 8px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .cases-inline .story-plan{
@@ -275,7 +278,8 @@ body.cases-inline-enabled #casesGrid{
 
   .cases-inline .story-pill{
     padding: 8px 10px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
   }
 
   .cases-inline .story-card{
