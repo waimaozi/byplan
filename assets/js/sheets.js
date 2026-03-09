@@ -1,32 +1,31 @@
 // ===============================
 // Google Sheets (GViz) loader
 // ===============================
-// This file fetches tabular data from a public Google Sheet using the GViz endpoint.
-// URL format:
-// https://docs.google.com/spreadsheets/d/<ID>/gviz/tq?tqx=out:json&sheet=<TAB>&headers=1
-//
-// Notes:
-// - The sheet must be public or at least accessible without login.
-// - 'headers=1' forces the first row to be used as column names (recommended).
+// Uses JSONP to avoid CORS issues in the browser.
+// Falls back to localStorage cache, then to a local snapshot JSON.
 
 (function () {
   const cache = new Map();
-  // Each page load gets its own cache-buster so Google/Browser caches can't bite you during editing.
+  const inflight = new Map();
   const runId = Date.now().toString(36);
   const storagePrefix = "byplan_sheet_cache:";
   const maxAgeMs = 1000 * 60 * 60 * 24 * 7; // 7 days
 
-  function stripGvizWrapper(text) {
-    // Typical response: "/*O_o*/\ngoogle.visualization.Query.setResponse({...});"
-    const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\);\s*$/s);
-    if (!match) throw new Error("GViz response parse error: wrapper not found");
-    return match[1];
-  }
+  const state = {
+    usedSnapshot: false,
+    usedStorage: false,
+    errors: [],
+    forceFallback: false
+  };
+
+  const snapshotUrl = (window.SITE_CONFIG && window.SITE_CONFIG.SNAPSHOT_URL)
+    ? String(window.SITE_CONFIG.SNAPSHOT_URL)
+    : "assets/data/snapshot.json";
+  let snapshotPromise = null;
 
   function tableToObjects(table) {
     const cols = (table.cols || []).map(c => (c.label || "").trim());
     const rows = (table.rows || []).map(r => (r.c || []).map(cell => (cell && typeof cell.v !== "undefined") ? cell.v : ""));
-    // Drop empty trailing columns
     let lastCol = cols.length - 1;
     while (lastCol >= 0 && !cols[lastCol]) lastCol--;
     const cleanCols = cols.slice(0, lastCol + 1);
@@ -61,39 +60,127 @@
     }
   }
 
+  function jsonp(url, cbName, timeoutMs) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      let done = false;
+
+      const cleanup = (err) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        delete window[cbName];
+        script.remove();
+        if (err) reject(err);
+      };
+
+      const timer = setTimeout(() => cleanup(new Error("GViz JSONP timeout")), timeoutMs);
+
+      window[cbName] = (payload) => {
+        cleanup();
+        resolve(payload);
+      };
+
+      script.async = true;
+      script.src = url;
+      script.onerror = () => cleanup(new Error("GViz JSONP load error"));
+      document.head.appendChild(script);
+    });
+  }
+
+  async function loadSnapshot() {
+    if (!snapshotUrl) return null;
+    if (!snapshotPromise) {
+      const url = (() => {
+        try {
+          return new URL(snapshotUrl, document.baseURI).href;
+        } catch {
+          return snapshotUrl;
+        }
+      })();
+      snapshotPromise = fetch(url, { cache: "no-store" })
+        .then(res => (res.ok ? res.json() : null))
+        .catch(() => null);
+    }
+    return snapshotPromise;
+  }
+
+  async function resolveFallback(tabName, stored, errForThrow) {
+    if (stored) {
+      state.usedStorage = true;
+      return stored;
+    }
+
+    const snapshot = await loadSnapshot();
+    const snapTab = snapshot && snapshot.tabs && Array.isArray(snapshot.tabs[tabName])
+      ? snapshot.tabs[tabName]
+      : null;
+
+    if (snapTab) {
+      state.usedSnapshot = true;
+      return snapTab;
+    }
+
+    const err = errForThrow || new Error("Sheets fallback missing");
+    state.errors.push({ tab: tabName, message: err.message });
+    throw err;
+  }
+
   async function fetchTab(sheetId, tabName) {
     const key = `${sheetId}:${tabName}`;
     if (cache.has(key)) return cache.get(key);
+    if (inflight.has(key)) return inflight.get(key);
 
     const storageKey = `${storagePrefix}${key}`;
     const stored = readStorage(storageKey);
 
-    const url = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tabName)}&headers=1&cb=${runId}`;
+    const promise = (async () => {
+      if (!sheetId) {
+        const data = await resolveFallback(tabName, stored, new Error("SHEET_ID missing"));
+        cache.set(key, data);
+        return data;
+      }
 
+      if (state.forceFallback) {
+        const data = await resolveFallback(tabName, stored, new Error("Sheets unavailable"));
+        cache.set(key, data);
+        return data;
+      }
+
+      const cbName = `__byplanGviz_${runId}_${Math.random().toString(36).slice(2)}`;
+      const tqx = `out:json;responseHandler:${cbName};reqId:${runId}`;
+      const params = new URLSearchParams({
+        sheet: tabName,
+        headers: "1",
+        tqx
+      });
+      const url = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?${params.toString()}`;
+
+      try {
+        const payload = await jsonp(url, cbName, 5000);
+        if (!payload || payload.status === "error") {
+          throw new Error(`GViz error for "${tabName}"`);
+        }
+        if (!payload.table) return [];
+        const objects = tableToObjects(payload.table);
+        cache.set(key, objects);
+        writeStorage(storageKey, objects);
+        return objects;
+      } catch (err) {
+        state.forceFallback = true;
+        const data = await resolveFallback(tabName, stored, err instanceof Error ? err : new Error(String(err)));
+        cache.set(key, data);
+        return data;
+      }
+    })();
+
+    inflight.set(key, promise);
     try {
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) {
-        throw new Error(`Cannot load sheet tab "${tabName}". HTTP ${res.status}`);
-      }
-
-      const text = await res.text();
-      const jsonStr = stripGvizWrapper(text);
-      const payload = JSON.parse(jsonStr);
-
-      if (!payload.table) return [];
-      const objects = tableToObjects(payload.table);
-
-      cache.set(key, objects);
-      writeStorage(storageKey, objects);
-      return objects;
-    } catch (err) {
-      if (stored) {
-        cache.set(key, stored);
-        return stored;
-      }
-      throw err;
+      return await promise;
+    } finally {
+      inflight.delete(key);
     }
   }
 
-  window.Sheets = { fetchTab };
+  window.Sheets = { fetchTab, state };
 })();

@@ -27,7 +27,7 @@
   const normPath = (v) => {
     const s = norm(v);
     if (!s) return "";
-    return s.startsWith("/") ? s.slice(1) : s; // prevent jumping outside /byplan/
+    return s.startsWith("/") ? s.slice(1) : s; // avoid absolute-root paths on static hosting
   };
 
   const setText = (el, value) => {
@@ -70,26 +70,10 @@
     const sheetId = getSheetId();
     if (!sheetId) throw new Error("SHEET_ID missing");
 
-    // If your sheets.js provides a helper, use it
     if (typeof Sheets !== "undefined" && typeof Sheets.fetchTab === "function"){
       return await Sheets.fetchTab(sheetId, tabName);
     }
-
-    // Otherwise fetch GViz directly
-    const cb = Date.now().toString(36);
-    const params = new URLSearchParams({ tqx: "out:json", sheet: tabName, headers: "1", cb });
-    const url = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?${params.toString()}`;
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error(`GViz ${tabName} HTTP ${res.status}`);
-    const txt = await res.text();
-    const start = txt.indexOf("{");
-    const end = txt.lastIndexOf("}");
-    if (start < 0 || end < 0) throw new Error(`GViz ${tabName} parse failed`);
-    const data = JSON.parse(txt.slice(start, end + 1));
-
-    const cols = (data?.table?.cols || []).map(c => norm(c.label));
-    const rows = (data?.table?.rows || []).map(r => (r.c || []).map(c => (c && c.v != null) ? String(c.v) : ""));
-    return rows.map(r => Object.fromEntries(cols.map((k, i) => [k, r[i] ?? ""])));
+    throw new Error("Sheets helper is not available");
   }
 
   // --- UI render ---
