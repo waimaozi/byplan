@@ -530,7 +530,7 @@ function normalizeAssetUrl(url) {
   const u = String(url ?? "").trim();
   if (!u) return "";
   if (/^https?:\/\//i.test(u)) return u;
-  // relative paths: strip leading slashes so GitHub Pages resolves correctly
+  // relative paths: strip leading slashes so static hosting resolves correctly
   return u.replace(/^\/+/, "");
 }
 function escapeAttr(str) {
