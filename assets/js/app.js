@@ -546,13 +546,21 @@ function escapeAttr(str) {
       toggleSection("#footerVersion", false);
     }
 
-    if (!cfg || !cfg.SHEET_ID || cfg.SHEET_ID.includes("PASTE_")) {
-      console.warn("SHEET_ID is not set. Please edit assets/js/config.js");
-      showSheetError("Не удалось загрузить данные из Google Sheets. Проверьте ID таблицы в config.js.");
+    if (!cfg || !cfg.TABS) {
+      console.warn("SITE_CONFIG is missing or invalid.");
+      showSheetError("Не удалось загрузить данные из Google Sheets. Проверьте config.js.");
+      return;
+    }
+    if (typeof Sheets === "undefined" || typeof Sheets.fetchTab !== "function") {
+      console.warn("Sheets helper is missing.");
+      showSheetError("Не удалось загрузить данные. Проверьте подключение sheets.js.");
       return;
     }
 
-    const sheetId = cfg.SHEET_ID;
+    const sheetId = (cfg.SHEET_ID && !cfg.SHEET_ID.includes("PASTE_")) ? cfg.SHEET_ID : "";
+    if (!sheetId) {
+      console.warn("SHEET_ID is not set. Using snapshot/cache only.");
+    }
     const tabs = cfg.TABS;
     const limits = cfg.LIMITS || {};
     const sheetErrors = [];
@@ -673,7 +681,10 @@ function escapeAttr(str) {
     const contacts = (await fetchTabSafe(tabs.contacts)).slice(0, limits.contacts || 999);
     renderContacts("contactCards", contacts, kv);
 
-    if (sheetErrors.length) {
+    const sheetState = (typeof Sheets !== "undefined" && Sheets.state) ? Sheets.state : null;
+    const usingFallback = sheetState ? (sheetState.usedSnapshot || sheetState.usedStorage) : false;
+
+    if (sheetErrors.length && !usingFallback) {
       console.warn("Sheets tabs failed:", sheetErrors);
       showSheetError("Не удалось загрузить данные из Google Sheets. Проверьте доступ к таблице и названия вкладок.");
     } else {
