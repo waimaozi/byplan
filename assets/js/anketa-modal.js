@@ -13,6 +13,7 @@
   const OPEN_HASH = "#anketa";
   const STORAGE_KEY = "byplan_anketa_draft_v2";
   const FORM_VERSION = "byplan-anketa-v2";
+  const DEFAULT_SUBMIT_URL = "https://n8n2.waimaozi.com/webhook/byplan-anketa";
 
   // ---- Текст из документа (формулировки старался не менять) ----
   // fileciteturn0file0
@@ -984,7 +985,7 @@
     }
 
     // submit URL (for n8n)
-    state.submitUrl = String(state.kv.anketa_submit_url || "").trim();
+    state.submitUrl = String(state.kv.anketa_submit_url || DEFAULT_SUBMIT_URL || "").trim();
 
     // privacy url
     const privacyUrl = String(state.kv.privacy_url || "").trim();
@@ -1037,7 +1038,7 @@
 
     // Preload KV quietly (cache hit if app.js already loaded it)
     state.kv = await loadSiteKV();
-    state.submitUrl = String(state.kv.anketa_submit_url || "").trim();
+    state.submitUrl = String(state.kv.anketa_submit_url || DEFAULT_SUBMIT_URL || "").trim();
   }
 
   if (isReady()) init();
