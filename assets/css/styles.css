@@ -47,12 +47,12 @@ p{ margin: 0 0 12px 0; }
   --h3: 1.05rem;
 
   /* Theme */
-  --bg: #ECE8DB;
+  --bg: #EDE8EC;
   --text: #1C1B1B;
   --muted: rgba(28,27,27,.72);
 
-  --border: rgba(60, 50, 30, .18);
-  --border-strong: rgba(50, 40, 20, .26);
+  --border: rgba(40, 40, 40, .18);
+  --border-strong: rgba(30, 30, 30, .26);
 
   --accent: #1C1B1B;     /* black button */
   --brand: #6E4C3D;      /* logo brown */
@@ -70,7 +70,7 @@ p{ margin: 0 0 12px 0; }
 /* Containers / sections */
 .container{ max-width: var(--container); margin: 0 auto; padding: 0 var(--pad); }
 .section{ padding: 64px 0; }
-.section--alt{ background: transparent; }
+.section--alt{ background: rgba(255,255,255,.22); border-top: 1px solid rgba(0,0,0,.06); border-bottom: 1px solid rgba(0,0,0,.06); }
 
 /* Headings */
 h1, h2, h3{ margin: 0 0 12px 0; letter-spacing: -0.02em; }
@@ -105,7 +105,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
    HERO STAGE (dark background + single "canvas" card)
    ============================================================ */
 .hero-stage{
-  background: var(--bg);
+  background: #6a6a6a;
   padding: 44px 18px;
 }
 
@@ -318,7 +318,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 }
 .price-card--featured{
   border-color: rgba(110,76,61,.28);
-  background: rgba(255,255,255,.55);
+  background: rgba(255,255,255,.72);
   box-shadow: 0 22px 58px rgba(0,0,0,.18);
 }
 
@@ -326,14 +326,14 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 .faq-item{
   border: 1px solid rgba(0,0,0,.08);
   border-radius: 16px;
-  background: rgba(255,255,255,.55);
+  background: rgba(255,255,255,.60);
   box-shadow: var(--shadow-soft);
 }
 
 .review{
   border: 1px solid rgba(0,0,0,.08);
   border-radius: var(--radius);
-  background: rgba(255,255,255,.55);
+  background: rgba(255,255,255,.60);
   padding: 16px;
   box-shadow: var(--shadow-soft);
 }
@@ -378,7 +378,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
   padding: 14px 16px;
   border: 1px solid rgba(0,0,0,.08);
   border-radius: 16px;
-  background: rgba(255,255,255,.55);
+  background: rgba(255,255,255,.70);
   box-shadow: var(--shadow-soft);
   max-height: 50vh;
   overflow: auto;

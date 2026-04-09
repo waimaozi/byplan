@@ -485,17 +485,6 @@
     ],
     "cases": [
       {
-        "title": "Чудесная трансформация \"трешки\"",
-        "area_m2": "",
-        "type": "трешка",
-        "city": "Санкт-Петербург",
-        "problem": "Из трешки с одним санузлом мы получили три спальни, гардеробную, два санузла и мягкую зону для отдыха в кухне",
-        "result": "Самое главное в этой планировке, это возможность разместить двоих детей и родителей в отдельные комнаты, перепланировка обеспечила возможность получить дополнительное место для хранения, сократить неполезную площадь коридоров до минимально возможного комфортного минимума, при этом сохранив функциональность пространств.",
-        "img_url": "assets/img/story/case1_after.webp",
-        "url": "",
-        "case_id": "treshka"
-      },
-      {
         "title": "План Марина ТА",
         "area_m2": 56,
         "type": "двушка",
@@ -684,66 +673,6 @@
       }
     ],
     "cases_media": [
-      {
-        "case_id": "treshka",
-        "sort": 1,
-        "label": "Задача",
-        "before_url": "assets/img/story/case1_before.webp",
-        "after_url": "assets/img/story/case1_after.webp",
-        "before_thumb": "",
-        "after_thumb": "",
-        "before_caption": "",
-        "after_caption": "",
-        "comment": "Из 3-комнатной квартиры с одним санузлом сделать 3 спальни, гардеробную, 2 санузла и мягкую зону отдыха в кухне."
-      },
-      {
-        "case_id": "treshka",
-        "sort": 2,
-        "label": "Критерии",
-        "before_url": "assets/img/story/case1_before.webp",
-        "after_url": "assets/img/story/case1_after.webp",
-        "before_thumb": "",
-        "after_thumb": "",
-        "before_caption": "",
-        "after_caption": "",
-        "comment": "Нужно решение, которое реально можно согласовать и получить обновлённый план БТИ."
-      },
-      {
-        "case_id": "treshka",
-        "sort": 3,
-        "label": "Главное",
-        "before_url": "assets/img/story/case1_before.webp",
-        "after_url": "assets/img/story/case1_after.webp",
-        "before_thumb": "",
-        "after_thumb": "",
-        "before_caption": "",
-        "after_caption": "",
-        "comment": "Комфорт семьи: разместить родителей и двух детей в отдельных комнатах, добавить хранение, убрать лишние коридоры, сохранить функциональность."
-      },
-      {
-        "case_id": "treshka",
-        "sort": 4,
-        "label": "Реализация",
-        "before_url": "assets/img/story/case1_before.webp",
-        "after_url": "assets/img/story/case1_after.webp",
-        "before_thumb": "",
-        "after_thumb": "",
-        "before_caption": "",
-        "after_caption": "",
-        "comment": "Сократили бесполезную площадь коридоров до минимально возможного комфортного минимума, при этом сохранив функциональность пространств"
-      },
-      {
-        "case_id": "treshka",
-        "sort": 5,
-        "label": "Результат",
-        "before_url": "assets/img/story/case1_before.webp",
-        "after_url": "assets/img/story/case1_after.webp",
-        "before_thumb": "",
-        "after_thumb": "",
-        "before_caption": "",
-        "after_caption": "",
-        "comment": "\"Невозможное - возможно\", качество жизни семьи и комфорт выросли кратно"
-      },
       {
         "case_id": "marina_TA",
         "sort": 1,
