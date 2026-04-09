@@ -242,16 +242,9 @@ html.js .reveal.is-visible{
   background: transparent;
 }
 
-/* subtle grain (reuse your hero grain layer if it exists) */
+/* Removed grain overlay to keep uniform background */
 #for::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  opacity:.12;
-  background-image: url("../img/hero/layers/03_grain.png");
-  background-size: cover;
-  mix-blend-mode: overlay;
+  display: none;
 }
 
 #for .container{ position: relative; z-index: 1; }
@@ -583,26 +576,10 @@ body.case-modal-open{
   --why-accent-soft: rgba(110,76,61,.18);
 }
 
-#why::before{
-  content:"";
-  position:absolute;
-  inset:-22% -8% auto auto;
-  width: 520px;
-  height: 520px;
-  background: radial-gradient(circle at 35% 30%, rgba(220,210,180,.75), rgba(220,210,180,0));
-  filter: blur(6px);
-  pointer-events: none;
-}
-
+/* Removed decorative radial blobs to keep uniform background */
+#why::before,
 #why::after{
-  content:"";
-  position:absolute;
-  inset:auto auto -25% -10%;
-  width: 520px;
-  height: 520px;
-  background: radial-gradient(circle at 40% 40%, rgba(110,76,61,.20), rgba(110,76,61,0));
-  filter: blur(10px);
-  pointer-events: none;
+  display: none;
 }
 
 #why .container{
