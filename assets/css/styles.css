@@ -318,7 +318,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 }
 .price-card--featured{
   border-color: rgba(110,76,61,.28);
-  background: rgba(255,255,255,.72);
+  background: rgba(255,255,255,.55);
   box-shadow: 0 22px 58px rgba(0,0,0,.18);
 }
 
@@ -326,14 +326,14 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 .faq-item{
   border: 1px solid rgba(0,0,0,.08);
   border-radius: 16px;
-  background: rgba(255,255,255,.60);
+  background: rgba(255,255,255,.55);
   box-shadow: var(--shadow-soft);
 }
 
 .review{
   border: 1px solid rgba(0,0,0,.08);
   border-radius: var(--radius);
-  background: rgba(255,255,255,.60);
+  background: rgba(255,255,255,.55);
   padding: 16px;
   box-shadow: var(--shadow-soft);
 }
@@ -378,7 +378,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
   padding: 14px 16px;
   border: 1px solid rgba(0,0,0,.08);
   border-radius: 16px;
-  background: rgba(255,255,255,.70);
+  background: rgba(255,255,255,.55);
   box-shadow: var(--shadow-soft);
   max-height: 50vh;
   overflow: auto;
