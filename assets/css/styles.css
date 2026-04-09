@@ -70,7 +70,7 @@ p{ margin: 0 0 12px 0; }
 /* Containers / sections */
 .container{ max-width: var(--container); margin: 0 auto; padding: 0 var(--pad); }
 .section{ padding: 64px 0; }
-.section--alt{ background: rgba(255,255,255,.22); border-top: 1px solid rgba(0,0,0,.06); border-bottom: 1px solid rgba(0,0,0,.06); }
+.section--alt{ background: transparent; }
 
 /* Headings */
 h1, h2, h3{ margin: 0 0 12px 0; letter-spacing: -0.02em; }
