@@ -47,12 +47,12 @@ p{ margin: 0 0 12px 0; }
   --h3: 1.05rem;
 
   /* Theme */
-  --bg: #EDE8EC;
+  --bg: #ECE8DB;
   --text: #1C1B1B;
   --muted: rgba(28,27,27,.72);
 
-  --border: rgba(40, 40, 40, .18);
-  --border-strong: rgba(30, 30, 30, .26);
+  --border: rgba(60, 50, 30, .18);
+  --border-strong: rgba(50, 40, 20, .26);
 
   --accent: #1C1B1B;     /* black button */
   --brand: #6E4C3D;      /* logo brown */

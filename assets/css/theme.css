@@ -1,8 +1,8 @@
 :root{
-  --bg: #EDE8EC;
+  --bg: #ECE8DB;
   --bg-alt: rgba(255,255,255,.35);
   --card: rgba(255,255,255,.35);
-  --border: #DBD6DA;
+  --border: #D9D5C8;
 
   --text: #1C1B1B;
   --muted: rgba(28,27,27,.70);
@@ -67,9 +67,9 @@ h2,h3{ letter-spacing: -0.01em; }
 .hero{
   background-image:
     linear-gradient(90deg,
-      rgba(237,232,236,.92) 0%,
-      rgba(237,232,236,.75) 55%,
-      rgba(237,232,236,.35) 100%),
+      rgba(236,232,219,.92) 0%,
+      rgba(236,232,219,.75) 55%,
+      rgba(236,232,219,.35) 100%),
     url("../img/hero-bg.jpg");
   background-position: center;
   background-size: cover;
@@ -80,9 +80,9 @@ h2,h3{ letter-spacing: -0.01em; }
   .hero{
     background-image:
       linear-gradient(90deg,
-        rgba(237,232,236,.92) 0%,
-        rgba(237,232,236,.75) 55%,
-        rgba(237,232,236,.35) 100%),
+        rgba(236,232,219,.92) 0%,
+        rgba(236,232,219,.75) 55%,
+        rgba(236,232,219,.35) 100%),
       image-set(
         url("../img/hero-bg.webp") type("image/webp"),
         url("../img/hero-bg.jpg") type("image/jpeg")

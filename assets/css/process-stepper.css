@@ -17,7 +17,7 @@
   background:
     radial-gradient(1100px 520px at 18% -10%, rgba(255,255,255,.92), rgba(255,255,255,0) 62%),
     radial-gradient(900px 520px at 80% 10%, rgba(255,255,255,.55), rgba(255,255,255,0) 64%),
-    linear-gradient(180deg, #F4F0F3 0%, #EAE4EA 100%);
+    linear-gradient(180deg, #F2EFE3 0%, #E8E3D6 100%);
 }
 
 /* If you keep using "section--alt" for other sections, no conflict */

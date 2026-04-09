@@ -242,7 +242,7 @@ html.js .reveal.is-visible{
   background:
     radial-gradient(1100px 520px at 18% -10%, rgba(255,255,255,.92), rgba(255,255,255,0) 62%),
     radial-gradient(900px 520px at 80% 10%, rgba(255,255,255,.55), rgba(255,255,255,0) 64%),
-    linear-gradient(180deg, #F4F0F3 0%, #EAE4EA 100%);
+    linear-gradient(180deg, #F2EFE3 0%, #E8E3D6 100%);
 }
 
 /* subtle grain (reuse your hero grain layer if it exists) */
@@ -318,7 +318,7 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
 #process{
   background:
     radial-gradient(900px 420px at 20% -10%, rgba(255,255,255,.9), rgba(255,255,255,0) 60%),
-    linear-gradient(180deg, #F4F0F3 0%, #EFE9EF 100%);
+    linear-gradient(180deg, #F2EFE3 0%, #EDE8DA 100%);
 }
 
 #process .container{
@@ -594,7 +594,7 @@ body.case-modal-open{
   inset:-22% -8% auto auto;
   width: 520px;
   height: 520px;
-  background: radial-gradient(circle at 35% 30%, rgba(235,220,210,.75), rgba(235,220,210,0));
+  background: radial-gradient(circle at 35% 30%, rgba(220,210,180,.75), rgba(220,210,180,0));
   filter: blur(6px);
   pointer-events: none;
 }

@@ -8,7 +8,7 @@
   /* Dark-but-warm “volume” background */
   background:
     radial-gradient(900px 520px at 18% 22%, rgba(255,255,255,.14), rgba(255,255,255,0) 62%),
-    radial-gradient(780px 560px at 82% 78%, rgba(196, 140, 110, .18), rgba(196, 140, 110, 0) 62%),
+    radial-gradient(780px 560px at 82% 78%, rgba(180, 155, 100, .20), rgba(180, 155, 100, 0) 62%),
     linear-gradient(180deg, rgba(22, 22, 23, .92), rgba(18, 18, 19, .92));
   color: rgba(255,255,255,.92);
 }
