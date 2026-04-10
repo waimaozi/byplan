@@ -46,7 +46,7 @@
 /* Logo as separate entity (file-based) */
 .hero-logo{
   position:absolute;
-  top: 26px;
+  top: 42px;
   right: 34px;
   width: min(260px, 28vw);
   height: auto;
