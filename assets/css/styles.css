@@ -183,8 +183,24 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
     inset 0 -1px 0 rgba(0,0,0,.10);
 }
 
+/* Light patch behind logo so it's readable */
+.hero::after{
+  content: "";
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 480px;
+  height: 360px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 60% 40%,
+    rgba(237,232,236,.88) 0%,
+    rgba(237,232,236,.60) 40%,
+    rgba(237,232,236,0) 72%);
+  z-index: 1;
+}
+
 /* Keep content above overlays */
-.hero > *{ position: relative; z-index: 1; }
+.hero > *{ position: relative; z-index: 2; }
 
 /* Inner padding (we override .container here) */
 .hero .container{
