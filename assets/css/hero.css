@@ -10,7 +10,7 @@
 
   background-image: url("../img/hero/hero-bg.jpg");
   background-size: cover;
-  background-position: center;
+  background-position: center bottom;
   background-repeat: no-repeat;
 }
 

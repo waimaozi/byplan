@@ -136,7 +136,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
     url("../img/hero-bg.jpg");
 
   background-size: cover;
-  background-position: center;
+  background-position: center bottom;
   background-repeat: no-repeat;
 }
 

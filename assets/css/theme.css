@@ -71,7 +71,7 @@ h2,h3{ letter-spacing: -0.01em; }
       rgba(237,232,236,.75) 55%,
       rgba(237,232,236,.35) 100%),
     url("../img/hero-bg.jpg");
-  background-position: center;
+  background-position: center bottom;
   background-size: cover;
   background-repeat: no-repeat;
 }
