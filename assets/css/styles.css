@@ -210,7 +210,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 
 .hero-logo{
   position: absolute;
-  top: 26px;
+  top: 45px;
   right: 34px;
   font-family: var(--logo-font);
   font-weight: 600;
@@ -423,4 +423,5 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
   .hero-actions{ gap: 10px; }
   .btn{ width: 100%; justify-content: center; }
   .hero-grid > div{ max-width: none; }
+  .hero::after{ display: none; }
 }
