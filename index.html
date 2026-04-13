@@ -118,51 +118,53 @@
 <!-- STORY (между #for и #deliverables) -->
 <section class="section section--story" id="story" data-story-id="case1">
   <div class="container">
-    <div class="story-head">
-      <div class="badge" id="storyBadge"></div>
-      <h2 id="storyTitle"></h2>
-      <p class="muted" id="storySubtitle"></p>
-    </div>
-
-    <div class="story-grid">
-      <div class="story-media">
-        <div class="story-plan">
-          <div class="story-plan__tabs" role="tablist" aria-label="План: было/стало">
-            <button class="pill-btn is-active" type="button" data-story-view="after">Стало</button>
-            <button class="pill-btn" type="button" data-story-view="before">Было</button>
-          </div>
-
-          <div class="story-plan__frame">
-            <img
-              class="story-plan__img"
-              id="storyPlanImg"
-              src=""
-              alt="Планировка — пример"
-              loading="lazy"
-              decoding="async"
-              width="1200"
-              height="900"
-              hidden
-            />
-          </div>
-        </div>
-
-        <blockquote class="story-quote">
-          <p id="storyQuote"></p>
-          <footer class="muted" id="storyQuoteAuthor"></footer>
-        </blockquote>
+    <div class="story-island">
+      <div class="story-head">
+        <div class="badge" id="storyBadge"></div>
+        <h2 id="storyTitle"></h2>
+        <p class="muted" id="storySubtitle"></p>
       </div>
 
-      <div class="story-card">
-        <div class="story-stepper" id="storyStepper"></div>
-        <div class="story-panel" id="storyPanel"></div>
+      <div class="story-grid">
+        <div class="story-media">
+          <div class="story-plan">
+            <div class="story-plan__tabs" role="tablist" aria-label="План: было/стало">
+              <button class="pill-btn is-active" type="button" data-story-view="after">Стало</button>
+              <button class="pill-btn" type="button" data-story-view="before">Было</button>
+            </div>
 
-        <div class="story-actions">
-          <a class="btn btn--primary" id="storyCtaPrimary" href="#contact">Заполнить анкету</a>
-          <a class="btn btn--ghost" id="storyCtaSecondary" href="#cases">Смотреть кейсы</a>
+            <div class="story-plan__frame">
+              <img
+                class="story-plan__img"
+                id="storyPlanImg"
+                src=""
+                alt="Планировка — пример"
+                loading="lazy"
+                decoding="async"
+                width="1200"
+                height="900"
+                hidden
+              />
+            </div>
+          </div>
+
+          <blockquote class="story-quote">
+            <p id="storyQuote"></p>
+            <footer class="muted" id="storyQuoteAuthor"></footer>
+          </blockquote>
         </div>
 
-        <p class="note" id="storyNote"></p>
+        <div class="story-card">
+          <div class="story-stepper" id="storyStepper"></div>
+          <div class="story-panel" id="storyPanel"></div>
+
+          <div class="story-actions">
+            <a class="btn btn--primary" id="storyCtaPrimary" href="#contact">Заполнить анкету</a>
+            <a class="btn btn--ghost" id="storyCtaSecondary" href="#cases">Смотреть кейсы</a>
+          </div>
+
+          <p class="note" id="storyNote"></p>
+        </div>
       </div>
     </div>
   </div>

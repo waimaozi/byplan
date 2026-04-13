@@ -5,30 +5,50 @@
   overflow: hidden;
   padding: clamp(56px, 7vw, 92px) 0;
 
-  /* Dark-but-warm “volume” background */
+  /* Regular page background — island carries the dark style */
+  background: transparent;
+  color: inherit;
+}
+
+/* Island card — dark rounded container like cases-modal__dialog */
+.story-island{
+  position: relative;
+  border-radius: calc(var(--radius) + 10px);
+  border: 1px solid rgba(255,255,255,.16);
+
   background:
     radial-gradient(900px 520px at 18% 22%, rgba(255,255,255,.14), rgba(255,255,255,0) 62%),
     radial-gradient(780px 560px at 82% 78%, rgba(196, 140, 110, .18), rgba(196, 140, 110, 0) 62%),
     linear-gradient(180deg, rgba(22, 22, 23, .92), rgba(18, 18, 19, .92));
+
   color: rgba(255,255,255,.92);
+  box-shadow: 0 30px 120px rgba(0,0,0,.25);
+  padding: clamp(20px, 3vw, 32px);
+  overflow: hidden;
 }
 
-.section--story:before{
+.story-island::before{
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
   opacity: .22;
+  border-radius: inherit;
   background:
     radial-gradient(circle at 12% 20%, rgba(255,255,255,.65), rgba(255,255,255,0) 40%),
     radial-gradient(circle at 70% 70%, rgba(255,255,255,.18), rgba(255,255,255,0) 52%);
   mix-blend-mode: overlay;
 }
 
-.section--story .muted{ color: rgba(255,255,255,.72); }
-.section--story a{ color: rgba(255,255,255,.92); }
+.story-island > *{
+  position: relative;
+  z-index: 1;
+}
 
-.section--story .badge{
+.story-island .muted{ color: rgba(255,255,255,.72); }
+.story-island a{ color: rgba(255,255,255,.92); }
+
+.story-island .badge{
   background: rgba(255,255,255,.10);
   border-color: rgba(255,255,255,.18);
   color: rgba(255,255,255,.88);
@@ -207,32 +227,32 @@
   margin-top: 16px;
 }
 
-/* Buttons in dark section */
-.section--story .btn--ghost{
+/* Buttons in dark island */
+.story-island .btn--ghost{
   background: rgba(255,255,255,.10);
   border-color: rgba(255,255,255,.20);
   color: rgba(255,255,255,.88);
 }
-.section--story .btn--ghost:hover{ background: rgba(255,255,255,.14); }
+.story-island .btn--ghost:hover{ background: rgba(255,255,255,.14); }
 
-.section--story .btn--primary{
+.story-island .btn--primary{
   background: rgba(255,255,255,.92);
   color: rgba(10,10,10,.92);
 }
-.section--story .btn--primary:hover{ opacity: .92; }
+.story-island .btn--primary:hover{ opacity: .92; }
 
 .story-note{ margin: 14px 0 0; font-size: .95rem; color: rgba(255,255,255,.68); }
 
 /* Reveal animation (optional, JS adds .is-in) */
-.section--story .story-media,
-.section--story .story-card{
+.story-island .story-media,
+.story-island .story-card{
   opacity: 0;
   transform: translateY(14px);
   transition: opacity .55s ease, transform .55s ease;
 }
 
-.section--story.is-in .story-media,
-.section--story.is-in .story-card{
+.section--story.is-in .story-island .story-media,
+.section--story.is-in .story-island .story-card{
   opacity: 1;
   transform: none;
 }
@@ -240,8 +260,15 @@
 @media (prefers-reduced-motion: reduce){
   .story-pill,
   .story-step,
-  .section--story .story-media,
-  .section--story .story-card{
+  .story-island .story-media,
+  .story-island .story-card{
     transition: none !important;
+  }
+}
+
+@media (max-width: 720px){
+  .story-island{
+    padding: clamp(14px, 3vw, 20px);
+    border-radius: calc(var(--radius) + 4px);
   }
 }
