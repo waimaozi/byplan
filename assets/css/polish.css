@@ -13,7 +13,7 @@
   --elev-2: 0 18px 40px rgba(0,0,0,.14);
   --elev-3: 0 34px 95px rgba(0,0,0,.28);
 
-  --glass-bg: rgba(255,255,255,.40);
+  --glass-bg: rgba(var(--glass-rgb),.40);
   --glass-border: rgba(0,0,0,.08);
   --glass-blur: 10px;
 }
@@ -26,7 +26,7 @@
     border-color var(--dur) var(--ease-out);
 }
 .site-header.is-scrolled{
-  background: rgba(255,255,255,.78);
+  background: rgba(var(--glass-rgb),.78);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   box-shadow: 0 10px 30px rgba(0,0,0,.08);
@@ -123,7 +123,7 @@ html.js .reveal.is-visible{
   inset:-40% -60%;
   background: linear-gradient(90deg,
     transparent,
-    rgba(255,255,255,.55),
+    rgba(var(--glass-rgb),.55),
     transparent);
   transform: translateX(-60%);
   animation: byplan-shimmer 1.25s infinite;
@@ -161,8 +161,8 @@ html.js .reveal.is-visible{
   width: min(1120px, 100%);
   border-radius: 20px;
   overflow: hidden;
-  background: rgba(255,255,255,.92);
-  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(var(--glass-rgb),.92);
+  border: 1px solid rgba(var(--glass-rgb),.22);
   box-shadow: var(--elev-3);
 }
 
@@ -186,7 +186,7 @@ html.js .reveal.is-visible{
 .lb-close{
   border: 1px solid rgba(0,0,0,.10);
   border-radius: 12px;
-  background: rgba(255,255,255,.75);
+  background: rgba(var(--glass-rgb),.75);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   height: 38px;
@@ -240,8 +240,8 @@ html.js .reveal.is-visible{
 #for{
   position: relative;
   background:
-    radial-gradient(1100px 520px at 18% -10%, rgba(255,255,255,.92), rgba(255,255,255,0) 62%),
-    radial-gradient(900px 520px at 80% 10%, rgba(255,255,255,.55), rgba(255,255,255,0) 64%),
+    radial-gradient(1100px 520px at 18% -10%, rgba(var(--glass-rgb),.92), rgba(var(--glass-rgb),0) 62%),
+    radial-gradient(900px 520px at 80% 10%, rgba(var(--glass-rgb),.55), rgba(var(--glass-rgb),0) 64%),
     linear-gradient(180deg, #F4F0F3 0%, #EAE4EA 100%);
 }
 
@@ -263,8 +263,8 @@ html.js .reveal.is-visible{
 
 /* cards as “glass on paper” */
 #for .card{
-  background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.62));
-  border: 1px solid rgba(255,255,255,.55);
+  background: linear-gradient(180deg, rgba(var(--glass-rgb),.82), rgba(var(--glass-rgb),.62));
+  border: 1px solid rgba(var(--glass-rgb),.55);
   box-shadow: 0 26px 80px rgba(0,0,0,.14);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
@@ -277,7 +277,7 @@ html.js .reveal.is-visible{
   position:absolute;
   left:12px; right:12px; top:10px;
   height:1px;
-  background: rgba(255,255,255,.65);
+  background: rgba(var(--glass-rgb),.65);
   opacity:.9;
   border-radius:999px;
 }
@@ -317,7 +317,7 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
 /* === SLIDE: #process — make lists product-like (no wall of text) === */
 #process{
   background:
-    radial-gradient(900px 420px at 20% -10%, rgba(255,255,255,.9), rgba(255,255,255,0) 60%),
+    radial-gradient(900px 420px at 20% -10%, rgba(var(--glass-rgb),.9), rgba(var(--glass-rgb),0) 60%),
     linear-gradient(180deg, #F4F0F3 0%, #EFE9EF 100%);
 }
 
@@ -336,8 +336,8 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
 /* Make the two blocks look like cards */
 #process .deliverables,
 #process .process{
-  background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.58));
-  border: 1px solid rgba(255,255,255,.55);
+  background: linear-gradient(180deg, rgba(var(--glass-rgb),.78), rgba(var(--glass-rgb),.58));
+  border: 1px solid rgba(var(--glass-rgb),.55);
   border-radius: 22px;
   box-shadow: 0 22px 70px rgba(0,0,0,.12);
   padding: 18px 18px 16px;
@@ -412,7 +412,7 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
   position: relative;
   padding: 12px 12px 12px 44px;
   border-radius: 18px;
-  background: rgba(255,255,255,.55);
+  background: rgba(var(--glass-rgb),.55);
   border: 1px solid rgba(0,0,0,.06);
 }
 
@@ -510,7 +510,7 @@ html.js #for .card.reveal:nth-child(6){ transition-delay: 300ms; }
   padding: 12px 14px;
   border-radius: 16px;
   border: 1px dashed rgba(0,0,0,.18);
-  background: rgba(255,255,255,.65);
+  background: rgba(var(--glass-rgb),.65);
   color: rgba(0,0,0,.72);
   font-size: 0.95rem;
 }
@@ -523,7 +523,7 @@ html.js #for .card.reveal:nth-child(6){ transition-delay: 300ms; }
 .case-card{
   border: 1px solid rgba(0,0,0,.08);
   border-radius: var(--radius);
-  background: rgba(255,255,255,.60);
+  background: rgba(var(--glass-rgb),.60);
   padding: 14px;
   box-shadow: var(--shadow-soft);
   display: grid;
@@ -570,7 +570,7 @@ html.js #for .card.reveal:nth-child(6){ transition-delay: 300ms; }
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
-  background: rgba(255,255,255,.88);
+  background: rgba(var(--glass-rgb),.88);
   color: rgba(0,0,0,.78);
   border: 1px solid rgba(0,0,0,.08);
 }
@@ -648,7 +648,7 @@ body.case-modal-open{
   padding:20px 18px 18px 20px;
   border-radius:24px;
   border:1px solid rgba(0,0,0,.08);
-  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.80));
+  background: linear-gradient(180deg, rgba(var(--glass-rgb),.96), rgba(var(--glass-rgb),.80));
   box-shadow: var(--elev-1);
   overflow:hidden;
   min-height: 120px;
@@ -688,7 +688,7 @@ body.case-modal-open{
 
 /* highlight top 3 metrics */
 #why .why-stats .stat:nth-child(-n+3){
-  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(238,231,226,.92));
+  background: linear-gradient(180deg, rgba(var(--glass-rgb),.98), rgba(238,231,226,.92));
   border-color: rgba(110,76,61,.32);
   box-shadow: 0 18px 40px rgba(110,76,61,.18);
 }
@@ -734,7 +734,7 @@ body.case-modal-open{
   padding:16px 16px 16px 20px;
   border-radius:20px;
   border:1px solid rgba(0,0,0,.08);
-  background:rgba(255,255,255,.86);
+  background:rgba(var(--glass-rgb),.86);
   box-shadow: 0 10px 24px rgba(0,0,0,.08);
 }
 

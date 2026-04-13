@@ -57,9 +57,9 @@
   width: 46px;
   height: 46px;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.18);
-  background: rgba(255,255,255,.08);
-  color: rgba(255,255,255,.90);
+  border: 1px solid rgba(var(--glass-rgb),.18);
+  background: rgba(var(--glass-rgb),.08);
+  color: rgba(var(--glass-rgb),.90);
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -80,7 +80,7 @@
 
 .cases-inline__dialog .cases-switch__btn:hover{
   transform: translate(var(--dx, 0), -1px);
-  background: rgba(255,255,255,.12);
+  background: rgba(var(--glass-rgb),.12);
 }
 
 .cases-inline__dialog .cases-switch__btn:active{
@@ -98,7 +98,7 @@
   letter-spacing: -.01em;
   padding: 7px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.16);
+  border: 1px solid rgba(var(--glass-rgb),.16);
   background: rgba(0,0,0,.22);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);

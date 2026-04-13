@@ -16,7 +16,7 @@
   --step-dot: 28px;
   --step-line: rgba(0,0,0,.10);
 
-  --step-card-bg: rgba(255,255,255,.58);
+  --step-card-bg: rgba(var(--glass-rgb),.58);
   --step-card-border: rgba(0,0,0,.06);
   --step-card-shadow: 0 18px 55px rgba(0,0,0,.10);
 
@@ -68,7 +68,7 @@
   position: relative;
   padding: calc(var(--step-pad) + 2px) var(--step-pad) var(--step-pad) calc(var(--step-pad) + var(--step-dot) + 10px);
   border-radius: 20px;
-  background: linear-gradient(180deg, rgba(255,255,255,.72), var(--step-card-bg));
+  background: linear-gradient(180deg, rgba(var(--glass-rgb),.72), var(--step-card-bg));
   border: 1px solid var(--step-card-border);
   box-shadow: var(--step-card-shadow);
   overflow: visible;

@@ -15,8 +15,8 @@
 /* You can tweak slide background here (keep it light for alternation) */
 #process{
   background:
-    radial-gradient(1100px 520px at 18% -10%, rgba(255,255,255,.92), rgba(255,255,255,0) 62%),
-    radial-gradient(900px 520px at 80% 10%, rgba(255,255,255,.55), rgba(255,255,255,0) 64%),
+    radial-gradient(1100px 520px at 18% -10%, rgba(var(--glass-rgb),.92), rgba(var(--glass-rgb),0) 62%),
+    radial-gradient(900px 520px at 80% 10%, rgba(var(--glass-rgb),.55), rgba(var(--glass-rgb),0) 64%),
     linear-gradient(180deg, #F4F0F3 0%, #EAE4EA 100%);
 }
 
@@ -88,7 +88,7 @@
   margin: 0 auto 10px;
   font-weight: 900;
   font-size: 0.85rem;
-  background: rgba(255,255,255,.65);
+  background: rgba(var(--glass-rgb),.65);
   border: 1px solid rgba(0,0,0,.12);
   box-shadow: 0 12px 35px rgba(0,0,0,.10);
   transition:
@@ -134,8 +134,8 @@
 .process-stepper__panel{
   margin-top: 16px;
   border-radius: 22px;
-  background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.58));
-  border: 1px solid rgba(255,255,255,.55);
+  background: linear-gradient(180deg, rgba(var(--glass-rgb),.78), rgba(var(--glass-rgb),.58));
+  border: 1px solid rgba(var(--glass-rgb),.55);
   box-shadow: 0 22px 70px rgba(0,0,0,.12);
   padding: 18px 18px 16px;
   min-height: 132px;

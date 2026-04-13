@@ -35,9 +35,9 @@ body.anketa-lock{
   display: flex;
   flex-direction: column;
   border-radius: var(--radius);
-  border: 1px solid rgba(255,255,255,.18);
+  border: 1px solid rgba(var(--glass-rgb),.18);
 
-  background: rgba(255,255,255,.30);
+  background: rgba(var(--glass-rgb),.30);
   -webkit-backdrop-filter: blur(18px);
   backdrop-filter: blur(18px);
 
@@ -51,8 +51,8 @@ body.anketa-lock{
   justify-content: space-between;
   gap: 14px;
   padding: 16px 18px;
-  border-bottom: 1px solid rgba(255,255,255,.18);
-  background: rgba(255,255,255,.18);
+  border-bottom: 1px solid rgba(var(--glass-rgb),.18);
+  background: rgba(var(--glass-rgb),.18);
 }
 
 .anketa-modal__kicker{
@@ -91,7 +91,7 @@ body.anketa-lock{
   width: 120px;
   height: 8px;
   border-radius: 999px;
-  background: rgba(255,255,255,.20);
+  background: rgba(var(--glass-rgb),.20);
   border: 1px solid rgba(0,0,0,.08);
   overflow: hidden;
 }
@@ -125,7 +125,7 @@ body.anketa-lock{
   height: 40px;
   border-radius: 999px;
   border: 1px solid rgba(0,0,0,.14);
-  background: rgba(255,255,255,.22);
+  background: rgba(var(--glass-rgb),.22);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   display: inline-flex;
@@ -216,7 +216,7 @@ body.anketa-lock{
   border: 1px solid rgba(0,0,0,.14);
   border-radius: 16px;
   padding: 12px 12px;
-  background: rgba(255,255,255,.22);
+  background: rgba(var(--glass-rgb),.22);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   color: rgba(28,27,27,.92);
@@ -245,7 +245,7 @@ body.anketa-lock{
   padding: 10px 10px;
   border-radius: 16px;
   border: 1px solid rgba(0,0,0,.10);
-  background: rgba(255,255,255,.18);
+  background: rgba(var(--glass-rgb),.18);
 }
 
 .anketa-check input{
@@ -261,7 +261,7 @@ body.anketa-lock{
   padding: 14px 14px;
   border-radius: 18px;
   border: 1px solid rgba(0,0,0,.10);
-  background: rgba(255,255,255,.16);
+  background: rgba(var(--glass-rgb),.16);
   margin-bottom: 12px;
 }
 
@@ -273,7 +273,7 @@ body.anketa-lock{
 .anketa-zones details{
   border-radius: 18px;
   border: 1px solid rgba(0,0,0,.10);
-  background: rgba(255,255,255,.16);
+  background: rgba(var(--glass-rgb),.16);
   padding: 10px 12px;
   margin-bottom: 10px;
 }
@@ -306,8 +306,8 @@ body.anketa-lock{
   gap: 12px;
   justify-content: space-between;
   padding: 14px 18px;
-  border-top: 1px solid rgba(255,255,255,.18);
-  background: rgba(255,255,255,.18);
+  border-top: 1px solid rgba(var(--glass-rgb),.18);
+  background: rgba(var(--glass-rgb),.18);
 }
 
 .anketa-nav .btn{
@@ -356,7 +356,7 @@ body.anketa-lock{
 
 .anketa-success__box{
   border: 1px solid rgba(0,0,0,.10);
-  background: rgba(255,255,255,.16);
+  background: rgba(var(--glass-rgb),.16);
   border-radius: 18px;
   padding: 12px;
   white-space: pre-wrap;

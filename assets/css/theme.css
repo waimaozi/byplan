@@ -1,7 +1,9 @@
 :root{
   --bg: #EDE8EC;
-  --bg-alt: rgba(255,255,255,.35);
-  --card: rgba(255,255,255,.35);
+  --bg-rgb: 237, 232, 236;
+  --glass-rgb: 255, 255, 255;
+  --bg-alt: rgba(var(--glass-rgb),.35);
+  --card: rgba(var(--glass-rgb),.35);
   --border: #DBD6DA;
 
   --text: #1C1B1B;
@@ -9,6 +11,7 @@
 
   --accent: #1C1B1B;     /* чёрная кнопка */
   --accent-2: #6E4C3D;   /* коричневый бренда */
+  --brand: #6E4C3D;      /* logo brown (alias) */
 
   --radius: 22px;
   --shadow: 0 24px 60px rgba(0,0,0,.18);
@@ -34,7 +37,7 @@ h2,h3{ letter-spacing: -0.01em; }
 
 /* Пиллы/бейджи */
 .badge, .pill, .chip, .tag{
-  background: rgba(255,255,255,.30);
+  background: rgba(var(--glass-rgb),.30);
   border: 1px solid var(--border);
   border-radius: 999px;
   -webkit-backdrop-filter: blur(10px);
@@ -55,7 +58,7 @@ h2,h3{ letter-spacing: -0.01em; }
 }
 
 .btn-secondary, .btn--secondary{
-  background: rgba(255,255,255,.30) !important;
+  background: rgba(var(--glass-rgb),.30) !important;
   color: var(--text) !important;
   border: 1px solid var(--border) !important;
 }
@@ -67,9 +70,9 @@ h2,h3{ letter-spacing: -0.01em; }
 .hero{
   background-image:
     linear-gradient(90deg,
-      rgba(237,232,236,.92) 0%,
-      rgba(237,232,236,.75) 55%,
-      rgba(237,232,236,.35) 100%),
+      rgba(var(--bg-rgb),.92) 0%,
+      rgba(var(--bg-rgb),.75) 55%,
+      rgba(var(--bg-rgb),.35) 100%),
     url("../img/hero-bg.jpg");
   background-position: center bottom;
   background-size: cover;
@@ -80,9 +83,9 @@ h2,h3{ letter-spacing: -0.01em; }
   .hero{
     background-image:
       linear-gradient(90deg,
-        rgba(237,232,236,.92) 0%,
-        rgba(237,232,236,.75) 55%,
-        rgba(237,232,236,.35) 100%),
+        rgba(var(--bg-rgb),.92) 0%,
+        rgba(var(--bg-rgb),.75) 55%,
+        rgba(var(--bg-rgb),.35) 100%),
       image-set(
         url("../img/hero-bg.webp") type("image/webp"),
         url("../img/hero-bg.jpg") type("image/jpeg")
@@ -95,18 +98,18 @@ h2,h3{ letter-spacing: -0.01em; }
   .hero{
     background-image:
       linear-gradient(90deg,
-        rgba(237,232,236,.45) 0%,
-        rgba(237,232,236,.25) 55%,
-        rgba(237,232,236,.10) 100%),
+        rgba(var(--bg-rgb),.45) 0%,
+        rgba(var(--bg-rgb),.25) 55%,
+        rgba(var(--bg-rgb),.10) 100%),
       url("../img/hero-bg.jpg");
   }
   @supports (background-image: image-set(url("a.webp") type("image/webp"))) {
     .hero{
       background-image:
         linear-gradient(90deg,
-          rgba(237,232,236,.45) 0%,
-          rgba(237,232,236,.25) 55%,
-          rgba(237,232,236,.10) 100%),
+          rgba(var(--bg-rgb),.45) 0%,
+          rgba(var(--bg-rgb),.25) 55%,
+          rgba(var(--bg-rgb),.10) 100%),
         image-set(
           url("../img/hero-bg.webp") type("image/webp"),
           url("../img/hero-bg.jpg") type("image/jpeg")

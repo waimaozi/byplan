@@ -14,14 +14,14 @@
 .story-island{
   position: relative;
   border-radius: calc(var(--radius) + 10px);
-  border: 1px solid rgba(255,255,255,.16);
+  border: 1px solid rgba(var(--glass-rgb),.16);
 
   background:
-    radial-gradient(900px 520px at 18% 22%, rgba(255,255,255,.14), rgba(255,255,255,0) 62%),
+    radial-gradient(900px 520px at 18% 22%, rgba(var(--glass-rgb),.14), rgba(var(--glass-rgb),0) 62%),
     radial-gradient(780px 560px at 82% 78%, rgba(196, 140, 110, .18), rgba(196, 140, 110, 0) 62%),
     linear-gradient(180deg, rgba(22, 22, 23, .92), rgba(18, 18, 19, .92));
 
-  color: rgba(255,255,255,.92);
+  color: rgba(var(--glass-rgb),.92);
   box-shadow: 0 30px 120px rgba(0,0,0,.25);
   padding: clamp(20px, 3vw, 32px);
   overflow: hidden;
@@ -35,8 +35,8 @@
   opacity: .22;
   border-radius: inherit;
   background:
-    radial-gradient(circle at 12% 20%, rgba(255,255,255,.65), rgba(255,255,255,0) 40%),
-    radial-gradient(circle at 70% 70%, rgba(255,255,255,.18), rgba(255,255,255,0) 52%);
+    radial-gradient(circle at 12% 20%, rgba(var(--glass-rgb),.65), rgba(var(--glass-rgb),0) 40%),
+    radial-gradient(circle at 70% 70%, rgba(var(--glass-rgb),.18), rgba(var(--glass-rgb),0) 52%);
   mix-blend-mode: overlay;
 }
 
@@ -45,13 +45,13 @@
   z-index: 1;
 }
 
-.story-island .muted{ color: rgba(255,255,255,.72); }
-.story-island a{ color: rgba(255,255,255,.92); }
+.story-island .muted{ color: rgba(var(--glass-rgb),.72); }
+.story-island a{ color: rgba(var(--glass-rgb),.92); }
 
 .story-island .badge{
-  background: rgba(255,255,255,.10);
-  border-color: rgba(255,255,255,.18);
-  color: rgba(255,255,255,.88);
+  background: rgba(var(--glass-rgb),.10);
+  border-color: rgba(var(--glass-rgb),.18);
+  color: rgba(var(--glass-rgb),.88);
 }
 
 .story-head h2{
@@ -76,8 +76,8 @@
 .story-card,
 .story-plan,
 .story-quote{
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(var(--glass-rgb),.08);
+  border: 1px solid rgba(var(--glass-rgb),.16);
   border-radius: calc(var(--radius) + 6px);
   box-shadow: 0 26px 80px rgba(0,0,0,.36);
   -webkit-backdrop-filter: blur(14px);
@@ -100,28 +100,28 @@
   gap: 8px;
   padding: 10px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.18);
-  background: rgba(255,255,255,.08);
-  color: rgba(255,255,255,.86);
+  border: 1px solid rgba(var(--glass-rgb),.18);
+  background: rgba(var(--glass-rgb),.08);
+  color: rgba(var(--glass-rgb),.86);
   font-weight: 700;
   cursor: pointer;
   transition: transform .18s ease, background .18s ease, border-color .18s ease, opacity .18s ease;
 }
 
-.story-pill:hover{ transform: translateY(-1px); background: rgba(255,255,255,.12); }
+.story-pill:hover{ transform: translateY(-1px); background: rgba(var(--glass-rgb),.12); }
 
 .story-pill.is-active{
-  background: rgba(255,255,255,.92);
+  background: rgba(var(--glass-rgb),.92);
   color: rgba(10,10,10,.90);
-  border-color: rgba(255,255,255,.92);
+  border-color: rgba(var(--glass-rgb),.92);
 }
 
 .story-plan__frame{
   position: relative;
   border-radius: calc(var(--radius) + 4px);
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(var(--glass-rgb),.14);
+  background: rgba(var(--glass-rgb),.06);
   aspect-ratio: 4 / 3;
 }
 
@@ -136,7 +136,7 @@
 
 .story-quote{
   padding: 16px 18px;
-  border-left: 1px solid rgba(255,255,255,.20);
+  border-left: 1px solid rgba(var(--glass-rgb),.20);
 }
 
 .story-quote p{
@@ -165,18 +165,18 @@
   gap: 10px;
   padding: 10px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.18);
-  background: rgba(255,255,255,.06);
-  color: rgba(255,255,255,.86);
+  border: 1px solid rgba(var(--glass-rgb),.18);
+  background: rgba(var(--glass-rgb),.06);
+  color: rgba(var(--glass-rgb),.86);
   cursor: pointer;
   transition: transform .18s ease, background .18s ease, border-color .18s ease;
 }
 
-.story-step:hover{ transform: translateY(-1px); background: rgba(255,255,255,.10); }
+.story-step:hover{ transform: translateY(-1px); background: rgba(var(--glass-rgb),.10); }
 
 .story-step.is-active{
-  background: rgba(255,255,255,.92);
-  border-color: rgba(255,255,255,.92);
+  background: rgba(var(--glass-rgb),.92);
+  border-color: rgba(var(--glass-rgb),.92);
   color: rgba(10,10,10,.92);
 }
 
@@ -187,8 +187,8 @@
   display: grid;
   place-items: center;
   font-weight: 800;
-  background: rgba(255,255,255,.14);
-  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(var(--glass-rgb),.14);
+  border: 1px solid rgba(var(--glass-rgb),.16);
 }
 
 .story-step.is-active .story-step__num{
@@ -206,7 +206,7 @@
   font-size: .92rem;
   letter-spacing: .02em;
   text-transform: uppercase;
-  color: rgba(255,255,255,.62);
+  color: rgba(var(--glass-rgb),.62);
 }
 
 .story-panel h3{
@@ -216,7 +216,7 @@
 
 .story-panel p{
   margin: 0;
-  color: rgba(255,255,255,.82);
+  color: rgba(var(--glass-rgb),.82);
   line-height: 1.6;
 }
 
@@ -229,19 +229,19 @@
 
 /* Buttons in dark island */
 .story-island .btn--ghost{
-  background: rgba(255,255,255,.10);
-  border-color: rgba(255,255,255,.20);
-  color: rgba(255,255,255,.88);
+  background: rgba(var(--glass-rgb),.10);
+  border-color: rgba(var(--glass-rgb),.20);
+  color: rgba(var(--glass-rgb),.88);
 }
-.story-island .btn--ghost:hover{ background: rgba(255,255,255,.14); }
+.story-island .btn--ghost:hover{ background: rgba(var(--glass-rgb),.14); }
 
 .story-island .btn--primary{
-  background: rgba(255,255,255,.92);
+  background: rgba(var(--glass-rgb),.92);
   color: rgba(10,10,10,.92);
 }
 .story-island .btn--primary:hover{ opacity: .92; }
 
-.story-note{ margin: 14px 0 0; font-size: .95rem; color: rgba(255,255,255,.68); }
+.story-note{ margin: 14px 0 0; font-size: .95rem; color: rgba(var(--glass-rgb),.68); }
 
 /* Reveal animation (optional, JS adds .is-in) */
 .story-island .story-media,
