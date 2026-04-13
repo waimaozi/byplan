@@ -637,8 +637,18 @@ function escapeAttr(str) {
     if (stats.length) renderStats("statsGrid", stats);
     toggleSection("#statsGrid", stats.length > 0);
 
-    // 8) Pricing
-    const pricing = (await fetchTabSafe(tabs.pricing)).slice(0, limits.pricing || 999);
+    // 8) Pricing — with data validation (detect broken sheet data)
+    let pricing = (await fetchTabSafe(tabs.pricing)).slice(0, limits.pricing || 999);
+    // If all data got crammed into the 'plan' column (pipe-separated), use snapshot instead
+    if (pricing.length && pricing.every(r => !r.price && (r.plan || "").includes("|"))) {
+      console.warn("Pricing data malformed (all in plan column). Falling back to snapshot.");
+      try {
+        const snap = await fetch(cfg.SNAPSHOT_URL || "assets/data/snapshot.json", { cache: "no-store" }).then(r => r.ok ? r.json() : null);
+        if (snap && snap.tabs && Array.isArray(snap.tabs.pricing)) {
+          pricing = snap.tabs.pricing.slice(0, limits.pricing || 999);
+        }
+      } catch (e) { console.warn("Snapshot fallback also failed:", e); }
+    }
     if (pricing.length) renderPricing("pricingGrid", pricing);
     toggleSection("#pricing", pricing.length > 0);
 
