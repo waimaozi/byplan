@@ -49,7 +49,7 @@
   right: var(--rail-pad);
   top: 22px;
   height: 2px;
-  border-radius: 99px;
+  border-radius: var(--radius-pill);
   background: rgba(0,0,0,.10);
 }
 
@@ -61,7 +61,7 @@
   right: var(--rail-pad);
   top: 22px;
   height: 2px;
-  border-radius: 99px;
+  border-radius: var(--radius-pill);
   background: rgba(0,0,0,.22);
   transform-origin: left;
   transform: scaleX(var(--progress));
@@ -82,14 +82,14 @@
 .process-stepper__dot{
   width: 28px;
   height: 28px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   display: grid;
   place-items: center;
   margin: 0 auto 10px;
   font-weight: 900;
   font-size: 0.85rem;
   background: rgba(var(--glass-rgb),.65);
-  border: 1px solid rgba(0,0,0,.12);
+  border: 1px solid var(--border-medium);
   box-shadow: 0 12px 35px rgba(0,0,0,.10);
   transition:
     transform 200ms var(--ease-out),
@@ -133,7 +133,7 @@
 /* Detail panel (one step at a time) */
 .process-stepper__panel{
   margin-top: 16px;
-  border-radius: 22px;
+  border-radius: var(--radius);
   background: linear-gradient(180deg, rgba(var(--glass-rgb),.78), rgba(var(--glass-rgb),.58));
   border: 1px solid rgba(var(--glass-rgb),.55);
   box-shadow: 0 22px 70px rgba(0,0,0,.12);

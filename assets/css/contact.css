@@ -24,8 +24,8 @@
   align-items: center;
   grid-template-areas: "icon body actions";
   padding: 14px 16px;
-  border: 1px solid rgba(0,0,0,.08);
-  border-radius: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   background: rgba(var(--glass-rgb),.72);
   box-shadow: var(--shadow-soft);
 }
@@ -34,7 +34,7 @@
   grid-area: icon;
   width: 44px;
   height: 44px;
-  border-radius: 14px;
+  border-radius: var(--radius-xs);
   display: grid;
   place-items: center;
   background: rgba(110,76,61,.08);
@@ -77,8 +77,8 @@
 }
 
 #contact .contact-form-card{
-  border: 1px solid rgba(0,0,0,.12);
-  border-radius: 22px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius);
   background: rgba(var(--glass-rgb),.86);
   padding: 18px;
   box-shadow: var(--shadow-soft);
@@ -105,7 +105,7 @@
 #contact .contact-next{
   margin-top: 16px;
   padding: 12px 14px;
-  border-radius: 16px;
+  border-radius: var(--radius-sm);
   border: 1px dashed rgba(0,0,0,.12);
   background: rgba(0,0,0,.02);
 }

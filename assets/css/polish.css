@@ -36,7 +36,7 @@
 /* ---- Active nav item (scroll-spy) ---- */
 .nav__menu a.is-active{
   background: rgba(0,0,0,.06);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 /* ---- Anchor offset for fixed header ---- */
@@ -113,7 +113,7 @@ html.js .reveal.is-visible{
 .skeleton{
   position: relative;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: var(--radius-sm);
   background: rgba(0,0,0,.06);
   border: 1px solid rgba(0,0,0,.06);
 }
@@ -159,7 +159,7 @@ html.js .reveal.is-visible{
 
 .lb-dialog{
   width: min(1120px, 100%);
-  border-radius: 20px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: rgba(var(--glass-rgb),.92);
   border: 1px solid rgba(var(--glass-rgb),.22);
@@ -185,7 +185,7 @@ html.js .reveal.is-visible{
 
 .lb-close{
   border: 1px solid rgba(0,0,0,.10);
-  border-radius: 12px;
+  border-radius: var(--radius-xs);
   background: rgba(var(--glass-rgb),.75);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
@@ -279,7 +279,7 @@ html.js .reveal.is-visible{
   height:1px;
   background: rgba(var(--glass-rgb),.65);
   opacity:.9;
-  border-radius:999px;
+  border-radius: var(--radius-pill);
 }
 
 /* Q/A typography */
@@ -300,7 +300,7 @@ html.js .reveal.is-visible{
   bottom:0;
   width: 42px;
   height: 2px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(0,0,0,.16);
 }
 
@@ -338,7 +338,7 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
 #process .process{
   background: linear-gradient(180deg, rgba(var(--glass-rgb),.78), rgba(var(--glass-rgb),.58));
   border: 1px solid rgba(var(--glass-rgb),.55);
-  border-radius: 22px;
+  border-radius: var(--radius);
   box-shadow: 0 22px 70px rgba(0,0,0,.12);
   padding: 18px 18px 16px;
 }
@@ -378,9 +378,9 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
   height: 20px;
   display: grid;
   place-items: center;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(0,0,0,.06);
-  border: 1px solid rgba(0,0,0,.08);
+  border: 1px solid var(--border);
   color: rgba(0,0,0,.75);
   font-weight: 900;
   font-size: 0.85rem;
@@ -392,9 +392,9 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(0,0,0,.05);
-  border: 1px solid rgba(0,0,0,.08);
+  border: 1px solid var(--border);
   margin-top: 14px;
 }
 
@@ -411,7 +411,7 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
 #stepsList li{
   position: relative;
   padding: 12px 12px 12px 44px;
-  border-radius: 18px;
+  border-radius: var(--radius-sm);
   background: rgba(var(--glass-rgb),.55);
   border: 1px solid rgba(0,0,0,.06);
 }
@@ -447,7 +447,7 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
   top: 14px;
   width: 22px;
   height: 22px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   display: grid;
   place-items: center;
   font-weight: 900;
@@ -464,7 +464,7 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
   bottom: 20px;
   width: 2px;
   background: rgba(0,0,0,.08);
-  border-radius: 99px;
+  border-radius: var(--radius-pill);
   pointer-events:none;
 }
 html.js #for .card.reveal:nth-child(4){ transition-delay: 180ms; }
@@ -484,7 +484,7 @@ html.js #for .card.reveal:nth-child(6){ transition-delay: 300ms; }
 .review__head{
   margin-bottom: 12px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(0,0,0,.08);
+  border-bottom: 1px solid var(--border);
 }
 
 .review__name{
@@ -508,7 +508,7 @@ html.js #for .card.reveal:nth-child(6){ transition-delay: 300ms; }
 .sheet-error{
   margin: 16px auto 0;
   padding: 12px 14px;
-  border-radius: 16px;
+  border-radius: var(--radius-sm);
   border: 1px dashed rgba(0,0,0,.18);
   background: rgba(var(--glass-rgb),.65);
   color: rgba(0,0,0,.72);
@@ -521,7 +521,7 @@ html.js #for .card.reveal:nth-child(6){ transition-delay: 300ms; }
 
 /* Case cards */
 .case-card{
-  border: 1px solid rgba(0,0,0,.08);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   background: rgba(var(--glass-rgb),.60);
   padding: 14px;
@@ -531,7 +531,7 @@ html.js #for .card.reveal:nth-child(6){ transition-delay: 300ms; }
 }
 .case-card__img{
   aspect-ratio: 4 / 3;
-  border-radius: 16px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: rgba(0,0,0,.04);
 }
@@ -552,7 +552,7 @@ html.js #for .card.reveal:nth-child(6){ transition-delay: 300ms; }
 .review__caseThumb{
   position: relative;
   aspect-ratio: 4 / 3;
-  border-radius: 12px;
+  border-radius: var(--radius-xs);
   overflow: hidden;
   background: rgba(0,0,0,.04);
 }
@@ -567,12 +567,12 @@ html.js #for .card.reveal:nth-child(6){ transition-delay: 300ms; }
   top: 8px;
   left: 8px;
   padding: 4px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: 12px;
   font-weight: 700;
   background: rgba(var(--glass-rgb),.88);
   color: rgba(0,0,0,.78);
-  border: 1px solid rgba(0,0,0,.08);
+  border: 1px solid var(--border);
 }
 
 body.case-modal-open{
@@ -628,7 +628,7 @@ body.case-modal-open{
   bottom: 0;
   width: 54px;
   height: 4px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: linear-gradient(90deg, var(--why-accent), rgba(110,76,61,.12));
 }
 
@@ -646,8 +646,8 @@ body.case-modal-open{
 #why .why-stats .stat{
   position: relative;
   padding:20px 18px 18px 20px;
-  border-radius:24px;
-  border:1px solid rgba(0,0,0,.08);
+  border-radius: var(--radius);
+  border:1px solid var(--border);
   background: linear-gradient(180deg, rgba(var(--glass-rgb),.96), rgba(var(--glass-rgb),.80));
   box-shadow: var(--elev-1);
   overflow:hidden;
@@ -700,7 +700,7 @@ body.case-modal-open{
   right:12px;
   width:44px;
   height:44px;
-  border-radius:16px;
+  border-radius: var(--radius-sm);
   background: radial-gradient(circle at 30% 30%, rgba(110,76,61,.55), rgba(110,76,61,0));
   opacity:.75;
 }
@@ -732,8 +732,8 @@ body.case-modal-open{
 #why .why-card{
   position: relative;
   padding:16px 16px 16px 20px;
-  border-radius:20px;
-  border:1px solid rgba(0,0,0,.08);
+  border-radius: var(--radius-sm);
+  border:1px solid var(--border);
   background:rgba(var(--glass-rgb),.86);
   box-shadow: 0 10px 24px rgba(0,0,0,.08);
 }
@@ -745,7 +745,7 @@ body.case-modal-open{
   top:14px;
   bottom:14px;
   width:4px;
-  border-radius:999px;
+  border-radius: var(--radius-pill);
   background: linear-gradient(180deg, rgba(110,76,61,.85), rgba(110,76,61,.18));
 }
 

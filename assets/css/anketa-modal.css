@@ -60,7 +60,7 @@ body.anketa-lock{
   letter-spacing: .28em;
   text-transform: uppercase;
   font-size: 0.86rem;
-  color: rgba(28,27,27,.75);
+  color: var(--muted);
   margin-bottom: 4px;
 }
 
@@ -84,15 +84,15 @@ body.anketa-lock{
   align-items: center;
   gap: 10px;
   font-size: .92rem;
-  color: rgba(28,27,27,.72);
+  color: var(--muted);
 }
 
 .anketa-progress__bar{
   width: 120px;
   height: 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(var(--glass-rgb),.20);
-  border: 1px solid rgba(0,0,0,.08);
+  border: 1px solid var(--border);
   overflow: hidden;
 }
 .anketa-progress__bar > span{
@@ -111,7 +111,7 @@ body.anketa-lock{
 .anketa-link{
   border: 0;
   background: transparent;
-  color: rgba(28,27,27,.75);
+  color: var(--muted);
   text-decoration: underline;
   text-underline-offset: .2em;
   padding: 8px 6px;
@@ -123,8 +123,8 @@ body.anketa-lock{
 .anketa-modal__close{
   width: 40px;
   height: 40px;
-  border-radius: 999px;
-  border: 1px solid rgba(0,0,0,.14);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
   background: rgba(var(--glass-rgb),.22);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
@@ -169,14 +169,14 @@ body.anketa-lock{
 
 .anketa-text{
   margin: 0 0 14px 0;
-  color: rgba(28,27,27,.72);
+  color: var(--muted);
 }
 
 .anketa-hint{
   margin-top: -6px;
   margin-bottom: 14px;
   font-size: .92rem;
-  color: rgba(28,27,27,.72);
+  color: var(--muted);
 }
 
 .anketa-grid{
@@ -200,7 +200,7 @@ body.anketa-lock{
 
 .anketa-label{
   font-weight: 650;
-  color: rgba(28,27,27,.92);
+  color: var(--text);
 }
 
 .anketa-req{
@@ -213,13 +213,13 @@ body.anketa-lock{
 .anketa-textarea,
 .anketa-select{
   width: 100%;
-  border: 1px solid rgba(0,0,0,.14);
-  border-radius: 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
   padding: 12px 12px;
   background: rgba(var(--glass-rgb),.22);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  color: rgba(28,27,27,.92);
+  color: var(--text);
 }
 
 .anketa-textarea{
@@ -243,7 +243,7 @@ body.anketa-lock{
   align-items: flex-start;
   gap: 10px;
   padding: 10px 10px;
-  border-radius: 16px;
+  border-radius: var(--radius-sm);
   border: 1px solid rgba(0,0,0,.10);
   background: rgba(var(--glass-rgb),.18);
 }
@@ -254,12 +254,12 @@ body.anketa-lock{
 
 .anketa-check label{
   cursor: pointer;
-  color: rgba(28,27,27,.88);
+  color: var(--text);
 }
 
 .anketa-block{
   padding: 14px 14px;
-  border-radius: 18px;
+  border-radius: var(--radius-sm);
   border: 1px solid rgba(0,0,0,.10);
   background: rgba(var(--glass-rgb),.16);
   margin-bottom: 12px;
@@ -271,7 +271,7 @@ body.anketa-lock{
 }
 
 .anketa-zones details{
-  border-radius: 18px;
+  border-radius: var(--radius-sm);
   border: 1px solid rgba(0,0,0,.10);
   background: rgba(var(--glass-rgb),.16);
   padding: 10px 12px;
@@ -350,14 +350,14 @@ body.anketa-lock{
 }
 
 .anketa-success__text{
-  color: rgba(28,27,27,.72);
+  color: var(--muted);
   margin: 0 0 12px 0;
 }
 
 .anketa-success__box{
   border: 1px solid rgba(0,0,0,.10);
   background: rgba(var(--glass-rgb),.16);
-  border-radius: 18px;
+  border-radius: var(--radius-sm);
   padding: 12px;
   white-space: pre-wrap;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;

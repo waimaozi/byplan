@@ -13,7 +13,7 @@ body{
   margin: 0;
   font-family: "Manrope", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   line-height: 1.55;
-  color: #1C1B1B;
+  color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: subpixel-antialiased;
   -moz-osx-font-smoothing: auto;
@@ -217,9 +217,9 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  border: 1px solid rgba(0,0,0,.14);
-  border-radius: 999px;
-  color: rgba(28,27,27,.78);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  color: var(--muted);
   font-size: 0.95rem;
 
   background: rgba(var(--glass-rgb),.28);
@@ -243,11 +243,11 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
   align-items: center;
   justify-content: center;
   gap: 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 14px 22px;
   text-decoration: none;
   font-weight: 650;
-  border: 1px solid rgba(0,0,0,.12);
+  border: 1px solid var(--border-medium);
 
   background: rgba(var(--glass-rgb),.26);
   -webkit-backdrop-filter: blur(10px);
@@ -277,11 +277,11 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
   margin-top: 18px;
 }
 .pill{
-  border: 1px solid rgba(0,0,0,.12);
-  border-radius: 999px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-pill);
   padding: 10px 14px;
   font-size: 0.95rem;
-  color: rgba(28,27,27,.78);
+  color: var(--muted);
 
   background: rgba(var(--glass-rgb),.22);
   -webkit-backdrop-filter: blur(10px);
@@ -294,7 +294,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
    Rest of site: keep clean (minimal, not fighting hero look)
    ============================================================ */
 .card{
-  border: 1px solid rgba(0,0,0,.08);
+  border: 1px solid var(--border);
   border-radius: var(--radius, 24px);
   background: rgba(var(--glass-rgb),.55);
   padding: 16px;
@@ -306,7 +306,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 .pricing{ display:grid; gap:14px; grid-template-columns: repeat(4, minmax(0,1fr)); }
 
 .price-card{
-  border: 1px solid rgba(0,0,0,.08);
+  border: 1px solid var(--border);
   border-radius: var(--radius, 24px);
   background: rgba(var(--glass-rgb),.55);
   padding: 16px;
@@ -320,32 +320,32 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 
 .faq{ display:grid; gap:10px; }
 .faq-item{
-  border: 1px solid rgba(0,0,0,.08);
-  border-radius: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   background: rgba(var(--glass-rgb),.60);
   box-shadow: var(--shadow-soft);
 }
 
 .review{
-  border: 1px solid rgba(0,0,0,.08);
+  border: 1px solid var(--border);
   border-radius: var(--radius, 24px);
   background: rgba(var(--glass-rgb),.60);
   padding: 16px;
   box-shadow: var(--shadow-soft);
 }
 
-.site-footer{ border-top: 1px solid rgba(0,0,0,.08); padding: 28px 0; color: rgba(28,27,27,.75); }
+.site-footer{ border-top: 1px solid var(--border); padding: 28px 0; color: var(--muted); }
 .footer-note--legal{
   margin-top: 6px;
   font-size: 0.85rem;
   line-height: 1.45;
-  color: rgba(28,27,27,.62);
+  color: var(--subtle);
   max-width: 72ch;
 }
 .footer-version{
   margin-top: 4px;
   font-size: 0.82rem;
-  color: rgba(28,27,27,.55);
+  color: var(--subtle);
 }
 .footer-legal{
   margin-top: 14px;
@@ -372,8 +372,8 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 .footer-legal__panel{
   margin-top: 10px;
   padding: 14px 16px;
-  border: 1px solid rgba(0,0,0,.08);
-  border-radius: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   background: rgba(var(--glass-rgb),.70);
   box-shadow: var(--shadow-soft);
   max-height: 50vh;
@@ -382,7 +382,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 .footer-legal__text{
   font-size: 0.9rem;
   line-height: 1.55;
-  color: rgba(28,27,27,.72);
+  color: var(--muted);
   white-space: pre-line;
 }
 

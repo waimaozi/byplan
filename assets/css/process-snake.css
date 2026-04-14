@@ -67,7 +67,7 @@
   counter-increment: step;
   position: relative;
   padding: calc(var(--step-pad) + 2px) var(--step-pad) var(--step-pad) calc(var(--step-pad) + var(--step-dot) + 10px);
-  border-radius: 20px;
+  border-radius: var(--radius-sm);
   background: linear-gradient(180deg, rgba(var(--glass-rgb),.72), var(--step-card-bg));
   border: 1px solid var(--step-card-border);
   box-shadow: var(--step-card-shadow);
@@ -82,7 +82,7 @@
   top: var(--step-pad);
   width: var(--step-dot);
   height: var(--step-dot);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   display: grid;
   place-items: center;
   font-weight: 900;
@@ -130,7 +130,7 @@
   width: var(--step-gap);
   height: 2px;
   background: var(--step-line);
-  border-radius: 99px;
+  border-radius: var(--radius-pill);
 }
 
 /* 3→4 (down) — note: 4 is under 3 (same column 3) */
@@ -142,7 +142,7 @@
   width: 2px;
   height: calc(100% + var(--step-gap));
   background: var(--step-line);
-  border-radius: 99px;
+  border-radius: var(--radius-pill);
 }
 
 /* 4→5 (left) — 4 at col3 row2, 5 at col2 row2 */
@@ -154,7 +154,7 @@
   width: var(--step-gap);
   height: 2px;
   background: var(--step-line);
-  border-radius: 99px;
+  border-radius: var(--radius-pill);
 }
 
 /* Mobile: horizontal swipe (no snake, no connectors) */
