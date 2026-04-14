@@ -439,7 +439,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 
 .cards{ display:grid; gap:14px; grid-template-columns: repeat(3, minmax(0,1fr)); }
 
-.pricing{ display:grid; gap:14px; grid-template-columns: repeat(4, minmax(0,1fr)); }
+.pricing{ display:grid; gap:14px; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); }
 
 .price-card{
   border: 1px solid rgba(0,0,0,.08);
@@ -447,11 +447,76 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
   background: rgba(var(--glass-rgb),.55);
   padding: 16px;
   box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
 }
 .price-card--featured{
   border-color: rgba(110,76,61,.28);
   background: rgba(var(--glass-rgb),.72);
   box-shadow: 0 22px 58px rgba(0,0,0,.18);
+  border-top: 3px solid var(--brand);
+  position: relative;
+  transform: scale(1.02);
+}
+
+/* Pricing card inner elements */
+.price-card__top{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.price-card__plan{
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.price-card__badge{
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(110,76,61,.12);
+  color: var(--brand);
+  font-weight: 600;
+}
+.price-card--featured .price-card__badge{
+  background: var(--brand);
+  color: #fff;
+}
+.price-card__price{
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--brand);
+  margin: 8px 0 4px;
+}
+.price-card__note{
+  font-size: 0.85rem;
+  color: rgba(0,0,0,.5);
+  margin-bottom: 12px;
+}
+.price-card__features{
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  flex-grow: 1;
+}
+.price-card__features li{
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+  font-size: 0.9rem;
+}
+.price-card__features li:last-child{
+  border-bottom: none;
+}
+.price-card__features li::before{
+  content: "\2713";
+  color: var(--brand);
+  margin-right: 8px;
+  font-weight: 700;
+}
+.price-card .btn{
+  margin-top: auto;
 }
 
 .faq{ display:grid; gap:10px; }
@@ -526,7 +591,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
    Responsive
    ============================================================ */
 @media (max-width: 980px){
-  .pricing{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .pricing{ grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); }
   .cards{ grid-template-columns: repeat(2, minmax(0,1fr)); }
   .hero .container{ padding: 44px 22px 40px; }
   .hero-logo{ right: 20px; top: 18px; }
