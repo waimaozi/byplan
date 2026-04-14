@@ -1,3 +1,124 @@
+/* === theme.css === */
+:root{
+  --bg: #EDE8EC;
+  --bg-rgb: 237, 232, 236;
+  --glass-rgb: 255, 255, 255;
+  --bg-alt: rgba(var(--glass-rgb),.35);
+  --card: rgba(var(--glass-rgb),.35);
+  --border: #DBD6DA;
+
+  --text: #1C1B1B;
+  --muted: rgba(28,27,27,.70);
+
+  --accent: #1C1B1B;     /* чёрная кнопка */
+  --accent-2: #6E4C3D;   /* коричневый бренда */
+  --brand: #6E4C3D;      /* logo brown (alias) */
+
+  --radius: 22px;
+  --shadow: 0 24px 60px rgba(0,0,0,.18);
+}
+
+body{
+  font-family: "Manrope", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+h1{ font-weight: 800; letter-spacing: -0.02em; }
+h2,h3{ letter-spacing: -0.01em; }
+
+/* “стеклянность” как в макете */
+.card, .panel, .box, .section-card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* Пиллы/бейджи */
+.badge, .pill, .chip, .tag{
+  background: rgba(var(--glass-rgb),.30);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* Кнопки: делаем “капсулами” */
+.btn, button, .button{
+  border-radius: 999px !important;
+  font-weight: 600;
+}
+
+/* Попытайся попасть в классы из твоего шаблона */
+.btn-primary, .btn--primary{
+  background: var(--accent) !important;
+  color: #fff !important;
+  border: 1px solid transparent !important;
+}
+
+.btn-secondary, .btn--secondary{
+  background: rgba(var(--glass-rgb),.30) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+}
+
+/* Бренд-акцент (если хочешь) */
+.brand__name{
+  letter-spacing: -0.01em;
+}
+.hero{
+  background-image:
+    linear-gradient(90deg,
+      rgba(var(--bg-rgb),.92) 0%,
+      rgba(var(--bg-rgb),.75) 55%,
+      rgba(var(--bg-rgb),.35) 100%),
+    url("../img/hero-bg.jpg");
+  background-position: center bottom;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+@supports (background-image: image-set(url("a.webp") type("image/webp"))) {
+  .hero{
+    background-image:
+      linear-gradient(90deg,
+        rgba(var(--bg-rgb),.92) 0%,
+        rgba(var(--bg-rgb),.75) 55%,
+        rgba(var(--bg-rgb),.35) 100%),
+      image-set(
+        url("../img/hero-bg.webp") type("image/webp"),
+        url("../img/hero-bg.jpg") type("image/jpeg")
+      );
+  }
+}
+
+/* Мобилка: ослабляем засветку чтобы шрифты не были забелены */
+@media (max-width: 640px){
+  .hero{
+    background-image:
+      linear-gradient(90deg,
+        rgba(var(--bg-rgb),.45) 0%,
+        rgba(var(--bg-rgb),.25) 55%,
+        rgba(var(--bg-rgb),.10) 100%),
+      url("../img/hero-bg.jpg");
+  }
+  @supports (background-image: image-set(url("a.webp") type("image/webp"))) {
+    .hero{
+      background-image:
+        linear-gradient(90deg,
+          rgba(var(--bg-rgb),.45) 0%,
+          rgba(var(--bg-rgb),.25) 55%,
+          rgba(var(--bg-rgb),.10) 100%),
+        image-set(
+          url("../img/hero-bg.webp") type("image/webp"),
+          url("../img/hero-bg.jpg") type("image/jpeg")
+        );
+    }
+  }
+}
+
 
 /* === styles.css === */
 /* ============================================================
