@@ -5,17 +5,38 @@
   --glass-rgb: 255, 255, 255;
   --bg-alt: rgba(var(--glass-rgb),.35);
   --card: rgba(var(--glass-rgb),.35);
-  --border: #DBD6DA;
+  --border: rgba(0,0,0,.08);
+  --border-medium: rgba(0,0,0,.12);
+  --border-strong: rgba(0,0,0,.14);
+  --border-brand: rgba(110,76,61,.28);
 
   --text: #1C1B1B;
   --muted: rgba(28,27,27,.70);
+  --subtle: rgba(28,27,27,.55);
 
   --accent: #1C1B1B;     /* чёрная кнопка */
   --accent-2: #6E4C3D;   /* коричневый бренда */
   --brand: #6E4C3D;      /* logo brown (alias) */
+  --brand-deep: #4F352B;
+  --brand-soft: rgba(110,76,61,.18);
 
-  --radius: 22px;
+  --radius: 24px;
+  --radius-sm: 16px;
+  --radius-pill: 999px;
+
   --shadow: 0 24px 60px rgba(0,0,0,.18);
+  --shadow-soft: 0 14px 38px rgba(0,0,0,.16);
+  --shadow-md: 0 22px 58px rgba(0,0,0,.18);
+  --shadow-btn: 0 18px 45px rgba(0,0,0,.22);
+  --shadow-hero: 0 34px 95px rgba(0,0,0,.52);
+  --elev-1: 0 10px 24px rgba(0,0,0,.10);
+  --elev-2: 0 18px 40px rgba(0,0,0,.14);
+  --elev-3: 0 34px 95px rgba(0,0,0,.28);
+
+  --ease: cubic-bezier(.2,.8,.2,1);
+  --dur-fast: 160ms;
+  --dur: 240ms;
+  --glass-blur: 10px;
 }
 
 body{
@@ -119,7 +140,6 @@ h2,h3{ letter-spacing: -0.01em; }
   }
 }
 
-
 /* === styles.css === */
 /* ============================================================
    BYPLAN — styles.css (volume / mock-match)
@@ -156,31 +176,18 @@ ul, ol{ padding-left: 1.2rem; }
 p{ margin: 0 0 12px 0; }
 
 :root{
-  /* Layout */
+  /* Layout — all other variables defined in theme.css */
   --container: 1120px;
   --pad: 20px;
 
   /* Fonts */
-  --font: "Manrope", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  --logo-font: "Bodoni Moda", "Playfair Display", Georgia, serif;
+  --font: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-logo: "Bodoni Moda", "Playfair Display", Georgia, serif;
 
   /* Type scale */
   --h1: clamp(2.35rem, 4.2vw, 3.75rem);
   --h2: clamp(1.55rem, 2.4vw, 2.15rem);
-  --h3: 1.05rem;
-
-  /* Layout borders & shadows (non-theme) */
-  --border: rgba(40, 40, 40, .18);
-  --border-strong: rgba(30, 30, 30, .26);
-
-  --radius: 26px;
-  --radius-sm: 16px;
-
-  --shadow-hero: 0 34px 95px rgba(0,0,0,.52);
-  --shadow-soft: 0 14px 38px rgba(0,0,0,.16);
-  --shadow-btn: 0 18px 45px rgba(0,0,0,.22);
-
-  --blur: 10px;
+  --h3: 1.08rem;
 }
 
 /* Containers / sections */
@@ -231,7 +238,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
   position: relative;
   max-width: 1240px;
   margin: 0 auto;
-  border-radius: var(--radius);
+  border-radius: var(--radius, 24px);
   overflow: hidden;
 
   /* Depth */
@@ -328,7 +335,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
   position: absolute;
   top: 64px;
   right: 34px;
-  font-family: var(--logo-font);
+  font-family: var(--font-logo);
   font-weight: 600;
   font-size: clamp(2.2rem, 4.6vw, 3.55rem);
   color: var(--brand);
@@ -431,7 +438,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
    ============================================================ */
 .card{
   border: 1px solid rgba(0,0,0,.08);
-  border-radius: var(--radius);
+  border-radius: var(--radius, 24px);
   background: rgba(var(--glass-rgb),.55);
   padding: 16px;
   box-shadow: var(--shadow-soft);
@@ -439,84 +446,19 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 
 .cards{ display:grid; gap:14px; grid-template-columns: repeat(3, minmax(0,1fr)); }
 
-.pricing{ display:grid; gap:14px; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); }
+.pricing{ display:grid; gap:14px; grid-template-columns: repeat(4, minmax(0,1fr)); }
 
 .price-card{
   border: 1px solid rgba(0,0,0,.08);
-  border-radius: var(--radius);
+  border-radius: var(--radius, 24px);
   background: rgba(var(--glass-rgb),.55);
   padding: 16px;
   box-shadow: var(--shadow-soft);
-  display: flex;
-  flex-direction: column;
 }
 .price-card--featured{
   border-color: rgba(110,76,61,.28);
   background: rgba(var(--glass-rgb),.72);
   box-shadow: 0 22px 58px rgba(0,0,0,.18);
-  border-top: 3px solid var(--brand);
-  position: relative;
-  transform: scale(1.02);
-}
-
-/* Pricing card inner elements */
-.price-card__top{
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-.price-card__plan{
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--accent);
-}
-.price-card__badge{
-  font-size: 0.75rem;
-  padding: 4px 10px;
-  border-radius: 20px;
-  background: rgba(110,76,61,.12);
-  color: var(--brand);
-  font-weight: 600;
-}
-.price-card--featured .price-card__badge{
-  background: var(--brand);
-  color: #fff;
-}
-.price-card__price{
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--brand);
-  margin: 8px 0 4px;
-}
-.price-card__note{
-  font-size: 0.85rem;
-  color: rgba(0,0,0,.5);
-  margin-bottom: 12px;
-}
-.price-card__features{
-  list-style: none;
-  padding: 0;
-  margin: 0 0 16px;
-  flex-grow: 1;
-}
-.price-card__features li{
-  padding: 6px 0;
-  border-bottom: 1px solid rgba(0,0,0,.06);
-  font-size: 0.9rem;
-}
-.price-card__features li:last-child{
-  border-bottom: none;
-}
-.price-card__features li::before{
-  content: "\2713";
-  color: var(--brand);
-  margin-right: 8px;
-  font-weight: 700;
-}
-.price-card .btn{
-  margin-top: auto;
 }
 
 .faq{ display:grid; gap:10px; }
@@ -529,7 +471,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 
 .review{
   border: 1px solid rgba(0,0,0,.08);
-  border-radius: var(--radius);
+  border-radius: var(--radius, 24px);
   background: rgba(var(--glass-rgb),.60);
   padding: 16px;
   box-shadow: var(--shadow-soft);
@@ -591,7 +533,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
    Responsive
    ============================================================ */
 @media (max-width: 980px){
-  .pricing{ grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); }
+  .pricing{ grid-template-columns: repeat(2, minmax(0,1fr)); }
   .cards{ grid-template-columns: repeat(2, minmax(0,1fr)); }
   .hero .container{ padding: 44px 22px 40px; }
   .hero-logo{ right: 20px; top: 18px; }

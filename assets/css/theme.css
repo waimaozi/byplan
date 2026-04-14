@@ -4,17 +4,38 @@
   --glass-rgb: 255, 255, 255;
   --bg-alt: rgba(var(--glass-rgb),.35);
   --card: rgba(var(--glass-rgb),.35);
-  --border: #DBD6DA;
+  --border: rgba(0,0,0,.08);
+  --border-medium: rgba(0,0,0,.12);
+  --border-strong: rgba(0,0,0,.14);
+  --border-brand: rgba(110,76,61,.28);
 
   --text: #1C1B1B;
   --muted: rgba(28,27,27,.70);
+  --subtle: rgba(28,27,27,.55);
 
   --accent: #1C1B1B;     /* чёрная кнопка */
   --accent-2: #6E4C3D;   /* коричневый бренда */
   --brand: #6E4C3D;      /* logo brown (alias) */
+  --brand-deep: #4F352B;
+  --brand-soft: rgba(110,76,61,.18);
 
-  --radius: 22px;
+  --radius: 24px;
+  --radius-sm: 16px;
+  --radius-pill: 999px;
+
   --shadow: 0 24px 60px rgba(0,0,0,.18);
+  --shadow-soft: 0 14px 38px rgba(0,0,0,.16);
+  --shadow-md: 0 22px 58px rgba(0,0,0,.18);
+  --shadow-btn: 0 18px 45px rgba(0,0,0,.22);
+  --shadow-hero: 0 34px 95px rgba(0,0,0,.52);
+  --elev-1: 0 10px 24px rgba(0,0,0,.10);
+  --elev-2: 0 18px 40px rgba(0,0,0,.14);
+  --elev-3: 0 34px 95px rgba(0,0,0,.28);
+
+  --ease: cubic-bezier(.2,.8,.2,1);
+  --dur-fast: 160ms;
+  --dur: 240ms;
+  --glass-blur: 10px;
 }
 
 body{

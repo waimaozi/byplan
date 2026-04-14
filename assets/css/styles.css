@@ -33,31 +33,18 @@ ul, ol{ padding-left: 1.2rem; }
 p{ margin: 0 0 12px 0; }
 
 :root{
-  /* Layout */
+  /* Layout — all other variables defined in theme.css */
   --container: 1120px;
   --pad: 20px;
 
   /* Fonts */
-  --font: "Manrope", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  --logo-font: "Bodoni Moda", "Playfair Display", Georgia, serif;
+  --font: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-logo: "Bodoni Moda", "Playfair Display", Georgia, serif;
 
   /* Type scale */
   --h1: clamp(2.35rem, 4.2vw, 3.75rem);
   --h2: clamp(1.55rem, 2.4vw, 2.15rem);
-  --h3: 1.05rem;
-
-  /* Layout borders & shadows (non-theme) */
-  --border: rgba(40, 40, 40, .18);
-  --border-strong: rgba(30, 30, 30, .26);
-
-  --radius: 26px;
-  --radius-sm: 16px;
-
-  --shadow-hero: 0 34px 95px rgba(0,0,0,.52);
-  --shadow-soft: 0 14px 38px rgba(0,0,0,.16);
-  --shadow-btn: 0 18px 45px rgba(0,0,0,.22);
-
-  --blur: 10px;
+  --h3: 1.08rem;
 }
 
 /* Containers / sections */
@@ -108,7 +95,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
   position: relative;
   max-width: 1240px;
   margin: 0 auto;
-  border-radius: var(--radius);
+  border-radius: var(--radius, 24px);
   overflow: hidden;
 
   /* Depth */
@@ -205,7 +192,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
   position: absolute;
   top: 64px;
   right: 34px;
-  font-family: var(--logo-font);
+  font-family: var(--font-logo);
   font-weight: 600;
   font-size: clamp(2.2rem, 4.6vw, 3.55rem);
   color: var(--brand);
@@ -308,7 +295,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
    ============================================================ */
 .card{
   border: 1px solid rgba(0,0,0,.08);
-  border-radius: var(--radius);
+  border-radius: var(--radius, 24px);
   background: rgba(var(--glass-rgb),.55);
   padding: 16px;
   box-shadow: var(--shadow-soft);
@@ -320,7 +307,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 
 .price-card{
   border: 1px solid rgba(0,0,0,.08);
-  border-radius: var(--radius);
+  border-radius: var(--radius, 24px);
   background: rgba(var(--glass-rgb),.55);
   padding: 16px;
   box-shadow: var(--shadow-soft);
@@ -341,7 +328,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 
 .review{
   border: 1px solid rgba(0,0,0,.08);
-  border-radius: var(--radius);
+  border-radius: var(--radius, 24px);
   background: rgba(var(--glass-rgb),.60);
   padding: 16px;
   box-shadow: var(--shadow-soft);
