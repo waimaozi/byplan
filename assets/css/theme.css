@@ -2,8 +2,11 @@
   --bg: #EDE8EC;
   --bg-rgb: 237, 232, 236;
   --glass-rgb: 255, 255, 255;
-  --bg-alt: rgba(var(--glass-rgb),.35);
-  --card: rgba(var(--glass-rgb),.35);
+  --bg-alt: #F4F0F3;
+  --card: rgba(var(--glass-rgb),.55);
+  --card-featured: rgba(var(--glass-rgb),.72);
+  --card-dense: rgba(var(--glass-rgb),.86);
+  --card-light: rgba(var(--glass-rgb),.35);
   --border: rgba(0,0,0,.08);
   --border-medium: rgba(0,0,0,.12);
   --border-strong: rgba(0,0,0,.14);
@@ -69,7 +72,7 @@ h2,h3{ letter-spacing: -0.01em; }
 /* Кнопки: делаем “капсулами” */
 .btn, button, .button{
   border-radius: 999px !important;
-  font-weight: 600;
+  font-weight: 650;
 }
 
 /* Попытайся попасть в классы из твоего шаблона */

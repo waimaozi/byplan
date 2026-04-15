@@ -13,11 +13,11 @@
 
 #about{
   /* local tokens */
-  --about-card-bg: rgba(var(--glass-rgb),.42);
-  --about-border: rgba(0,0,0,.10);
-  --about-border-strong: rgba(0,0,0,.14);
-  --about-shadow: 0 14px 38px rgba(0,0,0,.12);
-  --about-ease: cubic-bezier(.2,.8,.2,1);
+  --about-card-bg: var(--card);
+  --about-border: var(--border-medium);
+  --about-border-strong: var(--border-strong);
+  --about-shadow: var(--shadow-soft);
+  --about-ease: var(--ease);
 }
 
 /* ------------------------------
