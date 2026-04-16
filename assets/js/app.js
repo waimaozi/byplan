@@ -325,6 +325,108 @@
     });
   }
 
+  function renderDeliverablesTriad(containerId, rows, kv = {}) {
+    const root = el(containerId);
+    if (!root) return;
+    root.innerHTML = "";
+
+    const fallbackTitles = {
+      1: "Планировка",
+      2: "Чертежи",
+      3: "Для ремонта"
+    };
+    const fallbackSubtitles = {
+      1: "концепция",
+      2: "технические планы",
+      3: "рабочий комплект"
+    };
+    const fallbackBadges = {
+      1: "выбор оптимума",
+      2: "технический блок",
+      3: "PDF · DWG по запросу"
+    };
+    const fallbackGroupByIndex = (index) => {
+      if (index < 3) return 1;
+      if (index < 6) return 2;
+      return 3;
+    };
+    const iconMarkupByGroup = {
+      1: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M8 9h8M8 13h5"></path></svg>',
+      2: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.5h10l2 2v13H5v-13l2-2z"></path><path d="M8 4.5v4h8v-4"></path><path d="M7 13h10"></path><path d="M9 16.5h6"></path></svg>',
+      3: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5L12 4l8.5 4.5v7L12 20l-8.5-4.5z"></path><path d="M3.5 8.5L12 13l8.5-4.5"></path><path d="M12 13v7"></path></svg>'
+    };
+    const hasAnyGroup = rows.some((row) => String(row.group ?? "").trim() !== "");
+    const groups = new Map([[1, []], [2, []], [3, []]]);
+
+    rows.forEach((row, index) => {
+      const rawGroup = String(row.group ?? "").trim();
+      let groupNumber = Number.parseInt(rawGroup, 10);
+      if (!Number.isInteger(groupNumber) || groupNumber < 1 || groupNumber > 3) {
+        groupNumber = hasAnyGroup ? 3 : fallbackGroupByIndex(index);
+      }
+      groups.get(groupNumber).push(row);
+    });
+
+    [1, 2, 3].forEach((groupNumber, index) => {
+      const article = document.createElement("article");
+      article.className = groupNumber === 2 ? "deliv-card deliv-card--featured" : "deliv-card";
+      article.setAttribute("role", "listitem");
+      article.dataset.group = String(groupNumber);
+
+      const icon = document.createElement("div");
+      icon.className = "deliv-card__icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.innerHTML = iconMarkupByGroup[groupNumber];
+      article.appendChild(icon);
+
+      const title = document.createElement("h3");
+      title.className = "deliv-card__title";
+      title.textContent = String(kv[`deliverables_card${groupNumber}_title`] ?? "").trim() || fallbackTitles[groupNumber];
+      article.appendChild(title);
+
+      const subtitle = document.createElement("div");
+      subtitle.className = "deliv-card__subtitle muted";
+      subtitle.textContent = String(kv[`deliverables_card${groupNumber}_subtitle`] ?? "").trim() || fallbackSubtitles[groupNumber];
+      article.appendChild(subtitle);
+
+      const divider = document.createElement("hr");
+      divider.className = "deliv-card__divider";
+      divider.setAttribute("aria-hidden", "true");
+      article.appendChild(divider);
+
+      const list = document.createElement("ul");
+      list.className = "deliv-card__list";
+      const items = groups.get(groupNumber) || [];
+      if (items.length) {
+        items.forEach((row) => {
+          const li = document.createElement("li");
+          li.textContent = row.text || "";
+          list.appendChild(li);
+        });
+      } else {
+        const li = document.createElement("li");
+        li.textContent = "—";
+        list.appendChild(li);
+      }
+      article.appendChild(list);
+
+      const badge = document.createElement("div");
+      badge.className = "deliv-card__badge";
+      badge.textContent = String(kv[`deliverables_card${groupNumber}_badge`] ?? "").trim() || fallbackBadges[groupNumber];
+      article.appendChild(badge);
+
+      root.appendChild(article);
+
+      if (index < 2) {
+        const chevron = document.createElement("div");
+        chevron.className = "deliv-chevron";
+        chevron.setAttribute("aria-hidden", "true");
+        chevron.textContent = "›";
+        root.appendChild(chevron);
+      }
+    });
+  }
+
   function renderSteps(containerId, rows) {
     const root = el(containerId);
     if (!root) return;
@@ -608,7 +710,7 @@ function escapeAttr(str) {
     // 4) Deliverables
     const deliverables = (await fetchTabSafe(tabs.deliverables)).slice(0, limits.deliverables || 999);
     if (deliverables.length) {
-      renderChecklist("deliverablesList", deliverables);
+      renderDeliverablesTriad("deliverablesList", deliverables, kv);
       renderChecklist("deliverablesMini", deliverables.slice(0, 4));
     }
     toggleSection("#deliverables", deliverables.length > 0);

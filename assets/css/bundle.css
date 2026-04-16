@@ -3,8 +3,11 @@
   --bg: #EDE8EC;
   --bg-rgb: 237, 232, 236;
   --glass-rgb: 255, 255, 255;
-  --bg-alt: rgba(var(--glass-rgb),.35);
-  --card: rgba(var(--glass-rgb),.35);
+  --bg-alt: #F4F0F3;
+  --card: rgba(var(--glass-rgb),.55);
+  --card-featured: rgba(var(--glass-rgb),.72);
+  --card-dense: rgba(var(--glass-rgb),.86);
+  --card-light: rgba(var(--glass-rgb),.35);
   --border: rgba(0,0,0,.08);
   --border-medium: rgba(0,0,0,.12);
   --border-strong: rgba(0,0,0,.14);
@@ -70,7 +73,7 @@ h2,h3{ letter-spacing: -0.01em; }
 /* Кнопки: делаем “капсулами” */
 .btn, button, .button{
   border-radius: 999px !important;
-  font-weight: 600;
+  font-weight: 650;
 }
 
 /* Попытайся попасть в классы из твоего шаблона */
@@ -197,7 +200,8 @@ p{ margin: 0 0 12px 0; }
 .section--alt{ background: rgba(var(--glass-rgb),.22); border-top: 1px solid rgba(0,0,0,.06); border-bottom: 1px solid rgba(0,0,0,.06); }
 
 /* Headings */
-h1, h2, h3{ margin: 0 0 12px 0; letter-spacing: -0.02em; }
+h1{ margin: 0 0 12px 0; letter-spacing: -0.02em; }
+h2, h3{ margin: 0 0 12px 0; letter-spacing: -0.01em; }
 h1{ font-size: var(--h1); line-height: 1.05; font-weight: 800; }
 h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 .h3{ font-size: var(--h3); margin-top: 0; font-weight: 750; }
@@ -239,7 +243,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
   position: relative;
   max-width: 1240px;
   margin: 0 auto;
-  border-radius: var(--radius, 24px);
+  border-radius: var(--radius);
   overflow: hidden;
 
   /* Depth */
@@ -439,10 +443,13 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
    ============================================================ */
 .card{
   border: 1px solid var(--border);
-  border-radius: var(--radius, 24px);
-  background: rgba(var(--glass-rgb),.55);
+  border-radius: var(--radius);
+  background: var(--card);
   padding: 16px;
   box-shadow: var(--shadow-soft);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(var(--glass-rgb),.28);
 }
 
 .cards{ display:grid; gap:14px; grid-template-columns: repeat(3, minmax(0,1fr)); }
@@ -451,31 +458,37 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 
 .price-card{
   border: 1px solid var(--border);
-  border-radius: var(--radius, 24px);
-  background: rgba(var(--glass-rgb),.55);
+  border-radius: var(--radius);
+  background: var(--card);
   padding: 16px;
-  box-shadow: var(--shadow-soft);
+  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(var(--glass-rgb),.28);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
 }
 .price-card--featured{
-  border-color: rgba(110,76,61,.28);
-  background: rgba(var(--glass-rgb),.72);
-  box-shadow: 0 22px 58px rgba(0,0,0,.18);
+  border-color: var(--border-brand);
+  background: var(--card-featured);
+  box-shadow: var(--shadow-md);
 }
 
 .faq{ display:grid; gap:10px; }
 .faq-item{
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  background: rgba(var(--glass-rgb),.60);
-  box-shadow: var(--shadow-soft);
+  background: var(--card);
+  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(var(--glass-rgb),.28);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
 }
 
 .review{
   border: 1px solid var(--border);
-  border-radius: var(--radius, 24px);
-  background: rgba(var(--glass-rgb),.60);
+  border-radius: var(--radius);
+  background: var(--card);
   padding: 16px;
-  box-shadow: var(--shadow-soft);
+  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(var(--glass-rgb),.28);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
 }
 
 .site-footer{ border-top: 1px solid var(--border); padding: 28px 0; color: var(--muted); }
@@ -559,7 +572,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 .hero{
   position: relative;
   overflow: hidden;
-  border-radius: var(--radius, 26px);
+  border-radius: var(--radius, 24px);
 
   background-image: url("../img/hero/hero-bg.jpg");
   background-size: cover;
@@ -620,18 +633,10 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
    Drop-in: include AFTER styles.css and hero.css
    ============================================================ */
 
+/* Variables defined in theme.css — using var(--ease), var(--dur), var(--dur-fast), etc. */
 :root{
-  --ease-out: cubic-bezier(.2,.8,.2,1);
-  --dur-fast: 160ms;
-  --dur: 240ms;
-
-  --elev-1: 0 10px 24px rgba(0,0,0,.10);
-  --elev-2: 0 18px 40px rgba(0,0,0,.14);
-  --elev-3: 0 34px 95px rgba(0,0,0,.28);
-
+  --ease-out: var(--ease);
   --glass-bg: rgba(var(--glass-rgb),.40);
-  --glass-border: rgba(0,0,0,.08);
-  --glass-blur: 10px;
 }
 
 /* ---- Sticky header state (JS adds .is-scrolled) ---- */
@@ -691,7 +696,7 @@ section[id]{
   .form-strip:hover{
     transform: translateY(-3px);
     box-shadow: var(--elev-2);
-    border-color: rgba(0,0,0,.12);
+    border-color: var(--border-medium);
   }
 
   .btn{
@@ -880,8 +885,8 @@ html.js .reveal.is-visible{
 /* cards as “glass on paper” */
 #for .card{
   background: linear-gradient(180deg, rgba(var(--glass-rgb),.82), rgba(var(--glass-rgb),.62));
-  border: 1px solid rgba(var(--glass-rgb),.55);
-  box-shadow: 0 26px 80px rgba(0,0,0,.14);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   position: relative;
@@ -917,12 +922,12 @@ html.js .reveal.is-visible{
   width: 42px;
   height: 2px;
   border-radius: var(--radius-pill);
-  background: rgba(0,0,0,.16);
+  background: var(--border-medium);
 }
 
 #for .card__text{
   margin: 0;
-  color: rgba(0,0,0,.62);
+  color: var(--muted);
   line-height: 1.45;
 }
 
@@ -953,9 +958,9 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
 #process .deliverables,
 #process .process{
   background: linear-gradient(180deg, rgba(var(--glass-rgb),.78), rgba(var(--glass-rgb),.58));
-  border: 1px solid rgba(var(--glass-rgb),.55);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: 0 22px 70px rgba(0,0,0,.12);
+  box-shadow: var(--shadow-md);
   padding: 18px 18px 16px;
 }
 
@@ -963,55 +968,149 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
 #process h2{ margin-top: 0; }
 #process .muted{ margin-bottom: 14px; }
 
-/* --- Deliverables checklist --- */
-#deliverablesList{
-  list-style: none;
-  padding: 0;
-  margin: 12px 0 0;
+/* --- Deliverables triad --- */
+#deliverablesList.deliv-grid{
+  margin: 18px 0 0;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 14px;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  gap: 16px;
+  align-items: stretch;
 }
 
-@media (max-width: 980px){
-  #deliverablesList{ grid-template-columns: 1fr; }
-}
-
-#deliverablesList li{
+.deliv-card{
   position: relative;
-  padding-left: 30px;
-  margin: 0;
-  color: rgba(0,0,0,.72);
-  line-height: 1.35;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 18px;
+  background: rgba(var(--glass-rgb), .55);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
-#deliverablesList li::before{
+.deliv-card--featured{
+  background: rgba(var(--glass-rgb), .72);
+  box-shadow: 0 28px 70px rgba(0,0,0,.20);
+}
+
+.deliv-card--featured::before{
+  content: "";
+  position: absolute;
+  inset: 14px auto 14px 0;
+  width: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--brand, #6E4C3D);
+}
+
+.deliv-card__icon{
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(var(--glass-rgb), .45);
+  border: 1px solid var(--border);
+  color: var(--brand, #6E4C3D);
+}
+
+.deliv-card__icon svg{
+  width: 22px;
+  height: 22px;
+}
+
+.deliv-card__title{
+  margin: 2px 0 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.deliv-card__subtitle{
+  font-size: .95rem;
+  font-weight: 600;
+}
+
+.deliv-card__divider{
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 2px 0;
+}
+
+.deliv-card__list{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.deliv-card__list li{
+  position: relative;
+  padding-left: 28px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.deliv-card__list li::before{
   content: "✓";
   position: absolute;
   left: 0;
-  top: 0.05em;
-  width: 20px;
-  height: 20px;
+  top: 0.12em;
+  width: 18px;
+  height: 18px;
   display: grid;
   place-items: center;
-  border-radius: var(--radius-pill);
-  background: rgba(0,0,0,.06);
+  border-radius: 50%;
+  background: rgba(0,0,0,.05);
   border: 1px solid var(--border);
-  color: rgba(0,0,0,.75);
-  font-weight: 900;
-  font-size: 0.85rem;
+  color: var(--brand, #6E4C3D);
+  font-size: .76rem;
+  font-weight: 800;
 }
 
-/* Make the "DWG note" line look like a pill (if it is a separate <p> under deliverables) */
-#process .deliverables p:last-of-type{
+.deliv-card__badge{
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  align-self: flex-start;
+  margin-top: auto;
+  padding: 6px 10px;
   border-radius: var(--radius-pill);
   background: rgba(0,0,0,.05);
   border: 1px solid var(--border);
-  margin-top: 14px;
+  font-size: .85rem;
+  color: var(--muted);
+}
+
+.deliv-chevron{
+  align-self: center;
+  justify-self: center;
+  color: var(--brand-soft);
+  font-size: 1.8rem;
+  font-weight: 300;
+  line-height: 1;
+}
+
+@media (max-width: 979px){
+  #deliverablesList.deliv-grid{
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .deliv-chevron{
+    display: none;
+  }
+
+  .deliv-card--featured::before{
+    display: none;
+  }
 }
 
 /* --- Steps timeline --- */
@@ -1029,7 +1128,7 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
   padding: 12px 12px 12px 44px;
   border-radius: var(--radius-sm);
   background: rgba(var(--glass-rgb),.55);
-  border: 1px solid rgba(0,0,0,.06);
+  border: 1px solid var(--border);
 }
 
 #stepsList li::before{
@@ -1045,7 +1144,7 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
 
 #stepsList li p{
   margin: 0;
-  color: rgba(0,0,0,.62);
+  color: var(--muted);
   line-height: 1.4;
 }
 
@@ -1068,9 +1167,9 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
   place-items: center;
   font-weight: 900;
   font-size: 0.85rem;
-  background: rgba(0,0,0,.08);
-  border: 1px solid rgba(0,0,0,.10);
-  color: rgba(0,0,0,.72);
+  background: var(--border);
+  border: 1px solid var(--border-medium);
+  color: var(--muted);
 }
 #stepsList::after{
   content:"";
@@ -1079,7 +1178,7 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
   top: 20px;
   bottom: 20px;
   width: 2px;
-  background: rgba(0,0,0,.08);
+  background: var(--border);
   border-radius: var(--radius-pill);
   pointer-events:none;
 }
@@ -1200,8 +1299,8 @@ body.case-modal-open{
   position: relative;
   overflow: hidden;
   --why-accent: var(--brand, #6E4C3D);
-  --why-accent-strong: #4f352b;
-  --why-accent-soft: rgba(110,76,61,.18);
+  --why-accent-strong: var(--brand-deep);
+  --why-accent-soft: var(--brand-soft);
 }
 
 #why::before{
@@ -1277,7 +1376,7 @@ body.case-modal-open{
   top:0;
   height:100%;
   width:4px;
-  background: linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,0));
+  background: linear-gradient(180deg, var(--border-medium), transparent);
   opacity:.35;
 }
 
@@ -1332,7 +1431,7 @@ body.case-modal-open{
 }
 
 #why .why-stats .stat:nth-child(-n+3) .stat__label{
-  color: rgba(60,34,20,.78);
+  color: var(--brand-deep);
 }
 
 #why .why-cards{
@@ -1351,7 +1450,7 @@ body.case-modal-open{
   border-radius: var(--radius-sm);
   border:1px solid var(--border);
   background:rgba(var(--glass-rgb),.86);
-  box-shadow: 0 10px 24px rgba(0,0,0,.08);
+  box-shadow: var(--elev-1);
 }
 
 #why .why-cards li::before{
@@ -2169,11 +2268,11 @@ body.modal-open {
 
 #about{
   /* local tokens */
-  --about-card-bg: rgba(var(--glass-rgb),.42);
-  --about-border: rgba(0,0,0,.10);
-  --about-border-strong: rgba(0,0,0,.14);
-  --about-shadow: 0 14px 38px rgba(0,0,0,.12);
-  --about-ease: cubic-bezier(.2,.8,.2,1);
+  --about-card-bg: var(--card);
+  --about-border: var(--border-medium);
+  --about-border-strong: var(--border-strong);
+  --about-shadow: var(--shadow-soft);
+  --about-ease: var(--ease);
 }
 
 /* ------------------------------

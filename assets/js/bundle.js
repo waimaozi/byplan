@@ -1,4 +1,3 @@
-
 /* === config.js === */
 // ===============================
 // CONFIG
@@ -57,6 +56,7 @@ window.SITE_CONFIG = {
     contacts: 10
   }
 };
+
 ;
 /* === sheets.js === */
 // ===============================
@@ -245,6 +245,7 @@ window.SITE_CONFIG = {
 
   window.Sheets = { fetchTab, state };
 })();
+
 ;
 /* === app-core.js === */
 /* ============================================================
@@ -556,6 +557,7 @@ window.SITE_CONFIG = {
 
   window.__BYPLAN_CORE__ = { version: "1.1.0" };
 })();
+
 ;
 /* === app.js === */
 (function () {
@@ -885,6 +887,108 @@ window.SITE_CONFIG = {
     });
   }
 
+  function renderDeliverablesTriad(containerId, rows, kv = {}) {
+    const root = el(containerId);
+    if (!root) return;
+    root.innerHTML = "";
+
+    const fallbackTitles = {
+      1: "Планировка",
+      2: "Чертежи",
+      3: "Для ремонта"
+    };
+    const fallbackSubtitles = {
+      1: "концепция",
+      2: "технические планы",
+      3: "рабочий комплект"
+    };
+    const fallbackBadges = {
+      1: "выбор оптимума",
+      2: "технический блок",
+      3: "PDF · DWG по запросу"
+    };
+    const fallbackGroupByIndex = (index) => {
+      if (index < 3) return 1;
+      if (index < 6) return 2;
+      return 3;
+    };
+    const iconMarkupByGroup = {
+      1: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M8 9h8M8 13h5"></path></svg>',
+      2: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.5h10l2 2v13H5v-13l2-2z"></path><path d="M8 4.5v4h8v-4"></path><path d="M7 13h10"></path><path d="M9 16.5h6"></path></svg>',
+      3: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5L12 4l8.5 4.5v7L12 20l-8.5-4.5z"></path><path d="M3.5 8.5L12 13l8.5-4.5"></path><path d="M12 13v7"></path></svg>'
+    };
+    const hasAnyGroup = rows.some((row) => String(row.group ?? "").trim() !== "");
+    const groups = new Map([[1, []], [2, []], [3, []]]);
+
+    rows.forEach((row, index) => {
+      const rawGroup = String(row.group ?? "").trim();
+      let groupNumber = Number.parseInt(rawGroup, 10);
+      if (!Number.isInteger(groupNumber) || groupNumber < 1 || groupNumber > 3) {
+        groupNumber = hasAnyGroup ? 3 : fallbackGroupByIndex(index);
+      }
+      groups.get(groupNumber).push(row);
+    });
+
+    [1, 2, 3].forEach((groupNumber, index) => {
+      const article = document.createElement("article");
+      article.className = groupNumber === 2 ? "deliv-card deliv-card--featured" : "deliv-card";
+      article.setAttribute("role", "listitem");
+      article.dataset.group = String(groupNumber);
+
+      const icon = document.createElement("div");
+      icon.className = "deliv-card__icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.innerHTML = iconMarkupByGroup[groupNumber];
+      article.appendChild(icon);
+
+      const title = document.createElement("h3");
+      title.className = "deliv-card__title";
+      title.textContent = String(kv[`deliverables_card${groupNumber}_title`] ?? "").trim() || fallbackTitles[groupNumber];
+      article.appendChild(title);
+
+      const subtitle = document.createElement("div");
+      subtitle.className = "deliv-card__subtitle muted";
+      subtitle.textContent = String(kv[`deliverables_card${groupNumber}_subtitle`] ?? "").trim() || fallbackSubtitles[groupNumber];
+      article.appendChild(subtitle);
+
+      const divider = document.createElement("hr");
+      divider.className = "deliv-card__divider";
+      divider.setAttribute("aria-hidden", "true");
+      article.appendChild(divider);
+
+      const list = document.createElement("ul");
+      list.className = "deliv-card__list";
+      const items = groups.get(groupNumber) || [];
+      if (items.length) {
+        items.forEach((row) => {
+          const li = document.createElement("li");
+          li.textContent = row.text || "";
+          list.appendChild(li);
+        });
+      } else {
+        const li = document.createElement("li");
+        li.textContent = "—";
+        list.appendChild(li);
+      }
+      article.appendChild(list);
+
+      const badge = document.createElement("div");
+      badge.className = "deliv-card__badge";
+      badge.textContent = String(kv[`deliverables_card${groupNumber}_badge`] ?? "").trim() || fallbackBadges[groupNumber];
+      article.appendChild(badge);
+
+      root.appendChild(article);
+
+      if (index < 2) {
+        const chevron = document.createElement("div");
+        chevron.className = "deliv-chevron";
+        chevron.setAttribute("aria-hidden", "true");
+        chevron.textContent = "›";
+        root.appendChild(chevron);
+      }
+    });
+  }
+
   function renderSteps(containerId, rows) {
     const root = el(containerId);
     if (!root) return;
@@ -1168,7 +1272,7 @@ function escapeAttr(str) {
     // 4) Deliverables
     const deliverables = (await fetchTabSafe(tabs.deliverables)).slice(0, limits.deliverables || 999);
     if (deliverables.length) {
-      renderChecklist("deliverablesList", deliverables);
+      renderDeliverablesTriad("deliverablesList", deliverables, kv);
       renderChecklist("deliverablesMini", deliverables.slice(0, 4));
     }
     toggleSection("#deliverables", deliverables.length > 0);
@@ -1452,6 +1556,7 @@ function initReviewCases() {
 }
 
 })();
+
 ;
 /* === principles-slider.js === */
 /* ============================================================
@@ -1604,6 +1709,7 @@ function initReviewCases() {
     setActiveIndex(Number(root.dataset.index || 0), { force: true });
   });
 })();
+
 ;
 /* === polish.js === */
 /* ============================================================
@@ -2070,6 +2176,7 @@ const init = () => {
   if (doc.readyState !== "loading") init();
   else doc.addEventListener("DOMContentLoaded", init);
 })();
+
 ;
 /* === story.js === */
 /* ============================================================
@@ -2350,6 +2457,7 @@ const init = () => {
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", init);
   else init();
 })();
+
 ;
 /* === process-snake.js === */
 /* ============================================================
@@ -2394,6 +2502,7 @@ const init = () => {
 
   io.observe(section);
 })();
+
 ;
 /* === bio.js === */
 /* ============================================================
@@ -3082,6 +3191,7 @@ const init = () => {
     init();
   }
 })();
+
 ;
 /* === cases.js === */
 /* ============================================================
@@ -3144,41 +3254,11 @@ const init = () => {
     return escapeHtml(s).replace(/\n/g, '<br>');
   }
 
-  // Legacy Cyrillic filenames → transliterated Latin names (SEO rename 2026-04)
-  const _imgRenameMap = {
-    'assets/img/cases/кедрова до и после.jpg': 'assets/img/cases/kedrova-do-i-posle.jpg',
-    'assets/img/cases/Иван Копыл до и после.jpg': 'assets/img/cases/ivan-kopyl-do-i-posle.jpg',
-    'assets/img/cases/Ира Гриценко.jpg': 'assets/img/cases/ira-gritsenko.jpg',
-    'assets/img/cases/Лапиковы до и после.jpg': 'assets/img/cases/lapikovy-do-i-posle.jpg',
-    'assets/img/cases/Репко до и после.jpg': 'assets/img/cases/repko-do-i-posle.jpg',
-    'assets/img/cases/Эпп до и после.jpg': 'assets/img/cases/epp-do-i-posle.jpg',
-    'assets/img/cases/расстановка мебели .jpg': 'assets/img/cases/rasstanovka-mebeli.jpg',
-    'assets/img/cases/тронь до и после.jpg': 'assets/img/cases/tron-do-i-posle.jpg',
-    'assets/img/cases/Анна Жандарова до и после.jpg': 'assets/img/cases/anna-zhandarova-do-i-posle.jpg',
-    'assets/img/cases/Александрова до и после.jpg': 'assets/img/cases/aleksandrova-do-i-posle.jpg',
-    'assets/img/cases/Дмитрий Белянинов до и после.jpg': 'assets/img/cases/dmitriy-belyaninov-do-i-posle.jpg',
-    'assets/img/cases/Андрей Владивосток.jpg': 'assets/img/cases/andrey-vladivostok.jpg',
-    'assets/img/cases/Вика Николаева.jpg': 'assets/img/cases/vika-nikolaeva.jpg',
-    'assets/img/cases/Кравченко до и после.jpg': 'assets/img/cases/kravchenko-do-i-posle.jpg',
-    'assets/img/cases/ЖК Сенатор до и после.jpg': 'assets/img/cases/zhk-senator-do-i-posle.jpg',
-    'assets/img/cases/OxanaS.jpg': 'assets/img/cases/oxanas.jpg',
-    'assets/img/cases/Krasnogorsk.jpg': 'assets/img/cases/krasnogorsk.jpg',
-    'assets/img/cases/1 (2).jpg': 'assets/img/cases/1-(2).jpg',
-    'assets/img/cases/2 (2).jpg': 'assets/img/cases/2-(2).jpg',
-    'assets/img/cases/3 (1).jpg': 'assets/img/cases/3-(1).jpg',
-    'assets/img/cases/4 (2).jpg': 'assets/img/cases/4-(2).jpg',
-    'assets/img/cases/5 (2).jpg': 'assets/img/cases/5-(2).jpg',
-    'assets/img/cases/6. (1).jpg': 'assets/img/cases/6-(1).jpg',
-    'assets/img/cases/7 (1).jpg': 'assets/img/cases/7-(1).jpg',
-    'assets/img/cases/8 (1).jpg': 'assets/img/cases/8-(1).jpg'
-  };
-
   function normalizeUrl(u) {
     const s = String(u ?? '').trim();
     if (!s) return '';
     if (/^(https?:)?\/\//i.test(s) || /^data:/i.test(s)) return s;
-    const clean = s.replace(/^\/+/, '');
-    return _imgRenameMap[clean] || clean;
+    return s.replace(/^\/+/, '');
   }
 
   function num(v) {
@@ -4017,4 +4097,5 @@ const init = () => {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+
 ;
