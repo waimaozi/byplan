@@ -676,11 +676,7 @@ function escapeAttr(str) {
     };
     const fetchTabOptional = async (tabName) => {
       if (!tabName) return [];
-      try {
-        return await Sheets.fetchTab(sheetId, tabName);
-      } catch {
-        return [];
-      }
+      return fetchTabSafe(tabName);
     };
 
     // 1) Site KV

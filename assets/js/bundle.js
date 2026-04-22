@@ -222,7 +222,12 @@ window.SITE_CONFIG = {
         if (!payload || payload.status === "error") {
           throw new Error(`GViz error for "${tabName}"`);
         }
-        if (!payload.table) return [];
+        if (!payload.table || !Array.isArray(payload.table.rows) || payload.table.rows.length === 0) {
+          const data = await resolveFallback(tabName, stored, new Error(`GViz empty response for ${tabName}`));
+          cache.set(key, data);
+          writeStorage(storageKey, data);
+          return data;
+        }
         const objects = tableToObjects(payload.table);
         cache.set(key, objects);
         writeStorage(storageKey, objects);
@@ -1238,11 +1243,7 @@ function escapeAttr(str) {
     };
     const fetchTabOptional = async (tabName) => {
       if (!tabName) return [];
-      try {
-        return await Sheets.fetchTab(sheetId, tabName);
-      } catch {
-        return [];
-      }
+      return fetchTabSafe(tabName);
     };
 
     // 1) Site KV
