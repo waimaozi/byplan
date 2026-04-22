@@ -340,11 +340,6 @@
       2: "технические планы",
       3: "рабочий комплект"
     };
-    const fallbackBadges = {
-      1: "выбор оптимума",
-      2: "технический блок",
-      3: "PDF · DWG по запросу"
-    };
     const fallbackGroupByIndex = (index) => {
       if (index < 3) return 1;
       if (index < 6) return 2;
@@ -410,10 +405,13 @@
       }
       article.appendChild(list);
 
-      const badge = document.createElement("div");
-      badge.className = "deliv-card__badge";
-      badge.textContent = String(kv[`deliverables_card${groupNumber}_badge`] ?? "").trim() || fallbackBadges[groupNumber];
-      article.appendChild(badge);
+      const badgeText = String(kv[`deliverables_card${groupNumber}_badge`] ?? "").trim();
+      if (badgeText) {
+        const badge = document.createElement("div");
+        badge.className = "deliv-card__badge";
+        badge.textContent = badgeText;
+        article.appendChild(badge);
+      }
 
       root.appendChild(article);
 

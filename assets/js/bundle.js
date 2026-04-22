@@ -12,7 +12,7 @@
 // Важно: таблица должна быть доступна без авторизации, иначе GitHub Pages не сможет читать контент.
 
 window.SITE_CONFIG = {
-  VERSION: "11",
+  VERSION: "12",
   SHEET_ID: "1Sb3_veKvtCsc-gkx4dgeLr3H-UFV9wkv1I_Z-05Ngro",
   // Local snapshot fallback if Sheets are blocked/unavailable
   SNAPSHOT_URL: "assets/data/snapshot.json",
@@ -907,11 +907,6 @@ window.SITE_CONFIG = {
       2: "технические планы",
       3: "рабочий комплект"
     };
-    const fallbackBadges = {
-      1: "выбор оптимума",
-      2: "технический блок",
-      3: "PDF · DWG по запросу"
-    };
     const fallbackGroupByIndex = (index) => {
       if (index < 3) return 1;
       if (index < 6) return 2;
@@ -977,10 +972,13 @@ window.SITE_CONFIG = {
       }
       article.appendChild(list);
 
-      const badge = document.createElement("div");
-      badge.className = "deliv-card__badge";
-      badge.textContent = String(kv[`deliverables_card${groupNumber}_badge`] ?? "").trim() || fallbackBadges[groupNumber];
-      article.appendChild(badge);
+      const badgeText = String(kv[`deliverables_card${groupNumber}_badge`] ?? "").trim();
+      if (badgeText) {
+        const badge = document.createElement("div");
+        badge.className = "deliv-card__badge";
+        badge.textContent = badgeText;
+        article.appendChild(badge);
+      }
 
       root.appendChild(article);
 
