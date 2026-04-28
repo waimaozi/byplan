@@ -526,6 +526,11 @@
 
     // --- add-on rows (everything after the first) ---
     if (addonsRoot && addons.length) {
+      const eyebrow = document.createElement("div");
+      eyebrow.className = "pricing-addons__eyebrow";
+      eyebrow.textContent = "Доп. опции";
+      addonsRoot.appendChild(eyebrow);
+
       addons.forEach(r => {
         const row = document.createElement("div");
         row.className = "pricing-addon";
@@ -536,27 +541,37 @@
         const features = splitList(r.features);
         const ctaHref = sanitizeUrl(r.cta_url || "", { allowRelative: true }) || "";
         const ctaIsExternal = ctaHref ? isExternal(ctaHref) : false;
-
         const badgeWord = (r.badge || "Доп. опция").trim();
 
-        row.innerHTML = `
+        const main = document.createElement("div");
+        main.className = "pricing-addon__main";
+        main.innerHTML = `
           <div class="pricing-addon__head">
-            ${badgeWord ? `<span class="pricing-addon__badge">${escapeHtml(badgeWord)}</span>` : ""}
             <span class="pricing-addon__plan">${escapeHtml(plan)}</span>
-            ${price ? `<span class="pricing-addon__sep" aria-hidden="true">·</span><span class="pricing-addon__price">${escapeHtml(price)}</span>` : ""}
+            ${badgeWord ? `<span class="pricing-addon__badge">${escapeHtml(badgeWord)}</span>` : ""}
           </div>
           ${note ? `<p class="pricing-addon__note">${escapeHtml(note)}</p>` : ""}
           ${features.length ? `<ul class="pricing-addon__features">${features.map(f => `<li>${escapeHtml(f)}</li>`).join("")}</ul>` : ""}
         `;
+        row.appendChild(main);
 
+        const side = document.createElement("div");
+        side.className = "pricing-addon__side";
+        if (price) {
+          const priceEl = document.createElement("p");
+          priceEl.className = "pricing-addon__price";
+          priceEl.textContent = price;
+          side.appendChild(priceEl);
+        }
         if (ctaHref && (r.cta_label || r.cta_url)) {
           const a = document.createElement("a");
           a.className = "pricing-addon__cta";
           a.href = ctaHref;
           if (ctaIsExternal) { a.target = "_blank"; a.rel = "noopener"; }
           a.textContent = r.cta_label || "Заказать";
-          row.appendChild(a);
+          side.appendChild(a);
         }
+        if (side.children.length) row.appendChild(side);
 
         addonsRoot.appendChild(row);
       });
