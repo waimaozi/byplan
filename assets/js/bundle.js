@@ -12,7 +12,7 @@
 // Важно: таблица должна быть доступна без авторизации, иначе GitHub Pages не сможет читать контент.
 
 window.SITE_CONFIG = {
-  VERSION: "16",
+  VERSION: "17",
   SHEET_ID: "1Sb3_veKvtCsc-gkx4dgeLr3H-UFV9wkv1I_Z-05Ngro",
   // Local snapshot fallback if Sheets are blocked/unavailable
   SNAPSHOT_URL: "assets/data/snapshot.json",
@@ -1058,7 +1058,10 @@ window.SITE_CONFIG = {
     const addonsRoot = document.getElementById("pricingAddons");
     if (addonsRoot) addonsRoot.innerHTML = "";
 
-    if (!rows || !rows.length) return;
+    if (!rows || !rows.length) {
+      root.classList.remove("pricing--single");
+      return;
+    }
 
     // First row is the main tariff card. Everything else is an add-on.
     const [main, ...addons] = rows;
@@ -1125,6 +1128,8 @@ window.SITE_CONFIG = {
         addonsRoot.appendChild(row);
       });
     }
+
+    root.classList.toggle("pricing--single", root.children.length === 1);
   }
 
   function renderCases(containerId, rows) {

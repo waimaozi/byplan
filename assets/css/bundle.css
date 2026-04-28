@@ -455,12 +455,20 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 .cards{ display:grid; gap:14px; grid-template-columns: repeat(3, minmax(0,1fr)); }
 
 .pricing{ display:grid; gap:14px; grid-template-columns: repeat(4, minmax(0,1fr)); }
+.pricing--single,
+.pricing:has(> .price-card:only-child){
+  grid-template-columns: minmax(280px, 520px);
+  justify-content: center;
+}
 
 .price-card{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--card);
-  padding: 16px;
+  padding: 28px;
   box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(var(--glass-rgb),.28);
   -webkit-backdrop-filter: blur(var(--glass-blur));
   backdrop-filter: blur(var(--glass-blur));
@@ -468,7 +476,81 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 .price-card--featured{
   border-color: var(--border-brand);
   background: var(--card-featured);
+  padding: 28px 26px;
   box-shadow: var(--shadow-md);
+}
+.price-card__top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:4px;
+}
+.price-card__plan{
+  font-family: inherit;
+  font-size: clamp(1.25rem, 2.1vw, 1.55rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--text);
+  margin:0;
+}
+.price-card__badge{
+  align-self: flex-start;
+  white-space: nowrap;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border: 1px solid var(--border-brand);
+  text-transform: none;
+}
+.price-card__price{
+  font-size: clamp(2rem, 3vw, 2.6rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--text);
+  margin: 12px 0 4px;
+  font-variant-numeric: tabular-nums;
+}
+.price-card__note{
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 0 0 14px;
+}
+.price-card__features{
+  list-style: none;
+  margin: 14px 0 18px;
+  padding: 0;
+  display:grid;
+  gap:8px;
+  font-size: 0.98rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+.price-card__features li{
+  position:relative;
+  padding-left: 22px;
+}
+.price-card__features li::before{
+  content: "✓";
+  position:absolute;
+  left:0;
+  top:0;
+  color: var(--brand);
+  font-weight: 800;
+  font-size: 1rem;
+}
+.price-card .btn,
+.price-card .btn--primary{
+  align-self: flex-start;
+  margin-top: auto;
 }
 
 /* Pricing add-ons - subordinate to the main tariff card. */
@@ -638,6 +720,12 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 
 @media (max-width: 640px){
   .pricing{ grid-template-columns: 1fr; }
+  .pricing--single,
+  .pricing:has(> .price-card:only-child){
+    grid-template-columns: 1fr;
+    justify-content: center;
+  }
+  .price-card{ padding: 22px 20px; }
   .cards{ grid-template-columns: 1fr; }
   .hero-stage{ padding: 22px 12px; }
   .hero-actions{ gap: 10px; }
@@ -1221,13 +1309,13 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
 /* If your app.js creates <li><strong>Title</strong><div>text</div>..., we just style inside */
 #stepsList li strong{
   display: block;
-  font-weight: 700;
+  font-weight: 850;
   margin-bottom: 6px;
 }
 
 #stepsList li p{
   margin: 0;
-  color: #1a1a1a;
+  color: var(--muted);
   line-height: 1.4;
 }
 
@@ -1265,7 +1353,7 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
   border-radius: var(--radius-pill);
   pointer-events:none;
 }
-html.js #for .card.reveal:nth-child(n + 4):nth-child(-n + 4){ transition-delay: 180ms; }
+html.js #for .card.reveal:nth-child(4){ transition-delay: 180ms; }
 html.js #for .card.reveal:nth-child(5){ transition-delay: 240ms; }
 html.js #for .card.reveal:nth-child(6){ transition-delay: 300ms; }
 
@@ -1956,7 +2044,7 @@ body.case-modal-open{
   color: rgba(0,0,0,.62);
 }
 
-/* --- 2x3 direct grid --- */
+/* --- 3+2 snake grid --- */
 #stepsList{
   list-style: none;
   padding: 0;
@@ -2002,25 +2090,25 @@ body.case-modal-open{
 #stepsList li strong{
   display: block;
   margin: 0 0 6px 0;
-  font-weight: 700;
+  font-weight: 900;
   letter-spacing: -0.01em;
-  color: #1a1a1a;
 }
 #stepsList li p{
   margin: 0;
-  color: #1a1a1a;
+  color: rgba(0,0,0,.62);
   line-height: 1.42;
 }
 
-/* --- Placement: Row1 = 1-2-3, Row2 = 4-5-6 direct --- */
+/* --- Placement: Row1 = 1-2-3, Row2 = 5-4 (centered) --- */
 #stepsList li:nth-child(1){ grid-column: 1; grid-row: 1; }
 #stepsList li:nth-child(2){ grid-column: 2; grid-row: 1; }
 #stepsList li:nth-child(3){ grid-column: 3; grid-row: 1; }
-#stepsList li:nth-child(4){ grid-column: 1; grid-row: 2; }
-#stepsList li:nth-child(5){ grid-column: 2; grid-row: 2; }
-#stepsList li:nth-child(6){ grid-column: 3; grid-row: 2; }
 
-/* ---- Connectors (1→2, 2→3, 3→4 turn, 4→5, 5→6) ---- */
+/* Row 2: leave col1 empty, put 5 in col2 and 4 in col3 */
+#stepsList li:nth-child(5){ grid-column: 2; grid-row: 2; }
+#stepsList li:nth-child(4){ grid-column: 3; grid-row: 2; }
+
+/* ---- Connectors (1→2, 2→3, 3→4 down, 4→5 left) ---- */
 #stepsList li{
   --cx: calc(var(--step-pad) + (var(--step-dot) / 2));
   --cy: calc(var(--step-pad) + (var(--step-dot) / 2));
@@ -2039,25 +2127,24 @@ body.case-modal-open{
   border-radius: var(--radius-pill);
 }
 
-/* 3→4 turn: down from 3, then across row 2 to 4 */
+/* 3→4 (down) — note: 4 is under 3 (same column 3) */
 #stepsList li:nth-child(3)::after{
   content:"";
   position: absolute;
+  left: var(--cx);
   top: var(--cy);
-  left: calc(var(--cx) - (200% + (2 * var(--step-gap))));
-  width: calc(200% + (2 * var(--step-gap)));
+  width: 2px;
   height: calc(100% + var(--step-gap));
-  border-right: 2px solid var(--step-line);
-  border-bottom: 2px solid var(--step-line);
-  border-bottom-right-radius: var(--radius-pill);
+  background: var(--step-line);
+  border-radius: var(--radius-pill);
 }
 
-/* 4→5, 5→6 */
-#stepsList li:nth-child(n + 4):nth-child(-n + 5)::after{
+/* 4→5 (left) — 4 at col3 row2, 5 at col2 row2 */
+#stepsList li:nth-child(4)::after{
   content:"";
   position: absolute;
   top: var(--cy);
-  left: 100%;
+  left: calc(var(--step-gap) * -1);
   width: var(--step-gap);
   height: 2px;
   background: var(--step-line);
@@ -4688,3 +4775,4 @@ body.anketa-lock{
     justify-content: flex-start;
   }
 }
+

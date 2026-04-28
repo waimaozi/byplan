@@ -491,7 +491,10 @@
     const addonsRoot = document.getElementById("pricingAddons");
     if (addonsRoot) addonsRoot.innerHTML = "";
 
-    if (!rows || !rows.length) return;
+    if (!rows || !rows.length) {
+      root.classList.remove("pricing--single");
+      return;
+    }
 
     // First row is the main tariff card. Everything else is an add-on.
     const [main, ...addons] = rows;
@@ -558,6 +561,8 @@
         addonsRoot.appendChild(row);
       });
     }
+
+    root.classList.toggle("pricing--single", root.children.length === 1);
   }
 
   function renderCases(containerId, rows) {
