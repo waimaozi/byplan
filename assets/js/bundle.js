@@ -12,7 +12,7 @@
 // Важно: таблица должна быть доступна без авторизации, иначе GitHub Pages не сможет читать контент.
 
 window.SITE_CONFIG = {
-  VERSION: "14",
+  VERSION: "16",
   SHEET_ID: "1Sb3_veKvtCsc-gkx4dgeLr3H-UFV9wkv1I_Z-05Ngro",
   // Local snapshot fallback if Sheets are blocked/unavailable
   SNAPSHOT_URL: "assets/data/snapshot.json",
@@ -1055,8 +1055,17 @@ window.SITE_CONFIG = {
     const root = el(containerId);
     if (!root) return;
     root.innerHTML = "";
+    const addonsRoot = document.getElementById("pricingAddons");
+    if (addonsRoot) addonsRoot.innerHTML = "";
 
-    rows.forEach(r => {
+    if (!rows || !rows.length) return;
+
+    // First row is the main tariff card. Everything else is an add-on.
+    const [main, ...addons] = rows;
+
+    // --- main tariff card ---
+    {
+      const r = main;
       const featured = safeBool(r.featured);
       const card = document.createElement("div");
       card.className = "price-card" + (featured ? " price-card--featured" : "");
@@ -1077,7 +1086,45 @@ window.SITE_CONFIG = {
         ${(r.cta_url || r.cta_label) ? `<a class="btn btn--primary" href="${escapeAttr(ctaHref)}" ${ctaIsExternal ? 'target="_blank" rel="noopener"' : ""}>${escapeHtml(r.cta_label || "Запросить")}</a>` : ""}
       `;
       root.appendChild(card);
-    });
+    }
+
+    // --- add-on rows (everything after the first) ---
+    if (addonsRoot && addons.length) {
+      addons.forEach(r => {
+        const row = document.createElement("div");
+        row.className = "pricing-addon";
+
+        const plan = (r.plan || "").trim();
+        const price = (r.price || "").trim();
+        const note = (r.price_note || "").trim();
+        const features = splitList(r.features);
+        const ctaHref = sanitizeUrl(r.cta_url || "", { allowRelative: true }) || "";
+        const ctaIsExternal = ctaHref ? isExternal(ctaHref) : false;
+
+        const badgeWord = (r.badge || "Доп. опция").trim();
+
+        row.innerHTML = `
+          <div class="pricing-addon__head">
+            ${badgeWord ? `<span class="pricing-addon__badge">${escapeHtml(badgeWord)}</span>` : ""}
+            <span class="pricing-addon__plan">${escapeHtml(plan)}</span>
+            ${price ? `<span class="pricing-addon__sep" aria-hidden="true">·</span><span class="pricing-addon__price">${escapeHtml(price)}</span>` : ""}
+          </div>
+          ${note ? `<p class="pricing-addon__note">${escapeHtml(note)}</p>` : ""}
+          ${features.length ? `<ul class="pricing-addon__features">${features.map(f => `<li>${escapeHtml(f)}</li>`).join("")}</ul>` : ""}
+        `;
+
+        if (ctaHref && (r.cta_label || r.cta_url)) {
+          const a = document.createElement("a");
+          a.className = "pricing-addon__cta";
+          a.href = ctaHref;
+          if (ctaIsExternal) { a.target = "_blank"; a.rel = "noopener"; }
+          a.textContent = r.cta_label || "Заказать";
+          row.appendChild(a);
+        }
+
+        addonsRoot.appendChild(row);
+      });
+    }
   }
 
   function renderCases(containerId, rows) {
