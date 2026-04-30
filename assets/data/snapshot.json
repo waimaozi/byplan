@@ -231,7 +231,7 @@
       },
       {
         "key": "privacy_url",
-        "value": "#"
+        "value": "/privacy.html"
       },
       {
         "key": "telegram_url",
