@@ -1728,6 +1728,23 @@ body.case-modal-open{
   color: var(--why-accent-strong, #4F352B);
 }
 
+/* Override with !important to beat later rules in bundle */
+#about .stat {
+  background: linear-gradient(180deg, rgba(var(--glass-rgb),.98), rgba(238,231,226,.92)) !important;
+  border-color: rgba(110,76,61,.32) !important;
+  box-shadow: 0 18px 40px rgba(110,76,61,.18) !important;
+}
+
+#about .stat::before {
+  width: 6px !important;
+  background: linear-gradient(180deg, rgba(110,76,61,.9), rgba(110,76,61,.2)) !important;
+  opacity: .9 !important;
+}
+
+#about .stat .stat__num {
+  color: var(--why-accent-strong, #4F352B) !important;
+}
+
 /* === story.css === */
 /* BYPLAN Story section (insert between #for and #deliverables) */
 
