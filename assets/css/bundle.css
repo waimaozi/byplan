@@ -1178,6 +1178,54 @@ html.js .reveal.is-visible{
 html.js #for .card.reveal{ transition-delay: 0ms; }
 html.js #for .card.reveal:nth-child(2){ transition-delay: 60ms; }
 html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
+
+/* mistakes cards — same "glass on paper" treatment as #for */
+#mistakesGrid{ gap: 18px; }
+#mistakesGrid .card{
+  background: linear-gradient(180deg, rgba(var(--glass-rgb),.82), rgba(var(--glass-rgb),.62));
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  position: relative;
+}
+#mistakesGrid .card::after{
+  content:"";
+  position:absolute;
+  left:12px; right:12px; top:10px;
+  height:1px;
+  background: rgba(var(--glass-rgb),.65);
+  opacity:.9;
+  border-radius: var(--radius-pill);
+}
+#mistakesGrid .card__title{
+  font-weight: 850;
+  font-size: 1.08rem;
+  letter-spacing: -0.01em;
+  margin: 0 0 10px 0;
+  padding-bottom: 10px;
+  position: relative;
+}
+#mistakesGrid .card__title::after{
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:0;
+  width: 42px;
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--border-medium);
+}
+#mistakesGrid .card__text{
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+/* breathing room between mistakes grid and the form-strip CTA below */
+#mistakesSection{ margin-bottom: 28px; }
+#principlesFormStrip{ margin-top: 28px; }
+
 /* === SLIDE: #process — make lists product-like (no wall of text) === */
 #process{
   background:
