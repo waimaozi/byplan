@@ -733,9 +733,9 @@ body.case-modal-open{
   position: relative;
   padding:20px 18px 18px 20px;
   border-radius: var(--radius);
-  border:1px solid var(--border);
-  background: linear-gradient(180deg, rgba(var(--glass-rgb),.96), rgba(var(--glass-rgb),.80));
-  box-shadow: var(--elev-1);
+  border:1px solid rgba(110,76,61,.32);
+  background: linear-gradient(180deg, rgba(var(--glass-rgb),.98), rgba(238,231,226,.92));
+  box-shadow: 0 18px 40px rgba(110,76,61,.18);
   overflow:hidden;
   min-height: 120px;
 }
@@ -746,9 +746,9 @@ body.case-modal-open{
   left:0;
   top:0;
   height:100%;
-  width:4px;
-  background: linear-gradient(180deg, var(--border-medium), transparent);
-  opacity:.35;
+  width:6px;
+  background: linear-gradient(180deg, rgba(110,76,61,.9), rgba(110,76,61,.2));
+  opacity:.9;
 }
 
 #why .why-stats .stat__num{
@@ -761,37 +761,16 @@ body.case-modal-open{
   overflow-wrap: anywhere;
   hyphens: none;
   white-space: pre-line;
+  color: var(--why-accent-strong);
 }
 
 #why .why-stats .stat__label{
   margin-top:9px;
-  color: var(--muted, rgba(28,27,27,.72));
+  color: var(--brand-deep);
   font-size:0.98rem;
   line-height:1.35;
   text-wrap: balance;
   white-space: pre-line;
-}
-
-/* highlight top 3 metrics */
-#why .why-stats .stat:nth-child(-n+3){
-  background: linear-gradient(180deg, rgba(var(--glass-rgb),.98), rgba(238,231,226,.92));
-  border-color: rgba(110,76,61,.32);
-  box-shadow: 0 18px 40px rgba(110,76,61,.18);
-}
-
-
-#why .why-stats .stat:nth-child(-n+3)::before{
-  width:6px;
-  background: linear-gradient(180deg, rgba(110,76,61,.9), rgba(110,76,61,.2));
-  opacity:.9;
-}
-
-#why .why-stats .stat:nth-child(-n+3) .stat__num{
-  color: var(--why-accent-strong);
-}
-
-#why .why-stats .stat:nth-child(-n+3) .stat__label{
-  color: var(--brand-deep);
 }
 
 #why .why-cards{
