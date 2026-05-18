@@ -2141,9 +2141,30 @@ body.case-modal-open{
 
 #process [data-kv="process_subtitle"]{
   grid-area: subtitle;
-  margin-top: 14px;
+  position: relative;
+  margin-top: 18px;
+  padding: 16px 16px 16px 24px;
   max-width: 78ch;
-  color: rgba(0,0,0,.62);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: rgba(var(--glass-rgb),.86);
+  box-shadow: var(--elev-1);
+  font-size: 0.98rem;
+  line-height: 1.5;
+  color: rgba(0,0,0,.78);
+}
+#process [data-kv="process_subtitle"]::before{
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 14px;
+  bottom: 14px;
+  width: 4px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(180deg, rgba(110,76,61,.85), rgba(110,76,61,.18));
+}
+@media (max-width: 720px){
+  #process [data-kv="process_subtitle"]{ padding: 14px 14px 14px 22px; }
 }
 
 /* --- 3+2 snake grid --- */
