@@ -815,6 +815,32 @@ body.case-modal-open{
     padding:14px 14px 14px 18px;
   }
 }
+
+/* .note islands — same warm-island look as #why .why-cards li */
+.note{
+  position: relative;
+  margin-top: 18px;
+  padding: 16px 16px 16px 24px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: rgba(var(--glass-rgb),.86);
+  box-shadow: var(--elev-1);
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+.note::before{
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 14px;
+  bottom: 14px;
+  width: 4px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(180deg, rgba(110,76,61,.85), rgba(110,76,61,.18));
+}
+@media (max-width: 720px){
+  .note{ padding: 14px 14px 14px 22px; }
+}
 /* CDN cache refresh 2026-05-13T18:34:33+02:00 */
 /* cache-bust Wed May 13 19:24:24 CEST 2026 */
 
