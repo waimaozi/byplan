@@ -1547,6 +1547,14 @@ html.js #for .card.reveal:nth-child(6){ transition-delay: 300ms; }
   object-fit: cover;
   display: block;
 }
+.case-card__meta{
+  font-weight: 300;
+  letter-spacing: .01em;
+}
+.case-card__meta-sep{
+  display: inline-block;
+  width: 1.1em;
+}
 
 /* Review case preview thumbnails */
 .review__casePreview{

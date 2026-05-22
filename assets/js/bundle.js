@@ -12,7 +12,7 @@
 // Важно: таблица должна быть доступна без авторизации, иначе GitHub Pages не сможет читать контент.
 
 window.SITE_CONFIG = {
-  VERSION: "27",
+  VERSION: "28",
   SHEET_ID: "1Sb3_veKvtCsc-gkx4dgeLr3H-UFV9wkv1I_Z-05Ngro",
   // Local snapshot fallback if Sheets are blocked/unavailable
   SNAPSHOT_URL: "assets/data/snapshot.json",
@@ -1170,7 +1170,7 @@ window.SITE_CONFIG = {
         </div>
         <div class="case-card__body">
           <p class="case-card__title">${escapeHtml(r.title || "")}</p>
-          <div class="case-card__meta">${escapeHtml(metaParts.join(" · "))}</div>
+          <div class="case-card__meta">${metaParts.map(escapeHtml).join('<span class="case-card__meta-sep" aria-hidden="true"></span>')}</div>
           ${r.problem ? `<div><strong>Задача:</strong> <span class="muted">${escapeHtml(r.problem)}</span></div>` : ""}
           ${r.result ? `<div><strong>Результат:</strong> <span class="muted">${escapeHtml(r.result)}</span></div>` : ""}
           ${caseUrl ? `<a class="btn btn--ghost" href="${escapeAttr(caseUrl)}" ${caseIsExternal ? 'target="_blank" rel="noopener"' : ""}>Открыть</a>` : ""}
