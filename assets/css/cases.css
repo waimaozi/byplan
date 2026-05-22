@@ -117,12 +117,6 @@ body.cases-lock{
   margin: 10px 0 10px;
   letter-spacing: -.02em;
 }
-.cases-modal__head h2.cases-modal__title,
-.cases-modal__title{
-  font-weight: 400;
-  letter-spacing: -.01em;
-  word-spacing: .5em;
-}
 .cases-modal__meta{
   display: flex;
   flex-wrap: wrap;
