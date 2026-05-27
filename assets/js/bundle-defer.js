@@ -791,7 +791,7 @@
   const OPEN_HASH = "#anketa";
   const STORAGE_KEY = "byplan_anketa_draft_v2";
   const FORM_VERSION = "byplan-anketa-v2";
-  const DEFAULT_SUBMIT_URL = "https://n8n2.waimaozi.com/webhook/byplan-anketa";
+  const DEFAULT_SUBMIT_URL = "https://n8n2.waimaozi.com/webhook/byplan-zayavka-mira";
 
   // ---- Текст из документа (формулировки старался не менять) ----
   // fileciteturn0file0

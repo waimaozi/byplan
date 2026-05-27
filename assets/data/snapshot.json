@@ -271,7 +271,7 @@
       },
       {
         "key": "anketa_submit_url",
-        "value": "https://n8n2.waimaozi.com/webhook/byplan-anketa"
+        "value": "https://n8n2.waimaozi.com/webhook/byplan-zayavka-mira"
       }
     ],
     "pains": [
@@ -1760,7 +1760,7 @@
     "site_additions": [
       {
         "key": "anketa_submit_url",
-        "value": "https://n8n2.waimaozi.com/webhook/byplan-anketa"
+        "value": "https://n8n2.waimaozi.com/webhook/byplan-zayavka-mira"
       }
     ],
     "contacts": [
