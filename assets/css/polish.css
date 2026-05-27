@@ -925,3 +925,16 @@ body.case-modal-open{
 #about .stat .stat__num {
   color: var(--why-accent-strong, #4F352B) !important;
 }
+
+/* === story-note readability fix (2026-05-27) ===
+   Mirror of bundle.css block — same narrow override so .note внутри тёмного
+   .story-island выглядит как warm beige плитка с тёмным текстом. */
+.story-island .note{
+  background: #f4ece4;
+  color: #2b1f17;
+  border-color: rgba(110,76,61,.28);
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+}
+.story-island .note::before{
+  background: linear-gradient(180deg, rgba(110,76,61,.95), rgba(110,76,61,.35));
+}

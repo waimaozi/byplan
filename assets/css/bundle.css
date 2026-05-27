@@ -4955,3 +4955,18 @@ body.anketa-lock{
   }
 }
 
+
+/* === story-note readability fix (2026-05-27) ===
+   Внутри .story-island базовый .note (rgba(255,255,255,.86) + наследуемый
+   светлый текст) сливается с тёмным островом. Делаем непрозрачный тёплый
+   фон + явный тёмный текст. Селектор узкий — другие .note (на светлой
+   странице) не затронуты. */
+.story-island .note{
+  background: #f4ece4;
+  color: #2b1f17;
+  border-color: rgba(110,76,61,.28);
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+}
+.story-island .note::before{
+  background: linear-gradient(180deg, rgba(110,76,61,.95), rgba(110,76,61,.35));
+}
