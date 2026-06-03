@@ -1268,6 +1268,12 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
   align-items: stretch;
 }
 
+.deliv-cta{
+  margin-top: 22px;
+  display: flex;
+  justify-content: center;
+}
+
 .deliv-card{
   position: relative;
   display: flex;
