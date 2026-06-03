@@ -2967,6 +2967,25 @@ body.modal-open {
   letter-spacing: -0.02em;
 }
 
+#about .doc-sample__preview{
+  display: block;
+  margin: 12px 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--about-border);
+  background: #fff;
+}
+
+#about .doc-sample__preview img{
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+#about .doc-sample__preview:hover{
+  border-color: var(--border-medium);
+}
+
 /* ------------------------------
    Responsive
    ------------------------------ */
