@@ -366,3 +366,12 @@ body.anketa-lock{
   overflow: auto;
 }
 
+.anketa-other-input {
+  margin-top: 6px;
+  width: 100%;
+  display: none;
+}
+.anketa-other-input.is-visible {
+  display: block;
+}
+

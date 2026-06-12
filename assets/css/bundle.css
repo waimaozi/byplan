@@ -1268,12 +1268,6 @@ html.js #for .card.reveal:nth-child(3){ transition-delay: 120ms; }
   align-items: stretch;
 }
 
-.deliv-cta{
-  margin-top: 22px;
-  display: flex;
-  justify-content: center;
-}
-
 .deliv-card{
   position: relative;
   display: flex;
@@ -1553,14 +1547,6 @@ html.js #for .card.reveal:nth-child(6){ transition-delay: 300ms; }
   object-fit: cover;
   display: block;
 }
-.case-card__meta{
-  font-weight: 300;
-  letter-spacing: .01em;
-}
-.case-card__meta-sep{
-  display: inline-block;
-  width: 1.1em;
-}
 
 /* Review case preview thumbnails */
 .review__casePreview{
@@ -1810,6 +1796,19 @@ body.case-modal-open{
 
 #about .stat .stat__num {
   color: var(--why-accent-strong, #4F352B) !important;
+}
+
+/* === story-note readability fix (2026-05-27) ===
+   Mirror of bundle.css block — same narrow override so .note внутри тёмного
+   .story-island выглядит как warm beige плитка с тёмным текстом. */
+.story-island .note{
+  background: #f4ece4;
+  color: #2b1f17;
+  border-color: rgba(110,76,61,.28);
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+}
+.story-island .note::before{
+  background: linear-gradient(180deg, rgba(110,76,61,.95), rgba(110,76,61,.35));
 }
 
 /* === story.css === */
@@ -2203,30 +2202,9 @@ body.case-modal-open{
 
 #process [data-kv="process_subtitle"]{
   grid-area: subtitle;
-  position: relative;
-  margin-top: 18px;
-  padding: 16px 16px 16px 24px;
+  margin-top: 14px;
   max-width: 78ch;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: rgba(var(--glass-rgb),.86);
-  box-shadow: var(--elev-1);
-  font-size: 0.98rem;
-  line-height: 1.5;
-  color: rgba(0,0,0,.78);
-}
-#process [data-kv="process_subtitle"]::before{
-  content: "";
-  position: absolute;
-  left: 12px;
-  top: 14px;
-  bottom: 14px;
-  width: 4px;
-  border-radius: var(--radius-pill);
-  background: linear-gradient(180deg, rgba(110,76,61,.85), rgba(110,76,61,.18));
-}
-@media (max-width: 720px){
-  #process [data-kv="process_subtitle"]{ padding: 14px 14px 14px 22px; }
+  color: rgba(0,0,0,.62);
 }
 
 /* --- 3+2 snake grid --- */
@@ -2971,25 +2949,6 @@ body.modal-open {
 #about .doc-sample__title{
   font-weight: 800;
   letter-spacing: -0.02em;
-}
-
-#about .doc-sample__preview{
-  display: block;
-  margin: 12px 0;
-  border-radius: var(--radius);
-  overflow: hidden;
-  border: 1px solid var(--about-border);
-  background: #fff;
-}
-
-#about .doc-sample__preview img{
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-#about .doc-sample__preview:hover{
-  border-color: var(--border-medium);
 }
 
 /* ------------------------------
@@ -4367,6 +4326,15 @@ body.anketa-lock{
   overflow: auto;
 }
 
+.anketa-other-input {
+  margin-top: 6px;
+  width: 100%;
+  display: none;
+}
+.anketa-other-input.is-visible {
+  display: block;
+}
+
 
 /* === reviews-plan.css === */
 /* reviews-plan.css
@@ -4980,18 +4948,3 @@ body.anketa-lock{
   }
 }
 
-
-/* === story-note readability fix (2026-05-27) ===
-   Внутри .story-island базовый .note (rgba(255,255,255,.86) + наследуемый
-   светлый текст) сливается с тёмным островом. Делаем непрозрачный тёплый
-   фон + явный тёмный текст. Селектор узкий — другие .note (на светлой
-   странице) не затронуты. */
-.story-island .note{
-  background: #f4ece4;
-  color: #2b1f17;
-  border-color: rgba(110,76,61,.28);
-  box-shadow: 0 8px 24px rgba(0,0,0,.18);
-}
-.story-island .note::before{
-  background: linear-gradient(180deg, rgba(110,76,61,.95), rgba(110,76,61,.35));
-}
