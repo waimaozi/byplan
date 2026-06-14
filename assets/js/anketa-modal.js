@@ -9,7 +9,7 @@
   const OPEN_HASH = "#anketa";
   const STORAGE_KEY = "byplan_anketa_draft_v3";
   const FORM_VERSION = "byplan-anketa-v3";
-  const DEFAULT_SUBMIT_URL = "https://n8n2.waimaozi.com/webhook/byplan-anketa";
+  const DEFAULT_SUBMIT_URL = "https://n8n2.waimaozi.com/webhook/byplan-zayavka-mira";
 
   // ---- Utils ----
   const $ = (sel, root = document) => root.querySelector(sel);
