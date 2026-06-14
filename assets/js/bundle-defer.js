@@ -2146,6 +2146,7 @@
       if (action === "next") { e.preventDefault(); goNext(); }
       if (action === "clear") { e.preventDefault(); clearDraft(true); }
       if (action === "copy-json") { e.preventDefault(); copyLastPayload(); }
+      if (action === "download-pdf") { e.preventDefault(); downloadReportPDF(modal, btn); }
     });
 
     // Close by clicking backdrop
@@ -2526,13 +2527,17 @@
       }
     }
 
-    const showBox = (mode !== "sent");
+    const showJsonBox = (mode !== "sent");
     if (box) {
-      box.hidden = !showBox;
-      if (showBox) { box.textContent = JSON.stringify(state.lastPayload || {}, null, 2); }
+      box.hidden = !showJsonBox;
+      if (showJsonBox) { box.textContent = JSON.stringify(state.lastPayload || {}, null, 2); }
     }
 
-    if (copyBtn) copyBtn.hidden = !showBox;
+    if (copyBtn) {
+      copyBtn.hidden = false;
+      copyBtn.dataset.anketaAction = (mode === "sent") ? "download-pdf" : "copy-json";
+      copyBtn.textContent = (mode === "sent") ? "Скачать PDF с ответами" : "Скопировать данные";
+    }
 
     setStep("success", modal);
   }
@@ -2561,6 +2566,130 @@
       alert("Скопировано");
     } catch (_) {
       alert("Не удалось скопировать. Можно выделить текст вручную.");
+    }
+  }
+
+  // ---- Human-readable report (for PDF) ----
+  function collectReport(modal) {
+    const form = $("#anketaForm", modal);
+    if (!form) return { sections: [] };
+
+    const sections = [];
+    const stepEls = $$(".anketa-step", modal).filter(s => s.getAttribute("data-step") !== "success");
+
+    stepEls.forEach(step => {
+      const titleEl = step.querySelector("h3");
+      const sectionTitle = titleEl ? titleEl.textContent.trim() : "";
+      const items = [];
+
+      $$(".anketa-field", step).forEach(field => {
+        const labelEl = field.querySelector(".anketa-label");
+        const input = field.querySelector("input, textarea");
+        if (!input || !labelEl) return;
+        const val = String(input.value || "").trim();
+        if (!val) return;
+        items.push({ question: labelEl.textContent.trim(), answers: [val] });
+      });
+
+      $$(".anketa-block", step).forEach(block => {
+        const qTitle = block.querySelector(".anketa-block__title");
+        const question = qTitle ? qTitle.textContent.trim() : "";
+        const checks = $$(".anketa-check input:checked", block);
+        if (!checks.length) return;
+        const answers = checks.map(inp => {
+          const lab = block.querySelector(`label[for="${inp.id}"]`);
+          let txt = lab ? lab.textContent.trim() : inp.value;
+          if (inp.value === "other") {
+            const otherInput = block.querySelector(`input[name="${inp.name}_other_text"]`);
+            const otherVal = otherInput ? String(otherInput.value || "").trim() : "";
+            if (otherVal) txt = `${txt.replace(/:\s*_+$/, "")}: ${otherVal}`;
+          }
+          return txt;
+        });
+        items.push({ question, answers });
+      });
+
+      if (items.length) sections.push({ title: sectionTitle, items });
+    });
+
+    return { sections };
+  }
+
+  function buildReportHTML(report) {
+    const today = new Date().toLocaleDateString("ru-RU");
+    const css = `
+      body { font-family: -apple-system, "Segoe UI", Roboto, "PT Sans", Arial, sans-serif; color: #1a1a1a; padding: 24px; max-width: 720px; }
+      h1 { font-size: 22px; margin: 0 0 4px; }
+      .meta { color: #666; font-size: 12px; margin-bottom: 18px; }
+      h2 { font-size: 16px; margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #ddd; color: #444; }
+      .q { margin: 8px 0 4px; font-size: 13px; font-weight: 600; }
+      .a { margin: 0 0 6px 12px; font-size: 13px; }
+      .a li { margin: 2px 0; }
+      ul { padding-left: 18px; margin: 0; }
+    `;
+    const sectionsHtml = report.sections.map(s => {
+      const itemsHtml = s.items.map(it => {
+        const listHtml = it.answers.length === 1
+          ? `<div class="a">${escAttr(it.answers[0])}</div>`
+          : `<ul class="a">${it.answers.map(a => `<li>${escAttr(a)}</li>`).join("")}</ul>`;
+        return `<div class="q">${escAttr(it.question)}</div>${listHtml}`;
+      }).join("");
+      return `<h2>${escAttr(s.title)}</h2>${itemsHtml}`;
+    }).join("");
+
+    return `<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head><body>
+      <h1>Анкета ByPlan</h1>
+      <div class="meta">Заполнено: ${today}</div>
+      ${sectionsHtml}
+    </body></html>`;
+  }
+
+  function loadHtml2Pdf() {
+    if (window.html2pdf) return Promise.resolve(window.html2pdf);
+    if (state._html2pdfPromise) return state._html2pdfPromise;
+    state._html2pdfPromise = new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+      s.async = true;
+      s.onload = () => resolve(window.html2pdf);
+      s.onerror = () => reject(new Error("html2pdf load failed"));
+      document.head.appendChild(s);
+    });
+    return state._html2pdfPromise;
+  }
+
+  async function downloadReportPDF(modal, btn) {
+    const origLabel = btn ? btn.textContent : "";
+    if (btn) { btn.disabled = true; btn.textContent = "Готовим PDF…"; }
+    try {
+      const html2pdf = await loadHtml2Pdf();
+      const report = collectReport(modal);
+      if (!report.sections.length) { alert("Нет данных для PDF."); return; }
+
+      const wrapper = document.createElement("div");
+      wrapper.style.position = "fixed";
+      wrapper.style.left = "-10000px";
+      wrapper.style.top = "0";
+      wrapper.style.background = "#fff";
+      wrapper.innerHTML = buildReportHTML(report);
+      document.body.appendChild(wrapper);
+
+      const filename = `byplan-anketa-${new Date().toISOString().slice(0,10)}.pdf`;
+      await html2pdf().set({
+        margin: [10, 12, 12, 12],
+        filename,
+        image: { type: "jpeg", quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#fff" },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["css", "legacy"] }
+      }).from(wrapper).save();
+
+      document.body.removeChild(wrapper);
+    } catch (e) {
+      console.warn("[anketa] PDF failed:", e);
+      alert("Не удалось собрать PDF. Попробуйте ещё раз или скопируйте данные.");
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = origLabel; }
     }
   }
 
