@@ -1892,24 +1892,26 @@
   async function downloadReportPDF(modal, btn) {
     const origLabel = btn ? btn.textContent : "";
     if (btn) { btn.disabled = true; btn.textContent = "Готовим PDF…"; }
-    let wrapper = null;
+    let holder = null;
     try {
       const html2pdf = await loadHtml2Pdf();
       const report = collectReport(modal);
       if (!report.sections.length) { alert("Нет данных для PDF."); return; }
 
-      // Render on-page (top-left) with an explicit width, hidden BEHIND the page
-      // via z-index. Do NOT use opacity:0 or left:-10000px — html2canvas captures
-      // those as blank, which produced the empty PDF.
-      wrapper = document.createElement("div");
-      wrapper.style.position = "absolute"; // absolute (not fixed) so tall multi-page reports render in full
-      wrapper.style.left = "0";
-      wrapper.style.top = "0";
-      wrapper.style.width = "794px"; // ~A4 width @96dpi
-      wrapper.style.zIndex = "-1";
+      // html2pdf collapses a positioned element to height:0 during its internal
+      // clone, producing a blank PDF. So keep the report wrapper STATIC (in normal
+      // flow → real measured height) and hide it by parking its PARENT off-screen.
+      holder = document.createElement("div");
+      holder.style.position = "absolute";
+      holder.style.left = "-9999px";
+      holder.style.top = "0";
+      holder.style.width = "794px"; // ~A4 width @96dpi
+      const wrapper = document.createElement("div");
+      wrapper.style.width = "794px";
       wrapper.style.background = "#fff";
       wrapper.innerHTML = buildReportHTML(report);
-      document.body.appendChild(wrapper);
+      holder.appendChild(wrapper);
+      document.body.appendChild(holder);
 
       const filename = `byplan-anketa-${new Date().toISOString().slice(0,10)}.pdf`;
       await html2pdf().set({
@@ -1924,7 +1926,7 @@
       console.warn("[anketa] PDF failed:", e);
       alert("Не удалось собрать PDF. Попробуйте ещё раз или скопируйте данные.");
     } finally {
-      if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+      if (holder && holder.parentNode) holder.parentNode.removeChild(holder);
       if (btn) { btn.disabled = false; btn.textContent = origLabel; }
     }
   }
