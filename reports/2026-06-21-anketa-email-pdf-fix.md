@@ -42,6 +42,24 @@ Two parallel Haiku reviews (one with context, one blind). Findings:
 - **PDF (headless Chrome):** ran the exact new capture logic — canvas `1588×646`, `nonWhitePct=2.47%` (text present; blank bug = 0%), `bgLeakPct=0.00%` (no page-bg bleed). Render confirmed working.
 - Both JS files pass `node --check`.
 
+## CORRECTION (2026-06-22, v42) — first PDF fix was wrong
+The v41 PDF fix (capture node `position:absolute; z-index:-1`) **still produced a blank PDF**
+in the real browser. My v41 "verification" used raw `html2canvas` on the element, which does NOT
+exercise html2pdf's internal clone — and html2pdf **collapses a positioned element to height:0**,
+so the real pipeline still rendered nothing. (Symptom Sen saw: "same size as before".)
+
+Re-reproduced the **actual html2pdf pipeline** headlessly across 6 wrapper strategies via
+`.toCanvas()` pixel inspection. Result: only a **static (in-flow) wrapper** renders content
+(`1406x626, ~2.8% ink`); every positioned/off-screen-on-the-wrapper variant → height:0 → blank.
+
+**Correct fix (v42):** keep the report wrapper **static** (real measured height) and hide it by
+parking its **PARENT** off-screen (`position:absolute; left:-9999px`). Verified non-blank through
+the real `.toCanvas()` path. Also bumped `VERSION` constant `40→42` (config.js + bundle.js) — it
+was unbumped before, so the footer wrongly showed "v40" on fresh deploys. Cache `?v=42`.
+Commit `6c9da94`. Email fix unchanged and confirmed good by Sen ("looks fine").
+
+Lesson: verify the **real** rendering pipeline, not a proxy of it.
+
 ## Still on Sen
 - Real-browser confirmation: submit the live form (v41) and download the PDF once cache clears.
 - Optional follow-up: move n8n Email SMTP from Gmail-relay to `info@byplan.ru` Yandex SMTP (needs app-password) for clean SPF.
