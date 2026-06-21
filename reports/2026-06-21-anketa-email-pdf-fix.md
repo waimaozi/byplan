@@ -60,6 +60,28 @@ Commit `6c9da94`. Email fix unchanged and confirmed good by Sen ("looks fine").
 
 Lesson: verify the **real** rendering pipeline, not a proxy of it.
 
+## CORRECTION 2 (2026-06-22, v43) — root cause was html2pdf's pipeline
+v42 produced a PDF with the section divider lines but **blank text** (only heavy/bold
+glyphs survived; user saw 4 near-empty pages + "5 лет?"). Ruled out, by faithful repro:
+positioning, font stack, web-font race (site has none), `oklch`/`color-mix`, gradient-text,
+live CSS, and form-reset — every isolated render was fine.
+
+**Real cause:** html2pdf's `.from(el).save()` clones the element into its own container
+before capture, and **that clone renders the report text blank inside the full landing-page
+DOM**. Proven by driving the actual live page headlessly (curl the page + `<base>` + inject
+driver): when the report wrapper (built by the real code) is captured with `html2canvas`
+*directly*, the full report renders perfectly; through html2pdf it blanks.
+
+**Fix (v43):** drop html2pdf entirely. `loadPdfLibs()` loads html2canvas 1.4.1 + jsPDF 2.5.1;
+`downloadReportPDF` renders the wrapper with `html2canvas` directly, then slices the tall
+canvas into A4 pages with jsPDF. Verified end-to-end on the live page: full 7-page report,
+all text crisp (viewed). Deployed-flow check confirmed html2canvas returns a full
+1588×15304 canvas in the real page. Also: `#anketaBody.scrollTop=0` on every step change
+(steps 5+ were opening scrolled to the bottom). VERSION+cache → 43. Commit `f8f1bba`.
+
+Lesson (compounded): verify the **real, integrated** pipeline in the **real** environment —
+isolated proxies (raw html2canvas; empty-body pages) hid the bug twice.
+
 ## Still on Sen
 - Real-browser confirmation: submit the live form (v41) and download the PDF once cache clears.
 - Optional follow-up: move n8n Email SMTP from Gmail-relay to `info@byplan.ru` Yandex SMTP (needs app-password) for clean SPF.
