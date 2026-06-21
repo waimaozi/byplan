@@ -1696,6 +1696,9 @@
     }
 
     const payload = buildPayload(form);
+    // Attach the human-readable Q&A report (same source the PDF uses) so n8n/email
+    // can render real answers without re-deriving labels from machine-keyed sections.
+    payload.report = collectReport(modal);
     state.lastPayload = payload;
 
     const submitUrl = String(state.submitUrl || "").trim();
@@ -1840,15 +1843,17 @@
 
   function buildReportHTML(report) {
     const today = new Date().toLocaleDateString("ru-RU");
+    // Styles are scoped under .anketa-report so injecting this <style> into the
+    // live document during PDF capture does not bleed onto the page.
     const css = `
-      body { font-family: -apple-system, "Segoe UI", Roboto, "PT Sans", Arial, sans-serif; color: #1a1a1a; padding: 24px; max-width: 720px; }
-      h1 { font-size: 22px; margin: 0 0 4px; }
-      .meta { color: #666; font-size: 12px; margin-bottom: 18px; }
-      h2 { font-size: 16px; margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #ddd; color: #444; }
-      .q { margin: 8px 0 4px; font-size: 13px; font-weight: 600; }
-      .a { margin: 0 0 6px 12px; font-size: 13px; }
-      .a li { margin: 2px 0; }
-      ul { padding-left: 18px; margin: 0; }
+      .anketa-report { font-family: -apple-system, "Segoe UI", Roboto, "PT Sans", Arial, sans-serif; color: #1a1a1a; padding: 24px; box-sizing: border-box; width: 100%; }
+      .anketa-report h1 { font-size: 22px; margin: 0 0 4px; }
+      .anketa-report .meta { color: #666; font-size: 12px; margin-bottom: 18px; }
+      .anketa-report h2 { font-size: 16px; margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #ddd; color: #444; }
+      .anketa-report .q { margin: 8px 0 4px; font-size: 13px; font-weight: 600; }
+      .anketa-report .a { margin: 0 0 6px 12px; font-size: 13px; }
+      .anketa-report .a li { margin: 2px 0; }
+      .anketa-report ul { padding-left: 18px; margin: 0; }
     `;
     const sectionsHtml = report.sections.map(s => {
       const itemsHtml = s.items.map(it => {
@@ -1860,11 +1865,14 @@
       return `<h2>${escAttr(s.title)}</h2>${itemsHtml}`;
     }).join("");
 
-    return `<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head><body>
-      <h1>Анкета ByPlan</h1>
-      <div class="meta">Заполнено: ${today}</div>
-      ${sectionsHtml}
-    </body></html>`;
+    // Return a self-contained fragment (no <html>/<head>/<body>): those tags are
+    // stripped when assigned via innerHTML on a <div>, which dropped the styles.
+    return `<style>${css}</style>
+      <div class="anketa-report">
+        <h1>Анкета ByPlan</h1>
+        <div class="meta">Заполнено: ${today}</div>
+        ${sectionsHtml}
+      </div>`;
   }
 
   function loadHtml2Pdf() {
@@ -1884,15 +1892,21 @@
   async function downloadReportPDF(modal, btn) {
     const origLabel = btn ? btn.textContent : "";
     if (btn) { btn.disabled = true; btn.textContent = "Готовим PDF…"; }
+    let wrapper = null;
     try {
       const html2pdf = await loadHtml2Pdf();
       const report = collectReport(modal);
       if (!report.sections.length) { alert("Нет данных для PDF."); return; }
 
-      const wrapper = document.createElement("div");
-      wrapper.style.position = "fixed";
-      wrapper.style.left = "-10000px";
+      // Render on-page (top-left) with an explicit width, hidden BEHIND the page
+      // via z-index. Do NOT use opacity:0 or left:-10000px — html2canvas captures
+      // those as blank, which produced the empty PDF.
+      wrapper = document.createElement("div");
+      wrapper.style.position = "absolute"; // absolute (not fixed) so tall multi-page reports render in full
+      wrapper.style.left = "0";
       wrapper.style.top = "0";
+      wrapper.style.width = "794px"; // ~A4 width @96dpi
+      wrapper.style.zIndex = "-1";
       wrapper.style.background = "#fff";
       wrapper.innerHTML = buildReportHTML(report);
       document.body.appendChild(wrapper);
@@ -1902,16 +1916,15 @@
         margin: [10, 12, 12, 12],
         filename,
         image: { type: "jpeg", quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#fff" },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#fff", windowWidth: 794, scrollX: 0, scrollY: 0 },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
         pagebreak: { mode: ["css", "legacy"] }
       }).from(wrapper).save();
-
-      document.body.removeChild(wrapper);
     } catch (e) {
       console.warn("[anketa] PDF failed:", e);
       alert("Не удалось собрать PDF. Попробуйте ещё раз или скопируйте данные.");
     } finally {
+      if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
       if (btn) { btn.disabled = false; btn.textContent = origLabel; }
     }
   }
