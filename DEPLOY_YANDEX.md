@@ -7,6 +7,7 @@ Upload the following from the repo root:
 - `index.html`
 - `404.html`
 - `robots.txt`
+- `sitemap.xml`
 - `assets/` (all files inside)
 
 Do not upload: `node_modules/`, `hotel-ai-landing/`, `.git/`.
@@ -67,7 +68,7 @@ If you want CDN caching:
 - Website hosting enabled with `index.html` and `404.html`.
 - DNS records created and propagated.
 - Certificates attached for HTTPS.
-- Files uploaded: `index.html`, `404.html`, `robots.txt`, `assets/`.
+- Files uploaded: `index.html`, `404.html`, `robots.txt`, `sitemap.xml`, `assets/`.
 
 ## Useful docs
 - Static website hosting: https://yandex.cloud/en/docs/storage/concepts/hosting
