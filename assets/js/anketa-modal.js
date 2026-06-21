@@ -1469,6 +1469,11 @@
     const form = $("#anketaForm", modal);
     const steps = $$(".anketa-step", modal);
 
+    // Reset the scroll container to the top on every step change — otherwise a
+    // tall step opens scrolled down to wherever the previous step was left.
+    const body = $("#anketaBody", modal);
+    if (body) body.scrollTop = 0;
+
     if (stepIndex === "success") {
       steps.forEach(s => s.classList.remove("is-active"));
       const success = steps.find(s => s.getAttribute("data-step") === "success");
@@ -1875,18 +1880,27 @@
       </div>`;
   }
 
-  function loadHtml2Pdf() {
-    if (window.html2pdf) return Promise.resolve(window.html2pdf);
-    if (state._html2pdfPromise) return state._html2pdfPromise;
-    state._html2pdfPromise = new Promise((resolve, reject) => {
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
       const s = document.createElement("script");
-      s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
-      s.async = true;
-      s.onload = () => resolve(window.html2pdf);
-      s.onerror = () => reject(new Error("html2pdf load failed"));
+      s.src = src; s.async = true;
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error("script load failed: " + src));
       document.head.appendChild(s);
     });
-    return state._html2pdfPromise;
+  }
+
+  // Load html2canvas + jsPDF directly. We deliberately do NOT use the html2pdf
+  // wrapper: its internal element-clone step renders the report text blank inside
+  // the full landing-page DOM. Calling html2canvas directly renders reliably.
+  function loadPdfLibs() {
+    if (window.html2canvas && window.jspdf) return Promise.resolve();
+    if (state._pdfLibsPromise) return state._pdfLibsPromise;
+    state._pdfLibsPromise = Promise.all([
+      window.html2canvas ? Promise.resolve() : loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"),
+      window.jspdf ? Promise.resolve() : loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js")
+    ]);
+    return state._pdfLibsPromise;
   }
 
   async function downloadReportPDF(modal, btn) {
@@ -1894,13 +1908,12 @@
     if (btn) { btn.disabled = true; btn.textContent = "Готовим PDF…"; }
     let holder = null;
     try {
-      const html2pdf = await loadHtml2Pdf();
+      await loadPdfLibs();
       const report = collectReport(modal);
       if (!report.sections.length) { alert("Нет данных для PDF."); return; }
 
-      // html2pdf collapses a positioned element to height:0 during its internal
-      // clone, producing a blank PDF. So keep the report wrapper STATIC (in normal
-      // flow → real measured height) and hide it by parking its PARENT off-screen.
+      // Render the report off-screen. The wrapper stays STATIC (real measured
+      // height); its PARENT is parked off-screen so nothing flashes on screen.
       holder = document.createElement("div");
       holder.style.position = "absolute";
       holder.style.left = "-9999px";
@@ -1913,15 +1926,37 @@
       holder.appendChild(wrapper);
       document.body.appendChild(holder);
 
-      const filename = `byplan-anketa-${new Date().toISOString().slice(0,10)}.pdf`;
-      await html2pdf().set({
-        margin: [10, 12, 12, 12],
-        filename,
-        image: { type: "jpeg", quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#fff", windowWidth: 794, scrollX: 0, scrollY: 0 },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        pagebreak: { mode: ["css", "legacy"] }
-      }).from(wrapper).save();
+      if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (_) {} }
+
+      const canvas = await window.html2canvas(wrapper, {
+        scale: 2, useCORS: true, backgroundColor: "#fff", windowWidth: 794, scrollX: 0, scrollY: 0
+      });
+
+      // Slice the tall canvas into A4 pages with jsPDF (image-based; no html2pdf).
+      const jsPDF = window.jspdf.jsPDF;
+      const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const imgW = pageW - margin * 2;
+      const pxPerMM = canvas.width / imgW;
+      const pageHpx = (pageH - margin * 2) * pxPerMM;
+      let srcY = 0, page = 0;
+      while (srcY < canvas.height) {
+        const sliceH = Math.min(pageHpx, canvas.height - srcY);
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceH;
+        const ctx = pageCanvas.getContext("2d");
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(canvas, 0, srcY, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+        if (page > 0) pdf.addPage();
+        pdf.addImage(pageCanvas.toDataURL("image/jpeg", 0.95), "JPEG", margin, margin, imgW, sliceH / pxPerMM);
+        srcY += sliceH;
+        page++;
+      }
+      pdf.save(`byplan-anketa-${new Date().toISOString().slice(0,10)}.pdf`);
     } catch (e) {
       console.warn("[anketa] PDF failed:", e);
       alert("Не удалось собрать PDF. Попробуйте ещё раз или скопируйте данные.");
