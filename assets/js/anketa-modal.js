@@ -1897,8 +1897,8 @@
     if (window.html2canvas && window.jspdf) return Promise.resolve();
     if (state._pdfLibsPromise) return state._pdfLibsPromise;
     state._pdfLibsPromise = Promise.all([
-      window.html2canvas ? Promise.resolve() : loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"),
-      window.jspdf ? Promise.resolve() : loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js")
+      window.html2canvas ? Promise.resolve() : loadScript("assets/vendor/html2canvas-1.4.1.min.js"),
+      window.jspdf ? Promise.resolve() : loadScript("assets/vendor/jspdf-2.5.1.umd.min.js")
     ]);
     return state._pdfLibsPromise;
   }
