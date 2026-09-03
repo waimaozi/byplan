@@ -72,8 +72,10 @@
     if (/^https?:\/\//i.test(s)) return s;
     // allow //cdn paths
     if (/^\/\//.test(s)) return s;
-    // relative path ok
-    return s;
+    const clean = s.replace(/^\/+/, "");
+    return (window.ByplanImgPaths && window.ByplanImgPaths.normalize)
+      ? window.ByplanImgPaths.normalize(clean)
+      : clean;
   }
 
   function isFalse(v) {
