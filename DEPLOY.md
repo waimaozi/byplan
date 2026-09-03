@@ -25,11 +25,23 @@ GitHub Pages rebuilds automatically within ~1 minute of the push.
 The page loads concatenated bundles, not the individual source files:
 - `assets/js/bundle.js` — built by `scripts/build-js-bundle.sh` (does **not** include the anketa).
 - `assets/js/bundle-defer.js` — the deferred bundle that **contains the anketa code**
-  (source: `assets/js/anketa-modal.js`). The page does **not** load `anketa-modal.js` directly,
-  so an anketa change must land in `bundle-defer.js` (rebuild it, or edit both files).
+  and is built by `scripts/build-js-defer-bundle.sh`.
 - `assets/css/bundle.css` — built by `scripts/build-bundle.sh`.
 
 After editing source, regenerate the affected bundle(s), bump `?v=N`, commit, push.
+
+## Site content
+
+`assets/data/snapshot.json` is the canonical runtime content source. The Google Sheet is
+authoring-only; browsers do not fetch it. Regenerate the snapshot after approved Sheet edits:
+
+```bash
+node scripts/update_snapshot.mjs --sheet 1Sb3_veKvtCsc-gkx4dgeLr3H-UFV9wkv1I_Z-05Ngro --overrides assets/data/snapshot.overrides.json --check
+```
+
+The overrides file holds temporary deterministic corrections and asserts the expected Sheet
+values before applying them. The optional `title_hint` column on `steps` adds an accessible
+native tooltip to a step title.
 
 ## Form submissions
 The anketa form POSTs to an n8n webhook (`.../webhook/byplan-zayavka-mira`), which emails

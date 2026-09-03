@@ -429,12 +429,16 @@
     const root = el(containerId);
     if (!root) return;
     root.innerHTML = "";
-    rows.forEach(r => {
+    rows.forEach((r, i) => {
       const li = document.createElement("li");
       const title = (r.title || "").trim();
       const text = (r.text || "").trim();
+      const hint = (r.title_hint || "").trim();
+      const titleHtml = hint
+        ? `<strong title="${escapeAttr(hint)}" aria-describedby="step-hint-${i}" class="step-title--hint">${escapeHtml(title)}</strong><span id="step-hint-${i}" class="step-hint">${escapeHtml(hint)}</span>`
+        : `<strong>${escapeHtml(title)}</strong>`;
       li.innerHTML = title
-        ? `<strong>${escapeHtml(title)}</strong>${text ? `<br><span class="muted">${escapeHtml(text)}</span>` : ""}`
+        ? `${titleHtml}${text ? `<br><span class="muted">${escapeHtml(text)}</span>` : ""}`
         : escapeHtml(text || "");
       root.appendChild(li);
     });
@@ -603,7 +607,7 @@
         </div>
         <div class="case-card__body">
           <p class="case-card__title">${escapeHtml(r.title || "")}</p>
-          <div class="case-card__meta">${escapeHtml(metaParts.join(" · "))}</div>
+          <div class="case-card__meta">${metaParts.map(escapeHtml).join('<span class="case-card__meta-sep" aria-hidden="true"></span>')}</div>
           ${r.problem ? `<div><strong>Задача:</strong> <span class="muted">${escapeHtml(r.problem)}</span></div>` : ""}
           ${r.result ? `<div><strong>Результат:</strong> <span class="muted">${escapeHtml(r.result)}</span></div>` : ""}
           ${caseUrl ? `<a class="btn btn--ghost" href="${escapeAttr(caseUrl)}" ${caseIsExternal ? 'target="_blank" rel="noopener"' : ""}>Открыть</a>` : ""}

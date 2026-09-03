@@ -23,6 +23,9 @@
   --ease-out: cubic-bezier(.2,.8,.2,1);
 }
 
+.step-hint{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.step-title--hint{cursor:help}
+
 /* --- Make #process a single-column "slide" and push subtitle to bottom --- */
 #process .container{
   display: grid;

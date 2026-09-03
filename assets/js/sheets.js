@@ -22,6 +22,22 @@
     ? String(window.SITE_CONFIG.SNAPSHOT_URL)
     : "assets/data/snapshot.json";
   let snapshotPromise = null;
+  let storageSwept = false;
+
+  function clearSheetStorage() {
+    if (storageSwept) return;
+    storageSwept = true;
+    try {
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(storagePrefix)) keys.push(key);
+      }
+      keys.forEach(key => localStorage.removeItem(key));
+    } catch {
+      // Ignore storage errors in restricted browsing modes.
+    }
+  }
 
   function tableToObjects(table) {
     const cols = (table.cols || []).map(c => (c.label || "").trim());
@@ -131,10 +147,20 @@
     if (cache.has(key)) return cache.get(key);
     if (inflight.has(key)) return inflight.get(key);
 
-    const storageKey = `${storagePrefix}${key}`;
-    const stored = readStorage(storageKey);
-
     const promise = (async () => {
+      if (((window.SITE_CONFIG && window.SITE_CONFIG.CONTENT_SOURCE) || "") === "snapshot") {
+        clearSheetStorage();
+        const snapshot = await loadSnapshot();
+        const tab = snapshot && snapshot.tabs && snapshot.tabs[tabName];
+        if (!Array.isArray(tab)) throw new Error(`Snapshot tab missing: ${tabName}`);
+        state.usedSnapshot = true;
+        cache.set(key, tab);
+        return tab;
+      }
+
+      const storageKey = `${storagePrefix}${key}`;
+      const stored = readStorage(storageKey);
+
       if (!sheetId) {
         const data = await resolveFallback(tabName, stored, new Error("SHEET_ID missing"));
         cache.set(key, data);
