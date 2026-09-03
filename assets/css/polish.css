@@ -244,8 +244,9 @@ html.js .reveal.is-visible{
   inset:0;
   pointer-events:none;
   opacity:.12;
-  background-image: url("../img/hero/layers/03_grain.png");
-  background-size: cover;
+  background-image: url("../img/hero/layers/grain-tile.png");
+  background-size: 512px 512px;
+  background-repeat: repeat;
   mix-blend-mode: overlay;
 }
 

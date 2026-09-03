@@ -32,13 +32,13 @@
 
   /* First = top-most */
   background-image:
-    url("../img/hero/layers/03_grain.png"),
+    url("../img/hero/layers/grain-tile.png"),
     url("../img/hero/layers/02_vignette.png"),
     url("../img/hero/layers/01_readability_left.png");
 
-  background-size: cover, cover, cover;
+  background-size: 512px 512px, cover, cover;
   background-position: center, center, center;
-  background-repeat: no-repeat;
+  background-repeat: repeat, no-repeat, no-repeat;
 }
 
 .hero > *{ position: relative; z-index: 1; }

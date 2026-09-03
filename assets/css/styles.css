@@ -150,11 +150,10 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
   background-image:
     url("../img/layers/overlay_highlight.png"),
     url("../img/layers/overlay_haze.png"),
-    url("../img/layers/overlay_vignette.png"),
-    url("../img/layers/overlay_grain.png");
+    url("../img/layers/overlay_vignette.png");
 
-  background-size: cover, cover, cover, cover;
-  background-position: center, center, center, center;
+  background-size: cover, cover, cover;
+  background-position: center, center, center;
   background-repeat: no-repeat;
   opacity: 1;
 
