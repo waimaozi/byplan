@@ -297,11 +297,10 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
   background-image:
     url("../img/layers/overlay_highlight.png"),
     url("../img/layers/overlay_haze.png"),
-    url("../img/layers/overlay_vignette.png"),
-    url("../img/layers/overlay_grain.png");
+    url("../img/layers/overlay_vignette.png");
 
-  background-size: cover, cover, cover, cover;
-  background-position: center, center, center, center;
+  background-size: cover, cover, cover;
+  background-position: center, center, center;
   background-repeat: no-repeat;
   opacity: 1;
 
@@ -841,13 +840,13 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 
   /* First = top-most */
   background-image:
-    url("../img/hero/layers/03_grain.png"),
+    url("../img/hero/layers/grain-tile.png"),
     url("../img/hero/layers/02_vignette.png"),
     url("../img/hero/layers/01_readability_left.png");
 
-  background-size: cover, cover, cover;
+  background-size: 512px 512px, cover, cover;
   background-position: center, center, center;
-  background-repeat: no-repeat;
+  background-repeat: repeat, no-repeat, no-repeat;
 }
 
 .hero > *{ position: relative; z-index: 1; }
@@ -869,6 +868,7 @@ h2{ font-size: var(--h2); line-height: 1.15; font-weight: 800; }
 @media (max-width: 640px){
   .hero::before{ display: none; }
 }
+
 /* === polish.css === */
 /* ============================================================
    byplan — polish.css (v2)
@@ -1116,8 +1116,9 @@ html.js .reveal.is-visible{
   inset:0;
   pointer-events:none;
   opacity:.12;
-  background-image: url("../img/hero/layers/03_grain.png");
-  background-size: cover;
+  background-image: url("../img/hero/layers/grain-tile.png");
+  background-size: 512px 512px;
+  background-repeat: repeat;
   mix-blend-mode: overlay;
 }
 
@@ -2179,6 +2180,9 @@ body.case-modal-open{
 
   --ease-out: cubic-bezier(.2,.8,.2,1);
 }
+
+.step-hint{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.step-title--hint{cursor:help}
 
 /* --- Make #process a single-column "slide" and push subtitle to bottom --- */
 #process .container{

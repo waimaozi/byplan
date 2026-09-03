@@ -1,4 +1,3 @@
-
 /* === reviews-more-modal.js === */
 /*
   Reviews: "Read more" modal (robust)
@@ -449,6 +448,7 @@
     initAutoButtons();
   }
 })();
+
 ;
 /* === reviews-carousel.js === */
 /**
@@ -774,9 +774,9 @@
   } else {
     bootstrap();
   }
-})();;
+})();
+;
 /* === anketa-modal.js === */
-
 /* ============================================================
    BYPLAN — anketa-modal.js (v3)
    Module: Анкета (модальное окно + пошаговая форма)
@@ -2590,6 +2590,7 @@
       const sectionTitle = titleEl ? titleEl.textContent.trim() : "";
       const items = [];
 
+      // 1) Свободные поля (.anketa-field): input/textarea
       $$(".anketa-field", step).forEach(field => {
         const labelEl = field.querySelector(".anketa-label");
         const input = field.querySelector("input, textarea");
@@ -2599,6 +2600,7 @@
         items.push({ question: labelEl.textContent.trim(), answers: [val] });
       });
 
+      // 2) Группы чекбоксов/радио (.anketa-block)
       $$(".anketa-block", step).forEach(block => {
         const qTitle = block.querySelector(".anketa-block__title");
         const question = qTitle ? qTitle.textContent.trim() : "";
@@ -2674,8 +2676,8 @@
     if (window.html2canvas && window.jspdf) return Promise.resolve();
     if (state._pdfLibsPromise) return state._pdfLibsPromise;
     state._pdfLibsPromise = Promise.all([
-      window.html2canvas ? Promise.resolve() : loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"),
-      window.jspdf ? Promise.resolve() : loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js")
+      window.html2canvas ? Promise.resolve() : loadScript("assets/vendor/html2canvas-1.4.1.min.js"),
+      window.jspdf ? Promise.resolve() : loadScript("assets/vendor/jspdf-2.5.1.umd.min.js")
     ]);
     return state._pdfLibsPromise;
   }
@@ -2802,6 +2804,7 @@
   else document.addEventListener("DOMContentLoaded", init);
 })();
 
+;
 /* === reviews-plan.js === */
 /* reviews-plan.js
  * Premium "review -> plan (before/after)" binding.
@@ -2877,8 +2880,10 @@
     if (/^https?:\/\//i.test(s)) return s;
     // allow //cdn paths
     if (/^\/\//.test(s)) return s;
-    // relative path ok
-    return s;
+    const clean = s.replace(/^\/+/, "");
+    return (window.ByplanImgPaths && window.ByplanImgPaths.normalize)
+      ? window.ByplanImgPaths.normalize(clean)
+      : clean;
   }
 
   function isFalse(v) {
@@ -3292,4 +3297,5 @@
     boot();
   }
 })();
+
 ;
