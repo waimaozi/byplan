@@ -1,5 +1,9 @@
 import fs from "fs";
 import path from "path";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
+const { normalize } = require("../assets/js/img-legacy-map.js");
 
 const args = process.argv.slice(2);
 const getArg = (name) => {
@@ -9,7 +13,8 @@ const getArg = (name) => {
 };
 
 const sheetId = getArg("--sheet") || process.env.SHEET_ID || "";
-if (!sheetId) {
+const fixturePath = getArg("--fixture");
+if (!sheetId && !fixturePath) {
   console.error("Missing SHEET_ID. Usage: node scripts/update_snapshot.mjs --sheet <ID>");
   process.exit(1);
 }
@@ -29,14 +34,16 @@ const defaultTabs = [
   "principles_do",
   "principles_dont",
   "mistakes",
+  "cases",
+  "cases_media",
   "why_stats",
   "why_trust",
-  "cases",
   "reviews",
-  "faq",
-  "contacts",
   "story",
-  "story_scenes"
+  "story_scenes",
+  "faq",
+  "site_additions",
+  "contacts"
 ];
 
 const tabsArg = getArg("--tabs");
@@ -45,6 +52,9 @@ const tabs = tabsArg
   : defaultTabs;
 
 const outPath = getArg("--out") || "assets/data/snapshot.json";
+const overridesPath = getArg("--overrides");
+const checkPaths = args.includes("--check");
+const fixture = fixturePath ? JSON.parse(fs.readFileSync(path.resolve(fixturePath), "utf8")) : null;
 
 function stripGvizWrapper(text) {
   const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\);\s*$/s);
@@ -62,13 +72,19 @@ function tableToObjects(table) {
   return rows.map(row => {
     const obj = {};
     cleanCols.forEach((col, i) => {
-      obj[col] = (row[i] ?? "");
+      if (col) obj[col] = (row[i] ?? "");
     });
     return obj;
   });
 }
 
 async function fetchTab(tabName) {
+  if (fixture) {
+    const payload = fixture[tabName];
+    if (!payload) throw new Error(`Fixture tab missing: ${tabName}`);
+    const parsed = typeof payload === "string" ? JSON.parse(stripGvizWrapper(payload)) : payload;
+    return parsed.table ? tableToObjects(parsed.table) : [];
+  }
   const params = new URLSearchParams({
     sheet: tabName,
     headers: "1",
@@ -84,6 +100,62 @@ async function fetchTab(tabName) {
   return tableToObjects(payload.table);
 }
 
+const imageFields = {
+  cases_media: ["before_url", "after_url", "before_thumb", "after_thumb"],
+  cases: ["img_url"],
+  reviews: ["case_before_url", "case_after_url"],
+  story: ["plan_before_src", "plan_after_src"],
+  site: ["designer_photo_url"]
+};
+
+function normalizeImagePaths(data) {
+  for (const [tab, fields] of Object.entries(imageFields)) {
+    for (const row of data[tab] || []) {
+      for (const field of fields) {
+        if (Object.prototype.hasOwnProperty.call(row, field)) row[field] = normalize(row[field]);
+      }
+    }
+  }
+}
+
+function assertValue(condition, message) {
+  if (!condition) throw new Error(`Override precondition failed: ${message}`);
+}
+
+function applyOverrides(data, overrides) {
+  const siteRows = data.site || [];
+  const site = Object.fromEntries(siteRows.map(row => [row.key, row]));
+  assertValue(site.hero_badge && site.hero_badge.value === "Студия Byplane", 'site.hero_badge === "Студия Byplane"');
+  assertValue(site.hero_title && String(site.hero_title.value).startsWith("C"), 'site.hero_title starts with Latin "C"');
+  assertValue(data.steps?.[1]?.title === "3 концепции", 'steps[1].title === "3 концепции"');
+  assertValue(String(data.steps?.[3]?.text || "").startsWith("Доводим"), 'steps[3].text starts with "Доводим"');
+  assertValue(data.stats?.[2]?.label === "концепции в каждом проекте", 'stats[2].label === "концепции в каждом проекте"');
+  assertValue(String(data.pricing?.[0]?.features || "").startsWith("3 варианта|"), 'pricing[0].features starts with "3 варианта|"');
+
+  Object.entries(overrides.site || {}).forEach(([key, value]) => {
+    assertValue(site[key], `site key exists: ${key}`);
+    site[key].value = key === "hero_title" ? String(site[key].value).replace(/^C/, value) : value;
+  });
+  Object.entries(overrides.steps || {}).forEach(([index, values]) => Object.assign(data.steps[Number(index)], values));
+  Object.entries(overrides.stats || {}).forEach(([index, values]) => Object.assign(data.stats[Number(index)], values));
+  Object.entries(overrides.pricing || {}).forEach(([index, values]) => Object.assign(data.pricing[Number(index)], values));
+}
+
+function validateImagePaths(data) {
+  const missing = [];
+  for (const [tab, fields] of Object.entries(imageFields)) {
+    for (const [index, row] of (data[tab] || []).entries()) {
+      for (const field of fields) {
+        const value = String(row[field] || "").trim();
+        if (value && !/^(https?:)?\/\//i.test(value) && !/^data:/i.test(value) && !fs.existsSync(path.resolve(value))) {
+          missing.push(`${tab}[${index}].${field}: ${value}`);
+        }
+      }
+    }
+  }
+  if (missing.length) throw new Error(`Missing image paths:\n${missing.join("\n")}`);
+}
+
 async function run() {
   const data = {};
   for (const tab of tabs) {
@@ -92,10 +164,20 @@ async function run() {
     data[tab] = await fetchTab(tab);
   }
 
+  normalizeImagePaths(data);
+  let overridesApplied = false;
+  if (overridesPath) {
+    const overrides = JSON.parse(fs.readFileSync(path.resolve(overridesPath), "utf8"));
+    applyOverrides(data, overrides);
+    overridesApplied = true;
+  }
+  if (checkPaths) validateImagePaths(data);
+
   const snapshot = {
     meta: {
       generated_at: new Date().toISOString(),
-      sheet_id: sheetId
+      sheet_id: sheetId,
+      overrides_applied: overridesApplied
     },
     tabs: data
   };

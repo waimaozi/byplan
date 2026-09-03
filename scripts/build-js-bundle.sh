@@ -7,6 +7,7 @@ OUT="$JS_DIR/bundle.js"
 
 FILES=(
   config.js
+  img-legacy-map.js
   sheets.js
   app-core.js
   app.js
