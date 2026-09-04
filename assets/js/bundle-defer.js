@@ -889,6 +889,10 @@
           <span class="anketa-label">Состав семьи (кто живёт постоянно / временно)</span>
           <textarea class="anketa-textarea" name="family_composition" placeholder="Например: 2 взрослых, 1 ребёнок, иногда бабушка."></textarea>
         </label>
+        <label class="anketa-field">
+          <span class="anketa-label">Промокод</span>
+          <input class="anketa-input" type="text" name="promocode" autocomplete="off" maxlength="32" placeholder="Если есть">
+        </label>
       </section>
 
       <!-- STEP 1: Спальня -->
@@ -1995,7 +1999,8 @@
       contact: {
         name: txt("contact_name"),
         contact: txt("contact_value"),
-        family_composition: txt("family_composition")
+        family_composition: txt("family_composition"),
+        promocode: txt("promocode")
       },
 
       sections: {
