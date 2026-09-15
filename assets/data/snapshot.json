@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-09-04T15:26:30.070Z",
+    "generated_at": "2026-09-15T10:14:24.660Z",
     "sheet_id": "1Sb3_veKvtCsc-gkx4dgeLr3H-UFV9wkv1I_Z-05Ngro",
     "overrides_applied": true
   },
@@ -44,7 +44,7 @@
       },
       {
         "key": "hero_cta_url",
-        "value": "#contact"
+        "value": "#anketa"
       },
       {
         "key": "secondary_cta_label",
@@ -212,7 +212,7 @@
       },
       {
         "key": "form_subtitle",
-        "value": "Откроется в новом окне."
+        "value": "Начните с имени и контакта — остальное можно заполнить позже. Ответим в течение дня."
       },
       {
         "key": "form_cta",
@@ -269,6 +269,10 @@
       {
         "key": "why_subtitle",
         "value": "Цифры, которые говорят сами за себя"
+      },
+      {
+        "key": "telegram_dm_url",
+        "value": ""
       }
     ],
     "pains": [

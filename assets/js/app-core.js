@@ -299,11 +299,82 @@
     });
   }
 
+  // ---- Yandex.Metrika goal helper (guarded; ym is a queue function from <head>) ----
+  const METRIKA_ID = 108522505;
+  function byplanGoal(id, params) {
+    try {
+      if (typeof window.ym === "function") window.ym(METRIKA_ID, "reachGoal", id, params || undefined);
+    } catch (_) {}
+  }
+
+  // ---- Quick-contact buttons (Telegram / WhatsApp / phone) ----
+  // renderQuickContacts(anchorEl, kv, { variant, lead, position, channels, anketa }) -> HTMLElement|null
+  //  variant:  "hero" | "modal" | "bar"  (class modifier + idempotency key via data-quick-contact)
+  //  lead:     optional lead-in text (rendered in .quick-contact__lead)
+  //  position: insertAdjacentElement position, default "beforeend"
+  //  channels: subset of ["telegram","whatsapp","phone"], default all
+  //  anketa:   true -> prepend <button data-anketa-open> "Анкета"
+  function renderQuickContacts(anchorEl, kv, opts = {}) {
+    if (!anchorEl) return null;
+    const variant = String(opts.variant || "hero");
+    const existing = document.querySelector('[data-quick-contact="' + variant + '"]');
+    if (existing) return existing;
+
+    const data = kv || {};
+    const channels = Array.isArray(opts.channels) ? opts.channels : ["telegram", "whatsapp", "phone"];
+    let digits = String(data.contact_phone || "").replace(/\D/g, "");
+    if (digits.length === 11 && digits[0] === "8") digits = "7" + digits.slice(1);
+    const hasPhone = digits.length >= 10;
+    const tgRaw = String(data.telegram_dm_url || "").trim();
+    const tg = (tgRaw && !tgRaw.includes("yourhandle")) ? String(sanitizeUrl(tgRaw) || "") : "";
+
+    const buttons = [];
+    if (channels.includes("telegram") && tg) buttons.push({ channel: "telegram", href: tg, label: "Telegram", external: true });
+    if (channels.includes("whatsapp") && hasPhone) buttons.push({ channel: "whatsapp", href: "https://wa.me/" + digits, label: "WhatsApp", external: true });
+    if (channels.includes("phone") && hasPhone) buttons.push({ channel: "phone", href: "tel:+" + digits, label: "Позвонить", external: false });
+    if (!buttons.length) return null;
+
+    const el = document.createElement("div");
+    el.className = "quick-contact quick-contact--" + variant;
+    el.setAttribute("data-quick-contact", variant);
+    if (opts.lead) {
+      const lead = document.createElement("span");
+      lead.className = "quick-contact__lead";
+      lead.textContent = String(opts.lead);
+      el.appendChild(lead);
+    }
+    const btns = document.createElement("div");
+    btns.className = "quick-contact__btns";
+    if (opts.anketa) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "btn btn--primary quick-contact__btn";
+      b.setAttribute("data-anketa-open", "");
+      b.textContent = "Анкета";
+      btns.appendChild(b);
+    }
+    buttons.forEach((item) => {
+      const a = document.createElement("a");
+      a.className = "btn btn--ghost quick-contact__btn";
+      a.setAttribute("data-channel", item.channel);
+      a.href = item.href;
+      a.textContent = item.label;
+      if (item.external) { a.target = "_blank"; a.rel = "noopener"; }
+      a.addEventListener("click", () => byplanGoal("contact_button", { channel: item.channel }));
+      btns.appendChild(a);
+    });
+    el.appendChild(btns);
+    anchorEl.insertAdjacentElement(opts.position || "beforeend", el);
+    return el;
+  }
+
   // ---- Export to global (so app.js can call without imports) ----
   if (!window.escapeHtml) window.escapeHtml = escapeHtml;
   if (!window.isExternal) window.isExternal = isExternal;
   if (!window.renderFAQ) window.renderFAQ = renderFAQ;
   if (!window.renderContacts) window.renderContacts = renderContacts;
+  if (!window.byplanGoal) window.byplanGoal = byplanGoal;
+  if (!window.renderQuickContacts) window.renderQuickContacts = renderQuickContacts;
 
   window.__BYPLAN_CORE__ = { version: "1.1.0" };
 })();

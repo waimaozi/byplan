@@ -123,7 +123,7 @@ function assertValue(condition, message) {
 }
 
 function applyOverrides(data, overrides) {
-  const siteRows = data.site || [];
+  const siteRows = data.site || (data.site = []);
   const site = Object.fromEntries(siteRows.map(row => [row.key, row]));
   assertValue(site.hero_badge && site.hero_badge.value === "Студия Byplane", 'site.hero_badge === "Студия Byplane"');
   assertValue(site.hero_title && String(site.hero_title.value).startsWith("C"), 'site.hero_title starts with Latin "C"');
@@ -133,7 +133,7 @@ function applyOverrides(data, overrides) {
   assertValue(String(data.pricing?.[0]?.features || "").startsWith("3 варианта|"), 'pricing[0].features starts with "3 варианта|"');
 
   Object.entries(overrides.site || {}).forEach(([key, value]) => {
-    assertValue(site[key], `site key exists: ${key}`);
+    if (!site[key]) { site[key] = { key, value: "" }; siteRows.push(site[key]); }   // upsert: allow new slots
     site[key].value = key === "hero_title" ? String(site[key].value).replace(/^C/, value) : value;
   });
   Object.entries(overrides.steps || {}).forEach(([index, values]) => Object.assign(data.steps[Number(index)], values));

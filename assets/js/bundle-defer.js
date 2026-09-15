@@ -808,6 +808,8 @@
     try { return new Date().toISOString(); } catch { return ""; }
   }
 
+  function goal(id, params) { if (typeof window.byplanGoal === "function") window.byplanGoal(id, params); }
+
   function safeParseJson(str) {
     try { return JSON.parse(str); } catch { return null; }
   }
@@ -874,7 +876,7 @@
       <!-- STEP 0: Контакты и семья -->
       <section class="anketa-step is-active" data-step="0" aria-labelledby="anketaStep0">
         <h3 id="anketaStep0">Контакты и семья</h3>
-        <p class="anketa-hint">Коротко, в свободной форме.</p>
+        <p class="anketa-hint">Имя и контакт — и мы уже сможем с вами связаться, даже если не дойдёте до конца анкеты.</p>
         <div class="anketa-grid">
           <label class="anketa-field">
             <span class="anketa-label">Ваше имя<span class="anketa-req">*</span></span>
@@ -892,6 +894,15 @@
         <label class="anketa-field">
           <span class="anketa-label">Промокод</span>
           <input class="anketa-input" type="text" name="promocode" autocomplete="off" maxlength="32" placeholder="Если есть">
+        </label>
+
+        <div class="anketa-divider"></div>
+
+        <label class="anketa-check" style="margin-top:10px;">
+          <input type="checkbox" name="privacy_accept" required>
+          <span>
+            Я согласен(на) с <a href="#" id="anketaPrivacyLink" target="_blank" rel="noopener">Политикой конфиденциальности</a>
+          </span>
         </label>
       </section>
 
@@ -1881,15 +1892,6 @@
 
         ${textareaInput("balcony_must_fit", "Что обязательно должно разместиться на балконе?")}
         ${textareaInput("balcony_must_not", "Что категорически не планируется размещать на балконе?")}
-
-        <div class="anketa-divider"></div>
-
-        <label class="anketa-check" style="margin-top:10px;">
-          <input type="checkbox" name="privacy_accept" required>
-          <span>
-            Я согласен(на) с <a href="#" id="anketaPrivacyLink" target="_blank" rel="noopener">Политикой конфиденциальности</a>
-          </span>
-        </label>
       </section>
 
       <!-- STEP SUCCESS -->
@@ -2120,7 +2122,8 @@
     kv: {},
     submitUrl: "",
     lastPayload: null,
-    lastActiveEl: null
+    lastActiveEl: null,
+    partialSentFor: ""
   };
 
   function ensureModal() {
@@ -2227,6 +2230,7 @@
     modal.hidden = false;
     document.body.classList.add("anketa-lock");
     state.isOpen = true;
+    goal("anketa_open");
 
     applyKVToModal(modal);
     restoreDraft(modal);
@@ -2320,7 +2324,10 @@
     const ok = validateCurrentStep(form, modal, state.activeStep);
     if (!ok) return;
 
-    setStep(state.activeStep + 1, modal);
+    if (state.activeStep === 0) { goal("anketa_contact"); sendPartialLead(form); }
+    const nextIdx = state.activeStep + 1;
+    goal("anketa_step", { step: nextIdx + 1 });   // 1-based, matches "Шаг N из 9"
+    setStep(nextIdx, modal);
   }
 
   function validateCurrentStep(form, modal, stepIdx) {
@@ -2409,6 +2416,7 @@
       __v: 1,
       __step: stepIdx,
       __saved_at: nowIso(),
+      partialSentFor: state.partialSentFor || "",
       values: values || {}
     };
 
@@ -2434,10 +2442,12 @@
     const raw = loadDraftRaw();
     if (!raw || !raw.values) {
       state.activeStep = 0;
+      state.partialSentFor = "";
       return;
     }
 
     applyFormValues(form, raw.values);
+    state.partialSentFor = String(raw.partialSentFor || "");
 
     // Restore children visibility based on draft value
     const childrenCount = raw.values.children_room_count || "none";
@@ -2459,6 +2469,7 @@
 
   function clearDraft(resetForm) {
     try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+    state.partialSentFor = "";
 
     const modal = document.getElementById("anketaModal");
     if (!modal) return;
@@ -2474,12 +2485,52 @@
     }
   }
 
+  // Fire-and-forget partial lead after step 0 validates; at most once per contact per draft.
+  function sendPartialLead(form) {
+    const vals = getFormValues(form);
+    const name = String(vals.contact_name || "").trim();
+    const contact = String(vals.contact_value || "").trim();
+    const family = String(vals.family_composition || "").trim();
+    const promocode = String(vals.promocode || "").trim();
+    if (!name || !contact || !vals.privacy_accept) return;
+    const normalized = contact.replace(/\s+/g, "").toLowerCase();
+    if (state.partialSentFor === normalized) return;
+    const url = String(state.submitUrl || "").trim();
+    if (!url) return;
+    state.partialSentFor = normalized;          // mark before sending: never resend for the same contact
+    saveDraft(vals, state.activeStep);
+    const payload = {
+      contact: { name, contact, family_composition: family, promocode },
+      partial: true,
+      step: 1,
+      report: { sections: [
+        { title: "Статус заявки", items: [{ question: "Анкета", answers: ["НЕ ЗАВЕРШЕНА — клиент заполнил только контакты (шаг 1 из 9). Свяжитесь сами."] }] },
+        { title: "Контакты и семья", items: [
+          { question: "Имя", answers: [name] },
+          { question: "Контакт", answers: [contact] },
+          { question: "Состав семьи", answers: [family] },
+          { question: "Промокод", answers: [promocode] }
+        ] }
+      ] }
+    };
+    try {
+      fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload), keepalive: true })
+        .then(res => { if (res && res.ok) goal("anketa_partial_sent"); })
+        .catch(() => {});
+    } catch (_) {}
+  }
+
   // ---- Submission ----
   async function submit(form, modal) {
     const ok = validateCurrentStep(form, modal, state.activeStep);
     if (!ok) return;
 
     if (!form.checkValidity()) {
+      // Jump to the step holding the first invalid control (e.g. privacy left unchecked in an
+      // old draft) so reportValidity() can actually show its bubble instead of a dead click.
+      const bad = Array.from(form.elements).find(el => typeof el.checkValidity === "function" && !el.checkValidity());
+      const stepEl = bad && bad.closest(".anketa-step");
+      if (stepEl && stepEl.getAttribute("data-step") !== String(state.activeStep)) setStep(Number(stepEl.getAttribute("data-step")), modal);
       form.reportValidity();
       return;
     }
@@ -2488,6 +2539,7 @@
     // Attach the human-readable Q&A report (same source the PDF uses) so n8n/email
     // can render real answers without re-deriving labels from machine-keyed sections.
     payload.report = collectReport(modal);
+    payload.report.sections.unshift({ title: "Статус заявки", items: [{ question: "Анкета", answers: ["ПОЛНАЯ АНКЕТА"] }] });
     state.lastPayload = payload;
 
     const submitUrl = String(state.submitUrl || "").trim();
@@ -2522,7 +2574,7 @@
     }
 
     showSuccess(modal, mode, errorText);
-    if (mode === "sent") { clearDraft(false); }
+    if (mode === "sent") { goal("anketa_submit"); clearDraft(false); }
   }
 
   function showSuccess(modal, mode, errorText) {
@@ -2761,6 +2813,13 @@
     const privacyUrl = String(state.kv.privacy_url || "").trim();
     const a = $("#anketaPrivacyLink", modal);
     if (a && privacyUrl) a.href = privacyUrl;
+
+    if (typeof window.renderQuickContacts === "function") {
+      window.renderQuickContacts($(".anketa-modal__dialog", modal), state.kv, {
+        variant: "modal", position: "beforeend",
+        lead: "Не уверены, что заполнять? Напишите в WhatsApp или позвоните — подскажем."
+      });
+    }
   }
 
   // ---- Open triggers ----

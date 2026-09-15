@@ -178,3 +178,27 @@
     justify-content: flex-start;
   }
 }
+
+/* ---- Quick contact (hero / modal / mobile sticky bar) ---- */
+.quick-contact{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+.quick-contact__lead{ flex-basis:100%; color:var(--muted); font-size:.95rem; }
+.quick-contact__btns{ display:flex; flex-wrap:wrap; gap:10px; }
+.quick-contact .btn{ width:auto; padding:10px 16px; }          /* beats .btn{width:100%} @640px */
+.quick-contact--hero{ margin-top:16px; }
+.quick-contact--modal{ padding:10px 18px 14px; border-top:1px solid rgba(var(--glass-rgb),.18); background:rgba(var(--glass-rgb),.12); font-size:.92rem; }
+.quick-contact--modal .quick-contact__lead{ flex-basis:auto; }
+.quick-contact--bar{ display:none; }
+@media (max-width: 768px){
+  .quick-contact--bar{
+    display:flex; flex-wrap:nowrap; gap:8px;
+    position:fixed; left:0; right:0; bottom:0; z-index:2400;
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+    background:rgba(var(--bg-rgb),.92); border-top:1px solid var(--border-medium);
+    -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+  }
+  .quick-contact--bar .quick-contact__btns{ flex:1; flex-wrap:nowrap; gap:8px; }
+  .quick-contact--bar .btn{ flex:1; min-width:0; padding:12px 8px; font-size:.92rem; white-space:nowrap; }
+  body.has-quick-bar{ padding-bottom:calc(68px + env(safe-area-inset-bottom)); }
+  body.has-quick-bar .floating-cta{ display:none; }
+  body.anketa-lock .quick-contact--bar{ display:none; }
+}

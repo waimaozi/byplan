@@ -758,6 +758,18 @@ function escapeAttr(str) {
     });
     applyKV(kv);
 
+    // Quick-contact escape hatches (hero + mobile sticky bar)
+    if (typeof window.renderQuickContacts === "function") {
+      window.renderQuickContacts(document.querySelector(".hero-actions"), kv, {
+        variant: "hero", position: "afterend",
+        lead: "Не хочется заполнять анкету? Напишите или позвоните:"
+      });
+      const bar = window.renderQuickContacts(document.body, kv, {
+        variant: "bar", position: "beforeend", anketa: true, channels: ["whatsapp", "phone"]
+      });
+      if (bar) document.body.classList.add("has-quick-bar");
+    }
+
     // 2) Small proof pills on hero
     const trustMini = (kv.trust_mini || "").split("|").map(s => s.trim()).filter(Boolean);
     if (trustMini.length) {
@@ -870,6 +882,8 @@ function escapeAttr(str) {
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    const heroCta = document.querySelector('.hero-actions [data-kv-link="hero_cta_url"]');
+    if (heroCta) heroCta.addEventListener("click", () => { if (window.byplanGoal) window.byplanGoal("hero_cta"); });
     main().catch(err => console.error(err));
   });
 
