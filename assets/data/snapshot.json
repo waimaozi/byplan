@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-09-15T10:14:24.660Z",
+    "generated_at": "2026-09-15T13:40:35.313Z",
     "sheet_id": "1Sb3_veKvtCsc-gkx4dgeLr3H-UFV9wkv1I_Z-05Ngro",
     "overrides_applied": true
   },
@@ -272,7 +272,7 @@
       },
       {
         "key": "telegram_dm_url",
-        "value": ""
+        "value": "https://t.me/byplandesign"
       }
     ],
     "pains": [
