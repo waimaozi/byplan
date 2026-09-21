@@ -220,7 +220,7 @@ def document(head, body, bits):
 '''
 
 
-def render_article(entry, post, imgs, bits, post_id):
+def render_article(entry, post, imgs, bits, post_id, entries):
     title = html.escape(entry["title"])
     description = html.escape(entry.get("description", ""), quote=True)
     slug = entry["slug"]
@@ -241,13 +241,25 @@ def render_article(entry, post, imgs, bits, post_id):
     content = "".join(f"<{kind}>{inner}</{kind}>" for kind, inner in blocks)
     figures = "".join(f'<figure><img loading="lazy" src="{src}" alt="{title}"></figure>' for src in imgs)
     shown_date = datetime.strptime(post["date"], "%Y-%m-%d").strftime("%d.%m.%Y")
-    body = f'''<article class="blog-article"><h1>{title}</h1><div class="blog-meta"><span>{html.escape(author)}</span><time datetime="{post["date"]}">{shown_date}</time></div>{content}{figures}<aside class="blog-cta"><h2>Хотите такую планировку?</h2><a class="btn btn--primary" href="https://byplan.ru/#anketa">Заполнить анкету</a><a class="btn btn--ghost" href="https://t.me/byplandesign">Написать в Telegram</a></aside><p class="blog-source">Источник: <a href="https://t.me/byplandesign/{post_id}">пост в Telegram-канале byplan</a></p><footer><a href="/blog/">← Все статьи</a><a href="/">На главную</a></footer></article>'''
+    others = [item for item in entries if item[0] != post_id]
+    same_author = [item for item in others if item[1].get("author", "team") == entry.get("author", "team")]
+    remaining = [item for item in others if item not in same_author]
+    related_items = (same_author + remaining)[:3]
+    related_links = "".join(
+        f'<li><a href="/blog/{item[1]["slug"]}/">{html.escape(item[1]["title"])}</a> '
+        f'<span class="blog-related-date">{datetime.strptime(item[2]["date"], "%Y-%m-%d").strftime("%d.%m.%Y")}</span></li>'
+        for item in related_items)
+    related = f'<section class="blog-related"><h2>Читайте также</h2><ul>{related_links}</ul></section>'
+    body = f'''<article class="blog-article"><h1>{title}</h1><div class="blog-meta"><span>{html.escape(author)}</span><time datetime="{post["date"]}">{shown_date}</time></div>{content}{figures}{related}<aside class="blog-cta"><h2>Хотите такую планировку?</h2><a class="btn btn--primary" href="https://byplan.ru/#anketa">Заполнить анкету</a><a class="btn btn--ghost" href="https://t.me/byplandesign">Написать в Telegram</a></aside><p class="blog-source">Источник: <a href="https://t.me/byplandesign/{post_id}">пост в Telegram-канале byplan</a></p><footer><a href="/blog/">← Все статьи</a><a href="/">На главную</a></footer></article>'''
     return document(head, body, bits)
 
 
 def render_index(entries, bits):
     description = "Статьи byplan о планировке квартир, дизайне и реализованных проектах."
-    head = f'''<title>Блог byplan — статьи о планировке квартир</title><meta name="description" content="{description}"><link rel="canonical" href="{SITE}/blog/">'''
+    index_title = "Блог byplan — статьи о планировке квартир"
+    newest_image = next((SITE + imgs[0] for _, _, _, imgs in entries if imgs), "")
+    image_meta = f'<meta property="og:image" content="{html.escape(newest_image, quote=True)}">' if newest_image else ""
+    head = f'''<title>{index_title}</title><meta name="description" content="{description}"><link rel="canonical" href="{SITE}/blog/"><meta property="og:title" content="{index_title}"><meta property="og:type" content="website"><meta property="og:url" content="{SITE}/blog/">{image_meta}'''
     cards = []
     for post_id, entry, post, imgs in entries:
         title = html.escape(entry["title"])
@@ -312,7 +324,7 @@ def build():
     bits = read_site_bits()
     for post_id, entry, post, imgs in entries:
         write_if_changed(ROOT / "blog" / entry["slug"] / "index.html",
-                         render_article(entry, post, imgs, bits, post_id))
+                         render_article(entry, post, imgs, bits, post_id, entries))
     write_if_changed(ROOT / "blog/index.html", render_index(entries, bits))
     prune_stale({entry["slug"] for _, entry, _, _ in entries})
     update_sitemap(entries)
