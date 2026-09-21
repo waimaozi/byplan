@@ -293,3 +293,6 @@
 | Кампания от 04.09.2026 | 333.00 | 1.00 | 1.00 | 1.00 | 38.00 |
 | byplan — поиск (API) 2026-09-18 | 139.00 | 1.00 | 1.00 | 1.00 | 1.00 |
 | Итого | 472.00 | 2.00 | 2.00 | 2.00 | 39.00 |
+
+## Negatives applied 2026-09-21 (Sen: «apply the series negatives now»)
+Source: SEARCH_QUERY_PERFORMANCE_REPORT 09-18..21 → 336 impressions / 8 clicks / 127 ₽ on panel-house series queries («1 464а», «ii 49», «п44т»…). Applied via campaigns.update: 102 → 151 campaign-level negatives (series ids п44/п44т/п3м/копэ/ii 49/1 515…, брежневка, хрущев, распашонка, балконом/лоджией, размеры, схема, чертеж, планировка дома, типовой). Direct lemma-merged plural forms; «и 155»-style ids with stop-word «и» were dropped by Direct (only «и209а» kept). Years/dimensions from the classifier were NOT applied.
