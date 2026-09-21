@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /assets/data/
+Disallow: /data/
 
 Sitemap: https://byplan.ru/sitemap.xml
 Host: byplan.ru
