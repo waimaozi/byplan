@@ -30,3 +30,6 @@ Brief: Sen 2026-09-18 «make Blog section on the site and copy articles from the
 
 ## Deployed 2026-09-21
 Pushed 3698be7..b03f69e on Sen's «push it». Live verification: /blog/ 200 (38 cards), sample article 200, sitemap 200 (39 blog locs), robots 200, blog.css 200, sample image 200, homepage carries 2 /blog/ links.
+
+## 2026-09-21 follow-up
+- 5cd1494: «Читайте также» block (3 related/article), hero «Читать блог» button (+1 line index.html), blog index og tags; `scripts/byplan-weekly-report.py` + launchd `ru.byplan.weekly-report` (Mon 09:00). Reviews: A PASS; B BLOCK on Webmaster host_id format — FALSE POSITIVE (`https:byplan.ru:443` is the id Yandex returns; live run succeeded) → annotated, shipped. Webmaster audit: reports/byplan-webmaster-audit-2026-09-21.md. Old co-owner sy@learsun.su unplugged (7595342), https enforced on GitHub Pages.
