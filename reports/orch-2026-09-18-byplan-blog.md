@@ -27,3 +27,6 @@ Brief: Sen 2026-09-18 «make Blog section on the site and copy articles from the
 2. Metrika: confirm /blog/ pageviews appear (Содержание → Страницы входа).
 3. Pin/announce the blog link in the Telegram channel.
 4. New posts later: `python3 scripts/blog-import.py fetch` → fill `title/description/author/lead_skip` for new stubs in `data/blog/titles.json` → `python3 scripts/blog-import.py build` → commit + push.
+
+## Deployed 2026-09-21
+Pushed 3698be7..b03f69e on Sen's «push it». Live verification: /blog/ 200 (38 cards), sample article 200, sitemap 200 (39 blog locs), robots 200, blog.css 200, sample image 200, homepage carries 2 /blog/ links.
