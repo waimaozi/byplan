@@ -222,6 +222,9 @@ body.anketa-lock{
   color: var(--text);
 }
 
+.anketa-error{display:block;margin-top:6px;font-size:13px;line-height:1.3;color:#c0392b}
+.anketa-input.is-invalid{border-color:#c0392b}
+
 .anketa-textarea{
   min-height: 120px;
   resize: vertical;
@@ -374,4 +377,3 @@ body.anketa-lock{
 .anketa-other-input.is-visible {
   display: block;
 }
-

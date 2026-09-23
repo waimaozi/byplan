@@ -1811,6 +1811,7 @@
       <!-- STEP 8: Балкон + конфиденциальность -->
       <section class="anketa-step" data-step="8" aria-labelledby="anketaStep8">
         <h3 id="anketaStep8">Балкон / Лоджия</h3>
+        <p class="anketa-hint anketa-contact-echo" data-contact-echo hidden></p>
 
         ${group("Планируется ли использование балкона?",
           checkboxGroup("balcony", "use", [
@@ -2188,7 +2189,10 @@
       saveDraft(getFormValues(form), state.activeStep);
     }, 250);
 
-    form.addEventListener("input", scheduleSave);
+    form.addEventListener("input", (e) => {
+      if (e.target.name === "contact_value") e.target.setCustomValidity("");
+      scheduleSave();
+    });
     form.addEventListener("change", scheduleSave);
   }
 
@@ -2288,6 +2292,14 @@
     if (backBtn) backBtn.textContent = (idx === 0) ? "Закрыть" : "Назад";
     if (nextBtn) nextBtn.textContent = (idx === state.totalSteps - 1) ? "Отправить" : "Далее";
 
+    const contactEcho = $("[data-contact-echo]", modal);
+    if (contactEcho && form && idx === state.totalSteps - 1) {
+      const name = String(form.elements.contact_name.value || "").trim();
+      const contact = String(form.elements.contact_value.value || "").trim();
+      contactEcho.textContent = name && contact ? `Свяжемся с вами: ${name}, ${contact}` : "";
+      contactEcho.hidden = !name || !contact;
+    }
+
     updateProgressUI(modal, idx + 1, state.totalSteps);
 
     const formVals = form ? getFormValues(form) : {};
@@ -2330,6 +2342,33 @@
     setStep(nextIdx, modal);
   }
 
+  function normalizeContact(raw) {
+    const value = String(raw || "").trim();
+    if (value.charAt(0) === "@") {
+      return /^@[A-Za-z0-9_]{5,32}$/.test(value)
+        ? { kind: "telegram", value, error: "" }
+        : { kind: "invalid", value, error: "Telegram-ник: от 5 символов, латиница, цифры, _" };
+    }
+    if (value.indexOf("@") !== -1) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)
+        ? { kind: "email", value, error: "" }
+        : { kind: "invalid", value, error: "Проверьте email" };
+    }
+
+    const digits = value.replace(/\D/g, "");
+    const phone = digits.length === 11 && /^[78]/.test(digits)
+      ? digits.slice(-10)
+      : (digits.length === 10 && digits.charAt(0) === "9" ? digits : "");
+    if (!phone) {
+      return { kind: "invalid", value, error: "Проверьте номер: нужно 11 цифр, например +7 900 123-45-67" };
+    }
+    return {
+      kind: "phone",
+      value: `+7 ${phone.slice(0, 3)} ${phone.slice(3, 6)}-${phone.slice(6, 8)}-${phone.slice(8)}`,
+      error: ""
+    };
+  }
+
   function validateCurrentStep(form, modal, stepIdx) {
     const step = modal.querySelector(`.anketa-step[data-step="${stepIdx}"]`);
     if (!step) return true;
@@ -2341,6 +2380,26 @@
         if (typeof f.reportValidity === "function") f.reportValidity();
         return false;
       }
+    }
+    const input = (stepIdx === 0 && form && form.elements) ? form.elements.contact_value : null;
+    if (input) {
+      const contact = normalizeContact(input.value);
+      let error = input.parentNode.querySelector(".anketa-error");
+      if (!error) {
+        error = document.createElement("span");
+        error.className = "anketa-error";
+        input.insertAdjacentElement("afterend", error);
+      }
+      input.setCustomValidity(contact.error);
+      input.classList.toggle("is-invalid", contact.kind === "invalid");
+      error.textContent = contact.error;
+      error.hidden = contact.kind !== "invalid";
+      error.style.display = contact.kind === "invalid" ? "" : "none";
+      if (contact.kind === "invalid") {
+        input.reportValidity();
+        return false;
+      }
+      input.value = contact.value;
     }
     return true;
   }
