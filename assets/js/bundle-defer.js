@@ -957,8 +957,8 @@
           </label>
         </div>
         <label class="anketa-field">
-          <span class="anketa-label">Площадь квартиры, м²<span class="anketa-req">*</span></span>
-          <input class="anketa-input" type="number" name="area_m2" inputmode="decimal" min="10" max="2000" step="0.1" placeholder="Например, 65" required>
+          <span class="anketa-label">Площадь квартиры, м²</span>
+          <input class="anketa-input" type="number" name="area_m2" inputmode="decimal" min="10" max="2000" step="0.1" placeholder="Например, 65">
         </label>
         <p class="anketa-price" data-price-estimate hidden></p>
         <label class="anketa-field">

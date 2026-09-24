@@ -30,12 +30,12 @@ Files: `assets/js/anketa-modal.js`, `assets/css/anketa-modal.css`, rebuilt `asse
 - Same collector feeds the PDF, the email, and the Telegram alert, so all three are fixed at once. n8n untouched.
 
 ### B. Area + live price
-- Step 0 gets a **required** number field «Площадь квартиры, м²» (10–2000, step 0.1, comma or dot accepted).
+- Step 0 gets an **optional** (Sen's call, v49 same day; was required in v48) number field «Площадь квартиры, м²» (10–2000, step 0.1, comma or dot accepted).
 - Live line under it: `Ориентировочная стоимость: 32 500 ₽ (65 м² × 500 ₽/м²)`; above 120 м²: `Площадь больше 120 м² — стоимость рассчитаем индивидуально после анкеты.` Defaults 500 / 120, overridable via site KV keys `price_per_m2` / `price_max_m2`.
 - Last-step echo: `Свяжемся с вами: Имя, +7 … · 65 м², ориентировочно 32 500 ₽`.
 - Payloads: `contact.area_m2` (number) and `contact.price_estimate` (number or null) in both the partial lead and the full submit; report section «Контакты и семья» gains «Площадь квартиры, м²» and «Ориентировочная стоимость». Baserow table 620 has no column for these yet (Baserow unreachable from the Mac) — they live in `payload_json` and in email/TG.
 
-**Decision taken without Sen (flip if wrong):** the area field is mandatory. One number, and it is exactly what makes the price visible before the client invests in 9 steps; it also reaches Natasha in the partial lead. To make it optional: remove `required` from the `area_m2` input in `anketa-modal.js`, rebuild.
+**v49 (2026-09-24, same day):** Sen decided the area field is OPTIONAL — `required` removed, cache-bust v=49. Empty area → no price line, `area_m2: null`, `price_estimate: null`.
 
 ## Process
 - Codex (local, `codex exec`) wrote the change from a spec; first run STOPPED on a spec mismatch (children containers use `style.display`, not `hidden`) — spec corrected, second run clean.
