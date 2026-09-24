@@ -3004,7 +3004,7 @@
     if (a && privacyUrl) a.href = privacyUrl;
 
     if (typeof window.renderQuickContacts === "function") {
-      window.renderQuickContacts($(".anketa-modal__dialog", modal), state.kv, {
+      window.renderQuickContacts($("#anketaBody", modal), state.kv, {
         variant: "modal", position: "beforeend",
         lead: "Не уверены, что заполнять? Напишите в WhatsApp или позвоните — подскажем."
       });

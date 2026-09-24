@@ -189,7 +189,33 @@ body.anketa-lock{
   .anketa-grid{ grid-template-columns: 1fr; }
   .anketa-progress__bar{ width: 92px; }
   .anketa-modal{ padding: 10px; }
-  .anketa-modal__dialog{ max-height: 92vh; }
+  .anketa-modal__dialog{
+    max-height: 92vh;
+    max-height: calc(100dvh - 20px);
+  }
+  .anketa-modal__kicker{ display: none; }
+  .anketa-modal__header{
+    padding: 10px 14px;
+    gap: 10px;
+    align-items: center;
+  }
+  .anketa-modal__title{
+    font-size: 1.15rem;
+    margin: 0;
+  }
+  .anketa-modal__meta{
+    margin-top: 2px;
+    gap: 8px;
+    font-size: .85rem;
+  }
+  .anketa-modal__header-actions{ gap: 6px; }
+  .anketa-modal__header-actions .anketa-link,
+  .anketa-modal__header-actions .anketa-modal__close{ font-size: .85rem; }
+  .anketa-modal__close{
+    width: 36px;
+    height: 36px;
+  }
+  .anketa-body{ padding: 14px; }
 }
 
 .anketa-field{
@@ -322,12 +348,17 @@ body.anketa-lock{
 
 @media (max-width: 760px){
   .anketa-nav{
-    flex-direction: column-reverse;
+    flex-direction: row;
+    flex-wrap: nowrap;
     align-items: stretch;
+    gap: 10px;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
   }
   .anketa-nav .btn{
-    width: 100%;
+    flex: 1 1 0;
+    width: auto;
     min-width: 0;
+    padding: 12px 10px;
   }
 }
 

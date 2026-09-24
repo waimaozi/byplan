@@ -185,9 +185,13 @@
 .quick-contact__btns{ display:flex; flex-wrap:wrap; gap:10px; }
 .quick-contact .btn{ width:auto; padding:10px 16px; }          /* beats .btn{width:100%} @640px */
 .quick-contact--hero{ margin-top:16px; }
-.quick-contact--modal{ padding:10px 18px 14px; border-top:1px solid rgba(var(--glass-rgb),.18); background:rgba(var(--glass-rgb),.12); font-size:.92rem; }
+.quick-contact--modal{ margin-top:22px; padding:14px 0 0; border-top:1px solid rgba(var(--glass-rgb),.18); background:none; font-size:.92rem; }
 .quick-contact--modal .quick-contact__lead{ flex-basis:auto; }
 .quick-contact--bar{ display:none; }
+@media (max-width: 760px){
+  .quick-contact--modal .quick-contact__lead{ flex-basis:100%; }
+  .quick-contact--modal .btn{ padding:8px 12px; font-size:.9rem; }
+}
 @media (max-width: 768px){
   .quick-contact--bar{
     display:flex; flex-wrap:nowrap; gap:8px;
