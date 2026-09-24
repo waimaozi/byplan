@@ -8,7 +8,9 @@
 
   const OPEN_HASH = "#anketa";
   const STORAGE_KEY = "byplan_anketa_draft_v3";
-  const FORM_VERSION = "byplan-anketa-v3";
+  const FORM_VERSION = "byplan-anketa-v4";
+  const PRICE_PER_M2_DEFAULT = 500;
+  const PRICE_MAX_M2_DEFAULT = 120;
   const DEFAULT_SUBMIT_URL = "https://n8n2.waimaozi.com/webhook/byplan-zayavka-mira";
 
   // ---- Utils ----
@@ -24,6 +26,73 @@
   }
 
   function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+
+  function priceConfig() {
+    const perM2 = Number(state.kv.price_per_m2);
+    const maxM2 = Number(state.kv.price_max_m2);
+    return {
+      perM2: Number.isFinite(perM2) && perM2 > 0 ? perM2 : PRICE_PER_M2_DEFAULT,
+      maxM2: Number.isFinite(maxM2) && maxM2 > 0 ? maxM2 : PRICE_MAX_M2_DEFAULT
+    };
+  }
+
+  function parseArea(raw) {
+    const area = Number(String(raw || "").trim().replace(",", "."));
+    return Number.isFinite(area) && area > 0 ? area : null;
+  }
+
+  function formatRub(n) {
+    return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  }
+
+  function formatArea(a) {
+    return String(a).replace(/\.0$/, "").replace(".", ",");
+  }
+
+  function estimatePrice(area) {
+    const { perM2, maxM2 } = priceConfig();
+    const over = area > maxM2;
+    if (over) {
+      return {
+        area,
+        perM2,
+        maxM2,
+        price: null,
+        over,
+        text: `Площадь больше ${formatArea(maxM2)} м² — стоимость рассчитаем индивидуально после анкеты.`,
+        answer: `Площадь больше ${formatArea(maxM2)} м² — рассчитаем индивидуально`,
+        short: `площадь ${formatArea(area)} м², стоимость по запросу`
+      };
+    }
+    const price = Math.round(area * perM2);
+    return {
+      area,
+      perM2,
+      maxM2,
+      price,
+      over,
+      text: `Ориентировочная стоимость: ${formatRub(price)} ₽ (${formatArea(area)} м² × ${formatRub(perM2)} ₽/м²)`,
+      answer: `${formatRub(price)} ₽ (${formatArea(area)} м² × ${formatRub(perM2)} ₽/м²)`,
+      short: `${formatArea(area)} м², ориентировочно ${formatRub(price)} ₽`
+    };
+  }
+
+  function updatePriceEstimate(modal) {
+    const form = $("#anketaForm", modal);
+    const output = $("[data-price-estimate]", modal);
+    if (!form || !output) return;
+    const area = parseArea(form.elements.area_m2.value);
+    const estimate = area ? estimatePrice(area) : null;
+    output.hidden = !area;
+    output.classList.toggle("is-over", !!(estimate && estimate.over));
+    if (!estimate) {
+      output.textContent = "";
+    } else if (estimate.over) {
+      output.textContent = estimate.text;
+    } else {
+      output.innerHTML = `Ориентировочная стоимость: <strong>${formatRub(estimate.price)} ₽</strong> (${formatArea(area)} м² × ${formatRub(estimate.perM2)} ₽/м²)`;
+    }
+  }
 
   function nowIso() {
     try { return new Date().toISOString(); } catch { return ""; }
@@ -108,6 +177,11 @@
             <input class="anketa-input" type="text" name="contact_value" placeholder="+7… или @username" required>
           </label>
         </div>
+        <label class="anketa-field">
+          <span class="anketa-label">Площадь квартиры, м²<span class="anketa-req">*</span></span>
+          <input class="anketa-input" type="number" name="area_m2" inputmode="decimal" min="10" max="2000" step="0.1" placeholder="Например, 65" required>
+        </label>
+        <p class="anketa-price" data-price-estimate hidden></p>
         <label class="anketa-field">
           <span class="anketa-label">Состав семьи (кто живёт постоянно / временно)</span>
           <textarea class="anketa-textarea" name="family_composition" placeholder="Например: 2 взрослых, 1 ребёнок, иногда бабушка."></textarea>
@@ -1216,6 +1290,9 @@
       };
     }
 
+    const area = parseArea(txt("area_m2"));
+    const priceEstimate = area ? estimatePrice(area) : null;
+
     return {
       form_version: FORM_VERSION,
       submitted_at: nowIso(),
@@ -1224,6 +1301,8 @@
         name: txt("contact_name"),
         contact: txt("contact_value"),
         family_composition: txt("family_composition"),
+        area_m2: area,
+        price_estimate: priceEstimate ? priceEstimate.price : null,
         promocode: txt("promocode")
       },
 
@@ -1412,6 +1491,7 @@
 
     form.addEventListener("input", (e) => {
       if (e.target.name === "contact_value") e.target.setCustomValidity("");
+      if (e.target.name === "area_m2") updatePriceEstimate(modal);
       scheduleSave();
     });
     form.addEventListener("change", scheduleSave);
@@ -1500,6 +1580,8 @@
     const idx = clamp(Number(stepIndex) || 0, 0, state.totalSteps - 1);
     state.activeStep = idx;
 
+    if (idx === 0) updatePriceEstimate(modal);
+
     steps.forEach(s => s.classList.remove("is-active"));
     const current = steps.find(s => String(s.getAttribute("data-step")) === String(idx));
     if (current) current.classList.add("is-active");
@@ -1517,7 +1599,10 @@
     if (contactEcho && form && idx === state.totalSteps - 1) {
       const name = String(form.elements.contact_name.value || "").trim();
       const contact = String(form.elements.contact_value.value || "").trim();
-      contactEcho.textContent = name && contact ? `Свяжемся с вами: ${name}, ${contact}` : "";
+      const area = parseArea(form.elements.area_m2.value);
+      const estimate = area ? estimatePrice(area) : null;
+      const priceShort = estimate ? ` · ${estimate.short}` : "";
+      contactEcho.textContent = name && contact ? `Свяжемся с вами: ${name}, ${contact}${priceShort}` : "";
       contactEcho.hidden = !name || !contact;
     }
 
@@ -1727,6 +1812,7 @@
     }
 
     applyFormValues(form, raw.values);
+    updatePriceEstimate(modal);
     state.partialSentFor = String(raw.partialSentFor || "");
 
     // Restore children visibility based on draft value
@@ -1771,6 +1857,8 @@
     const name = String(vals.contact_name || "").trim();
     const contact = String(vals.contact_value || "").trim();
     const family = String(vals.family_composition || "").trim();
+    const area = parseArea(vals.area_m2);
+    const estimate = area ? estimatePrice(area) : null;
     const promocode = String(vals.promocode || "").trim();
     if (!name || !contact || !vals.privacy_accept) return;
     const normalized = contact.replace(/\s+/g, "").toLowerCase();
@@ -1780,7 +1868,14 @@
     state.partialSentFor = normalized;          // mark before sending: never resend for the same contact
     saveDraft(vals, state.activeStep);
     const payload = {
-      contact: { name, contact, family_composition: family, promocode },
+      contact: {
+        name,
+        contact,
+        family_composition: family,
+        area_m2: area,
+        price_estimate: estimate ? estimate.price : null,
+        promocode
+      },
       partial: true,
       step: 1,
       report: { sections: [
@@ -1789,6 +1884,8 @@
           { question: "Имя", answers: [name] },
           { question: "Контакт", answers: [contact] },
           { question: "Состав семьи", answers: [family] },
+          { question: "Площадь квартиры, м²", answers: [area ? formatArea(area) : ""] },
+          { question: "Ориентировочная стоимость", answers: [estimate ? estimate.answer : ""] },
           { question: "Промокод", answers: [promocode] }
         ] }
       ] }
@@ -1915,6 +2012,25 @@
   }
 
   // ---- Human-readable report (for PDF) ----
+  function isHiddenWithin(el, step) {
+    let current = el;
+    while (current && current !== step) {
+      if (current.hasAttribute("hidden") || current.style.display === "none") return true;
+      current = current.parentElement;
+    }
+    return false;
+  }
+
+  function directBlockTitle(block) {
+    let titleEl;
+    try {
+      titleEl = block.querySelector(":scope > .anketa-block__title");
+    } catch (_) {
+      titleEl = block.querySelector(".anketa-block__title");
+    }
+    return titleEl ? titleEl.textContent.trim() : "";
+  }
+
   function collectReport(modal) {
     const form = $("#anketaForm", modal);
     if (!form) return { sections: [] };
@@ -1934,14 +2050,28 @@
         if (!input || !labelEl) return;
         const val = String(input.value || "").trim();
         if (!val) return;
-        items.push({ question: labelEl.textContent.trim(), answers: [val] });
+        const labelClone = labelEl.cloneNode(true);
+        $$(".anketa-req", labelClone).forEach(req => req.remove());
+        items.push({ question: labelClone.textContent.trim(), answers: [val] });
       });
+
+      const priceEstimate = step.querySelector("[data-price-estimate]");
+      if (priceEstimate && !priceEstimate.hidden && priceEstimate.textContent.trim()) {
+        items.push({ question: "Ориентировочная стоимость", answers: [priceEstimate.textContent.trim().replace(/^Ориентировочная стоимость:\s*/, "")] });
+      }
 
       // 2) Группы чекбоксов/радио (.anketa-block)
       $$(".anketa-block", step).forEach(block => {
-        const qTitle = block.querySelector(".anketa-block__title");
-        const question = qTitle ? qTitle.textContent.trim() : "";
-        const checks = $$(".anketa-check input:checked", block);
+        if (isHiddenWithin(block, step)) return;
+        const crumbs = [directBlockTitle(block)];
+        let ancestor = block.parentElement && block.parentElement.closest(".anketa-block");
+        while (ancestor && step.contains(ancestor)) {
+          crumbs.unshift(directBlockTitle(ancestor));
+          ancestor = ancestor.parentElement && ancestor.parentElement.closest(".anketa-block");
+        }
+        const question = crumbs.filter(Boolean).join(" → ");
+        const checks = $$(".anketa-check input:checked", block)
+          .filter(inp => inp.closest(".anketa-block") === block);
         if (!checks.length) return;
         const answers = checks.map(inp => {
           const lab = block.querySelector(`label[for="${inp.id}"]`);
